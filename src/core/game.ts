@@ -1,8 +1,8 @@
-import { BIRD_CATALOG, CATALOG_CHARACTER_POOL } from './birdCatalog';
-import { createWeightedOffer, normalizeSeed } from './rng';
-import type { BirdDefinition, GameState, RackTile } from './types';
+import { BIRD_CATALOG } from './birdCatalog';
+import { getLevel } from './levels';
+import type { BirdDefinition, BoardTile, GameState, RackTile } from './types';
 
-export const RACK_SIZE = 10;
+export const TRAY_SIZE = 10;
 
 function countCharacters(characters: readonly string[]): Map<string, number> {
   const counts = new Map<string, number>();
@@ -11,14 +11,12 @@ function countCharacters(characters: readonly string[]): Map<string, number> {
   }
   return counts;
 }
+
 export function findFormableBirds(
-  rack: readonly (RackTile | null)[],
+  tray: readonly (RackTile | null)[],
   catalog: readonly BirdDefinition[] = BIRD_CATALOG,
 ): BirdDefinition[] {
-  const available = countCharacters(
-    rack.flatMap((tile) => (tile ? [tile.character] : [])),
-  );
-
+  const available = countCharacters(tray.flatMap((tile) => (tile ? [tile.character] : [])));
   return catalog.filter((bird) => {
     const needed = countCharacters(bird.characters);
     return [...needed.entries()].every(
@@ -27,77 +25,87 @@ export function findFormableBirds(
   });
 }
 
-export function isRackFull(rack: readonly (RackTile | null)[]): boolean {
-  return rack.every(Boolean);
+export function isTrayFull(tray: readonly (RackTile | null)[]): boolean {
+  return tray.every(Boolean);
 }
 
-export function createGame(seed = Date.now()): GameState {
-  const normalizedSeed = normalizeSeed(seed);
-  const generated = createWeightedOffer(normalizedSeed, CATALOG_CHARACTER_POOL);
+export function isBoardTileExposed(state: GameState, tileId: string): boolean {
+  const tile = state.boardTiles.find((candidate) => candidate.id === tileId);
+  if (!tile || tile.removed) return false;
+  return tile.blockedBy.every((blockerId) =>
+    state.boardTiles.find((candidate) => candidate.id === blockerId)?.removed === true,
+  );
+}
+
+export function getExposedBoardTiles(state: GameState): BoardTile[] {
+  return state.boardTiles.filter((tile) => isBoardTileExposed(state, tile.id));
+}
+
+export function createGame(levelId = 'level-1'): GameState {
+  const level = getLevel(levelId);
   return {
-    seed: normalizedSeed,
-    rngState: generated.rngState,
-    rack: Array<RackTile | null>(RACK_SIZE).fill(null),
-    currentOffer: generated.offer,
-    selectedRackTileIds: [],
+    levelId,
+    boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
+    tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
+    selectedTrayTileIds: [],
     score: 0,
+    completedBirdCount: 0,
     discoveredBirdIds: [],
     lastCompletedBird: null,
     phase: 'playing',
-    nextTileId: 1,
   };
 }
 
-export function chooseOfferCharacter(state: GameState, character: string): GameState {
+export function selectBoardTile(state: GameState, tileId: string): GameState {
   if (
     state.phase !== 'playing' ||
-    isRackFull(state.rack) ||
-    !state.currentOffer.includes(character)
+    isTrayFull(state.tray) ||
+    !isBoardTileExposed(state, tileId)
   ) {
     return state;
   }
 
-  const slotIndex = state.rack.findIndex((tile) => tile === null);
-  const rack = [...state.rack];
-  rack[slotIndex] = { id: `tile-${state.nextTileId}`, character };
-  const generated = createWeightedOffer(state.rngState, CATALOG_CHARACTER_POOL);
-  const phase =
-    isRackFull(rack) && findFormableBirds(rack).length === 0 ? 'game_over' : 'playing';
+  const boardTile = state.boardTiles.find((tile) => tile.id === tileId);
+  if (!boardTile) return state;
 
-  return {
-    ...state,
-    rack,
-    currentOffer: generated.offer,
-    rngState: generated.rngState,
-    lastCompletedBird: null,
-    phase,
-    nextTileId: state.nextTileId + 1,
-  };
+  const trayIndex = state.tray.findIndex((tile) => tile === null);
+  const tray = [...state.tray];
+  tray[trayIndex] = { id: boardTile.id, character: boardTile.character };
+  const boardTiles = state.boardTiles.map((tile) =>
+    tile.id === tileId ? { ...tile, removed: true } : tile,
+  );
+  const boardCleared = boardTiles.every((tile) => tile.removed);
+  const phase = boardCleared
+    ? 'level_complete'
+    : isTrayFull(tray) && findFormableBirds(tray).length === 0
+      ? 'game_over'
+      : 'playing';
+
+  return { ...state, boardTiles, tray, lastCompletedBird: null, phase };
 }
 
-export function toggleRackTile(state: GameState, tileId: string): GameState {
-  if (state.phase !== 'playing' || !state.rack.some((tile) => tile?.id === tileId)) {
+export function toggleTrayTile(state: GameState, tileId: string): GameState {
+  if (state.phase !== 'playing' || !state.tray.some((tile) => tile?.id === tileId)) {
     return state;
   }
-
-  const selected = state.selectedRackTileIds;
+  const selected = state.selectedTrayTileIds;
   return {
     ...state,
-    selectedRackTileIds: selected.includes(tileId)
+    selectedTrayTileIds: selected.includes(tileId)
       ? selected.filter((id) => id !== tileId)
       : [...selected, tileId],
   };
 }
 
 export function clearSelection(state: GameState): GameState {
-  return state.selectedRackTileIds.length === 0
+  return state.selectedTrayTileIds.length === 0
     ? state
-    : { ...state, selectedRackTileIds: [] };
+    : { ...state, selectedTrayTileIds: [] };
 }
 
 export function getSelectedCharacters(state: GameState): string[] {
-  return state.selectedRackTileIds.flatMap((id) => {
-    const tile = state.rack.find((candidate) => candidate?.id === id);
+  return state.selectedTrayTileIds.flatMap((id) => {
+    const tile = state.tray.find((candidate) => candidate?.id === id);
     return tile ? [tile.character] : [];
   });
 }
@@ -115,21 +123,21 @@ export function composeSelectedBird(state: GameState): GameState {
   const bird = getSelectedBird(state);
   if (!bird) return state;
 
-  const consumed = new Set(state.selectedRackTileIds);
+  const consumed = new Set(state.selectedTrayTileIds);
   const isNew = !state.discoveredBirdIds.includes(bird.id);
   return {
     ...state,
-    rack: state.rack.map((tile) => (tile && consumed.has(tile.id) ? null : tile)),
-    selectedRackTileIds: [],
+    tray: state.tray.map((tile) => (tile && consumed.has(tile.id) ? null : tile)),
+    selectedTrayTileIds: [],
     score: state.score + bird.score,
+    completedBirdCount: state.completedBirdCount + 1,
     discoveredBirdIds: isNew
       ? [...state.discoveredBirdIds, bird.id]
       : state.discoveredBirdIds,
     lastCompletedBird: { birdId: bird.id, score: bird.score, isNew },
-    phase: 'playing',
   };
 }
 
-export function restartGame(state: GameState): GameState {
-  return createGame(state.seed);
+export function restartLevel(state: GameState): GameState {
+  return createGame(state.levelId);
 }

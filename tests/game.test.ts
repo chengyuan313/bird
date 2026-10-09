@@ -1,123 +1,137 @@
 import { describe, expect, it } from 'vitest';
-import { BIRD_CATALOG, CATALOG_CHARACTER_POOL } from '../src/core/birdCatalog';
+import { BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
-  chooseOfferCharacter,
   composeSelectedBird,
   createGame,
   findFormableBirds,
-  restartGame,
-  toggleRackTile,
+  getExposedBoardTiles,
+  getSelectedCharacters,
+  isBoardTileExposed,
+  restartLevel,
+  selectBoardTile,
+  toggleTrayTile,
+  TRAY_SIZE,
 } from '../src/core/game';
-import { createWeightedOffer, nextRandom } from '../src/core/rng';
-import type { BirdDefinition, GameState, RackTile } from '../src/core/types';
+import { AUTHORED_LEVELS } from '../src/core/levels';
+import type { GameState, RackTile } from '../src/core/types';
 
-function rackFrom(text: string): Array<RackTile | null> {
-  return [
-    ...Array.from(text).map((character, index) => ({ id: `manual-${index}`, character })),
-    ...Array<RackTile | null>(Math.max(0, 10 - Array.from(text).length)).fill(null),
-  ];
+function trayFrom(text: string): Array<RackTile | null> {
+  const tiles = Array.from(text).map((character, index) => ({ id: `tray-${index}`, character }));
+  return [...tiles, ...Array<RackTile | null>(Math.max(0, TRAY_SIZE - tiles.length)).fill(null)];
 }
 
-function withRack(text: string): GameState {
-  return { ...createGame(7), rack: rackFrom(text) };
-}
-
-function selectCharacters(state: GameState, indexes: number[]): GameState {
+function selectTrayIndexes(state: GameState, indexes: number[]): GameState {
   return indexes.reduce((current, index) => {
-    const tile = current.rack[index];
-    return tile ? toggleRackTile(current, tile.id) : current;
+    const tile = current.tray[index];
+    return tile ? toggleTrayTile(current, tile.id) : current;
   }, state);
 }
 
-describe('seeded gameplay core', () => {
-  it('uses stable semantic bird IDs and artwork keys', () => {
-    expect(BIRD_CATALOG.every((bird) => bird.id === `bird:${bird.assetKey}`)).toBe(true);
-    expect(new Set(BIRD_CATALOG.map((bird) => bird.assetKey)).size).toBe(BIRD_CATALOG.length);
-    expect(BIRD_CATALOG.find((bird) => bird.name === '红腹锦鸡')).toMatchObject({
-      id: 'bird:hongfujinji',
-      assetKey: 'hongfujinji',
-    });
+describe('layered board gameplay core', () => {
+  it('does not allow a blocked board tile to be selected', () => {
+    const state = createGame();
+    const blocked = state.boardTiles.find((tile) => tile.blockedBy.length > 0)!;
+    expect(isBoardTileExposed(state, blocked.id)).toBe(false);
+    expect(selectBoardTile(state, blocked.id)).toBe(state);
   });
 
-  it('reproduces random values and offers from the same seed', () => {
-    expect(nextRandom(42)).toEqual(nextRandom(42));
-    expect(createGame(42).currentOffer).toEqual(createGame(42).currentOffer);
+  it('moves an exposed tile into the tray exactly once', () => {
+    const state = createGame();
+    const exposed = getExposedBoardTiles(state)[0];
+    const next = selectBoardTile(state, exposed.id);
+    expect(next.tray.filter((tile) => tile?.id === exposed.id)).toHaveLength(1);
+    expect(selectBoardTile(next, exposed.id)).toBe(next);
   });
 
-  it('creates offers with exactly 3 distinct catalog characters', () => {
-    const result = createWeightedOffer(99, CATALOG_CHARACTER_POOL);
-    expect(result.offer).toHaveLength(3);
-    expect(new Set(result.offer).size).toBe(3);
-    expect(result.offer.every((character) => CATALOG_CHARACTER_POOL.includes(character))).toBe(true);
+  it('removing a blocker exposes the tile directly below', () => {
+    const state = createGame();
+    const below = state.boardTiles.find((tile) => tile.blockedBy.length === 1)!;
+    const blockerId = below.blockedBy[0];
+    expect(isBoardTileExposed(state, below.id)).toBe(false);
+    expect(isBoardTileExposed(selectBoardTile(state, blockerId), below.id)).toBe(true);
   });
 
-  it('adds exactly one chosen offer tile and advances the offer', () => {
-    const state = createGame(12);
-    const chosen = state.currentOffer[1];
-    const next = chooseOfferCharacter(state, chosen);
-    expect(next.rack.filter(Boolean)).toHaveLength(1);
-    expect(next.rack[0]?.character).toBe(chosen);
-    expect(next.currentOffer).not.toBe(state.currentOffer);
+  it('keeps the tray capacity at 10 and rejects an eleventh tile', () => {
+    const state = { ...createGame(), tray: trayFrom('大大大大大大大大大大') };
+    const exposed = getExposedBoardTiles(state)[0];
+    expect(state.tray).toHaveLength(10);
+    expect(selectBoardTile(state, exposed.id)).toBe(state);
   });
 
-  it('leaves all state unchanged for an invalid composition', () => {
-    const state = selectCharacters(withRack('喜鹭'), [0, 1]);
-    expect(composeSelectedBird(state)).toBe(state);
-  });
-
-  it('consumes the correct tiles for a valid 2-character bird', () => {
-    const state = selectCharacters(withRack('喜鹊白'), [0, 1]);
-    const next = composeSelectedBird(state);
-    expect(next.rack.map((tile) => tile?.character ?? '').join('')).toBe('白');
-    expect(next.score).toBe(10);
-  });
-
-  it('scores a valid 3-character bird at 30', () => {
-    const state = selectCharacters(withRack('灰喜鹊'), [0, 1, 2]);
-    expect(composeSelectedBird(state).score).toBe(30);
-  });
-
-  it('scores a valid 4-character bird at 70', () => {
-    const state = selectCharacters(withRack('珠颈斑鸠'), [0, 1, 2, 3]);
-    expect(composeSelectedBird(state).score).toBe(70);
-  });
-
-  it('respects duplicate-character multiplicity', () => {
-    const repeatedBird: BirdDefinition = {
-      id: 'bird:double', name: '鹭鹭', characters: ['鹭', '鹭'], score: 10, assetKey: 'double',
-    };
-    expect(findFormableBirds(rackFrom('鹭'), [repeatedBird])).toEqual([]);
-    expect(findFormableBirds(rackFrom('鹭鹭'), [repeatedBird])).toEqual([repeatedBird]);
-  });
-
-  it('detects every bird formable from an unordered rack', () => {
-    const names = findFormableBirds(rackFrom('鹭白喜鹊')).map((bird) => bird.name);
-    expect(names).toContain('喜鹊');
-    expect(names).toContain('白鹭');
-  });
-
-  it('does not game over on a full rack with a formable bird', () => {
-    const state = withRack('喜鹊大大大大大大大');
-    state.currentOffer = ['白', '鹭', '鸡'];
-    const next = chooseOfferCharacter(state, '白');
-    expect(next.rack.filter(Boolean)).toHaveLength(10);
-    expect(findFormableBirds(next.rack).map((bird) => bird.name)).toContain('喜鹊');
+  it('does not game over when a newly full tray has a formable bird', () => {
+    const state = { ...createGame(), tray: trayFrom('喜鹊大大大大大大大') };
+    const next = selectBoardTile(state, getExposedBoardTiles(state)[0].id);
+    expect(next.tray.filter(Boolean)).toHaveLength(10);
+    expect(findFormableBirds(next.tray).map((bird) => bird.name)).toContain('喜鹊');
     expect(next.phase).toBe('playing');
   });
 
-  it('games over on a full rack with no formable bird', () => {
-    const state = withRack('大大大大大大大大大');
-    state.currentOffer = ['小', '鹭', '白'];
-    const next = chooseOfferCharacter(state, '小');
-    expect(next.rack.filter(Boolean)).toHaveLength(10);
-    expect(findFormableBirds(next.rack)).toEqual([]);
+  it('games over when a newly full tray has no formable bird', () => {
+    const state = { ...createGame(), tray: trayFrom('大大大大大大大大大') };
+    const next = selectBoardTile(state, getExposedBoardTiles(state)[0].id);
+    expect(next.tray.filter(Boolean)).toHaveLength(10);
+    expect(findFormableBirds(next.tray)).toEqual([]);
     expect(next.phase).toBe('game_over');
   });
 
-  it('restart restores initial gameplay for the same seed', () => {
-    const initial = createGame(321);
-    const played = chooseOfferCharacter(initial, initial.currentOffer[0]);
-    const restarted = restartGame({ ...played, score: 70, discoveredBirdIds: [BIRD_CATALOG[0].id] });
-    expect(restarted).toEqual(initial);
+  it('preserves the player-selected tray order', () => {
+    const state = { ...createGame(), tray: trayFrom('喜鹊') };
+    const selected = selectTrayIndexes(state, [1, 0]);
+    expect(getSelectedCharacters(selected)).toEqual(['鹊', '喜']);
+  });
+
+  it('consumes only selected tray tiles for a valid bird', () => {
+    const state = selectTrayIndexes({ ...createGame(), tray: trayFrom('喜鹊白') }, [0, 1]);
+    const next = composeSelectedBird(state);
+    expect(next.tray.map((tile) => tile?.character ?? '').join('')).toBe('白');
+    expect(next.score).toBe(10);
+    expect(next.completedBirdCount).toBe(1);
+  });
+
+  it('changes nothing for an invalid bird sequence', () => {
+    const state = selectTrayIndexes({ ...createGame(), tray: trayFrom('喜白') }, [0, 1]);
+    expect(composeSelectedBird(state)).toBe(state);
+  });
+
+  it('completes the level when the last board tile is removed', () => {
+    const initial = createGame();
+    const lastId = initial.boardTiles.at(-1)!.id;
+    const state = {
+      ...initial,
+      boardTiles: initial.boardTiles.map((tile) => ({ ...tile, removed: tile.id !== lastId })),
+    };
+    expect(selectBoardTile(state, lastId).phase).toBe('level_complete');
+  });
+
+  it('restarting restores the exact authored level', () => {
+    const initial = createGame('level-2');
+    const played = selectBoardTile(initial, getExposedBoardTiles(initial)[0].id);
+    expect(restartLevel({ ...played, score: 70 })).toEqual(initial);
+  });
+
+  it('keeps stable semantic bird IDs unchanged', () => {
+    expect(BIRD_CATALOG.find((bird) => bird.name === '喜鹊')).toMatchObject({ id: 'bird:xique', assetKey: 'xique' });
+    expect(BIRD_CATALOG.find((bird) => bird.name === '红腹锦鸡')).toMatchObject({ id: 'bird:hongfujinji', assetKey: 'hongfujinji' });
+  });
+
+  it('defines three authored levels at the requested sizes and depths', () => {
+    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 44]);
+    expect(AUTHORED_LEVELS.map((level) => Math.max(...level.tiles.map((tile) => tile.layer)))).toEqual([2, 3, 4]);
+  });
+
+  it.each(AUTHORED_LEVELS)('$label has a replay-verified authored clear path', (level) => {
+    let state = createGame(level.id);
+    const stackKeys = [...new Set(level.tiles.map((tile) => tile.id.replace(/-tile-\d+$/, '')))];
+
+    for (const stackKey of stackKeys) {
+      const stackTiles = level.tiles.filter((tile) => tile.id.startsWith(`${stackKey}-tile-`));
+      for (const tile of stackTiles) state = selectBoardTile(state, tile.id);
+      if (state.phase === 'level_complete') break;
+      for (const tile of stackTiles) state = toggleTrayTile(state, tile.id);
+      state = composeSelectedBird(state);
+    }
+
+    expect(state.phase).toBe('level_complete');
+    expect(state.boardTiles.every((tile) => tile.removed)).toBe(true);
   });
 });

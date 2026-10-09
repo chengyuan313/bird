@@ -6,7 +6,7 @@ import { renderGame } from './ui/render';
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Missing #app root element.');
 
-let state: GameState = createGame(Date.now());
+let state: GameState = createGame();
 
 function update(nextState: GameState): void {
   state = nextState;

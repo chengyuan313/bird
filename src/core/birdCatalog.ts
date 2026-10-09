@@ -32,7 +32,3 @@ export const BIRD_CATALOG: readonly BirdDefinition[] = catalogEntries.map(({ ass
   score: SCORE_BY_LENGTH[Array.from(name).length],
   assetKey,
 }));
-
-export const CATALOG_CHARACTER_POOL: readonly string[] = BIRD_CATALOG.flatMap(
-  (bird) => bird.characters,
-);
