@@ -21,7 +21,6 @@ interface SolutionBird {
 function winningActions(birds: readonly SolutionBird[]): WinningAction[] {
   return birds.flatMap(({ birdId, tileIds }) => [
     ...tileIds.map((tileId): WinningAction => ({ type: 'take', tileId })),
-    ...tileIds.map((tileId): WinningAction => ({ type: 'select', tileId })),
     { type: 'compose', birdId },
   ]);
 }

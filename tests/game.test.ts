@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
-  composeSelectedBird,
+  composeBird,
   createGame,
   evaluateTerminalState,
+  findFormableBirds,
   getExposedBoardTiles,
-  getSelectedBird,
   isBoardTileExposed,
   restartLevel,
   selectBoardTile,
-  toggleTrayTile,
   TRAY_SIZE,
 } from '../src/core/game';
 import { AUTHORED_LEVELS } from '../src/core/levels';
@@ -33,12 +32,12 @@ function withEmptyBoard(state: GameState): GameState {
 
 function solutionGroups(level: LevelDefinition): Array<{ birdId: string; tileIds: string[] }> {
   const groups: Array<{ birdId: string; tileIds: string[] }> = [];
-  let selected: string[] = [];
+  let taken: string[] = [];
   for (const action of level.winningSolution) {
-    if (action.type === 'select') selected.push(action.tileId);
+    if (action.type === 'take') taken.push(action.tileId);
     if (action.type === 'compose') {
-      groups.push({ birdId: action.birdId, tileIds: selected });
-      selected = [];
+      groups.push({ birdId: action.birdId, tileIds: taken });
+      taken = [];
     }
   }
   return groups;
@@ -65,15 +64,12 @@ function replayWinningSolution(level: LevelDefinition): {
       state = next;
       takenIds.push(action.tileId);
       maxTrayCount = Math.max(maxTrayCount, state.tray.filter(Boolean).length);
-    } else if (action.type === 'select') {
-      expect(state.tray.some((tile) => tile?.id === action.tileId)).toBe(true);
-      state = toggleTrayTile(state, action.tileId);
-      expect(state.selectedTrayTileIds.at(-1)).toBe(action.tileId);
     } else {
-      expect(getSelectedBird(state)?.id).toBe(action.birdId);
-      consumedIds.push(...state.selectedTrayTileIds);
-      state = composeSelectedBird(state);
-      expect(state.selectedTrayTileIds).toEqual([]);
+      expect(findFormableBirds(state.tray).map((bird) => bird.id)).toContain(action.birdId);
+      const beforeIds = state.tray.flatMap((tile) => tile ? [tile.id] : []);
+      state = composeBird(state, action.birdId);
+      const afterIds = new Set(state.tray.flatMap((tile) => tile ? [tile.id] : []));
+      consumedIds.push(...beforeIds.filter((id) => !afterIds.has(id)));
     }
   }
 
@@ -185,10 +181,8 @@ describe('terminal-state evaluation', () => {
   });
 
   it('composing the final bird immediately completes the level', () => {
-    let state = withEmptyBoard({ ...createGame(), tray: trayFrom('喜鹊'), phase: 'playing' });
-    state = toggleTrayTile(state, 'tray-0');
-    state = toggleTrayTile(state, 'tray-1');
-    const next = composeSelectedBird(state);
+    const state = withEmptyBoard({ ...createGame(), tray: trayFrom('喜鹊'), phase: 'playing' });
+    const next = composeBird(state, 'bird:xique');
     expect(next.tray.every((tile) => tile === null)).toBe(true);
     expect(next.phase).toBe('level_complete');
   });
@@ -196,6 +190,81 @@ describe('terminal-state evaluation', () => {
   it('keeps a full tray playable when at least one bird is formable', () => {
     const state = { ...createGame(), tray: trayFrom('喜鹊大大大大大大大大') };
     expect(evaluateTerminalState(state.boardTiles, state.tray)).toBe('playing');
+  });
+});
+
+describe('automatic recognition and one-tap composition', () => {
+  it('recognizes one bird regardless of tray order', () => {
+    expect(findFormableBirds(trayFrom('鹊喜')).map((bird) => bird.id)).toContain('bird:xique');
+  });
+
+  it('recognizes multiple simultaneous options', () => {
+    const ids = findFormableBirds(trayFrom('红隼腹锦鸡')).map((bird) => bird.id);
+    expect(ids).toContain('bird:hongsun');
+    expect(ids).toContain('bird:hongfujinji');
+  });
+
+  it('respects duplicate-character quantities during recognition', () => {
+    const repeatedBird = {
+      id: 'bird:test-repeat',
+      name: '白白鹭',
+      characters: ['白', '白', '鹭'],
+      score: 30,
+      assetKey: 'test-repeat',
+    };
+    expect(findFormableBirds(trayFrom('白鹭'), [repeatedBird])).toEqual([]);
+    expect(findFormableBirds(trayFrom('鹭白白'), [repeatedBird])).toEqual([repeatedBird]);
+
+    const composed = composeBird(
+      { ...createGame(), tray: trayFrom('白鹭白白') },
+      repeatedBird.id,
+      [repeatedBird],
+    );
+    expect(composed.tray.map((tile) => tile?.character ?? null).slice(0, 4)).toEqual([
+      null, null, null, '白',
+    ]);
+  });
+
+  it('consumes the earliest matching tiles and preserves unrelated characters', () => {
+    const state = { ...createGame(), tray: trayFrom('白隼鹭白') };
+    const next = composeBird(state, 'bird:bailu');
+    expect(next.tray.map((tile) => tile?.character ?? null).slice(0, 4)).toEqual([
+      null, '隼', null, '白',
+    ]);
+  });
+
+  it('lets the player choose a short or long bird without auto-consuming either', () => {
+    const state = { ...createGame(), tray: trayFrom('红隼腹锦鸡') };
+    const short = composeBird(state, 'bird:hongsun');
+    expect(short.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['腹', '锦', '鸡']);
+    expect(state.score).toBe(0);
+
+    const long = composeBird(state, 'bird:hongfujinji');
+    expect(long.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['隼']);
+  });
+
+  it('returns the original state for invalid and unformable bird requests', () => {
+    const state = { ...createGame(), tray: trayFrom('喜') };
+    expect(composeBird(state, 'bird:not-real')).toBe(state);
+    expect(composeBird(state, 'bird:xique')).toBe(state);
+  });
+
+  it('updates score, completed count, and discovery state', () => {
+    const state = { ...createGame(), tray: trayFrom('喜鹊') };
+    const next = composeBird(state, 'bird:xique');
+    expect(next).toMatchObject({
+      score: 10,
+      completedBirdCount: 1,
+      discoveredBirdIds: ['bird:xique'],
+      lastCompletedBird: { birdId: 'bird:xique', score: 10, isNew: true },
+    });
+  });
+
+  it('works during board-empty cleanup', () => {
+    const state = withEmptyBoard({ ...createGame(), tray: trayFrom('喜鹊大'), phase: 'playing' });
+    const next = composeBird(state, 'bird:xique');
+    expect(next.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['大']);
+    expect(next.phase).toBe('game_over');
   });
 });
 

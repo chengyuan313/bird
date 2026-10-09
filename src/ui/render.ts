@@ -1,15 +1,11 @@
 import { BIRD_CATALOG } from '../core/birdCatalog';
 import {
-  clearSelection,
-  composeSelectedBird,
+  composeBird,
   findFormableBirds,
-  getSelectedBird,
-  getSelectedCharacters,
   isBoardTileExposed,
   isTrayFull,
   restartLevel,
   selectBoardTile,
-  toggleTrayTile,
 } from '../core/game';
 import { AUTHORED_LEVELS, getLevel } from '../core/levels';
 import type { GameState } from '../core/types';
@@ -23,10 +19,8 @@ function birdColor(key: string): string {
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater): void {
   const level = getLevel(state.levelId);
-  const selectedBird = getSelectedBird(state);
-  const selectedCharacters = getSelectedCharacters(state);
   const trayFull = isTrayFull(state.tray);
-  const formableBirds = trayFull ? findFormableBirds(state.tray) : [];
+  const formableBirds = findFormableBirds(state.tray);
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
   const boardEmpty = remaining === 0;
   const completedBird = state.lastCompletedBird
@@ -63,16 +57,17 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
         <div class="section-heading"><h2>底部字槽</h2><span>${state.tray.filter(Boolean).length} / 10</span></div>
         <div class="tray" role="group" aria-label="底部字槽">
           ${state.tray.map((tile, index) => tile
-            ? `<button class="tray-tile ${state.selectedTrayTileIds.includes(tile.id) ? 'selected' : ''}" data-tray-tile-id="${tile.id}" aria-pressed="${state.selectedTrayTileIds.includes(tile.id)}">${tile.character}</button>`
+            ? `<span class="tray-tile">${tile.character}</span>`
             : `<span class="tray-slot" aria-label="空位 ${index + 1}"></span>`).join('')}
         </div>
         ${trayFull && formableBirds.length > 0 ? '<p class="notice">字槽满了。先拼成一只鸟，腾出空位吧。</p>' : ''}
       </section>
 
       <section class="compose-panel">
-        <div class="section-heading"><h2>当前组合</h2><button class="text-button" data-action="clear" ${selectedCharacters.length === 0 ? 'disabled' : ''}>清空</button></div>
-        <div class="composition">${selectedCharacters.length > 0 ? selectedCharacters.map((character) => `<span>${character}</span>`).join('<b>+</b>') : '<em>按顺序点选字槽里的字</em>'}</div>
-        <button class="compose-button" data-action="compose" ${selectedBird ? '' : 'disabled'}>拼成鸟</button>
+        <div class="section-heading"><h2>可以拼成</h2></div>
+        ${formableBirds.length > 0
+          ? `<div class="bird-options">${formableBirds.map((bird) => `<button class="bird-option" data-bird-id="${bird.id}"><strong>${bird.name}</strong><span>+${bird.score}</span></button>`).join('')}</div>`
+          : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}
       </section>
 
       ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p><button data-action="restart">重试本关</button></div></div>` : ''}
@@ -82,8 +77,8 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   root.querySelectorAll<HTMLElement>('[data-board-tile-id]').forEach((button) => {
     button.addEventListener('click', () => update(selectBoardTile(state, button.dataset.boardTileId ?? '')));
   });
-  root.querySelectorAll<HTMLElement>('[data-tray-tile-id]').forEach((button) => {
-    button.addEventListener('click', () => update(toggleTrayTile(state, button.dataset.trayTileId ?? '')));
+  root.querySelectorAll<HTMLElement>('[data-bird-id]').forEach((button) => {
+    button.addEventListener('click', () => update(composeBird(state, button.dataset.birdId ?? '')));
   });
   root.querySelectorAll<HTMLElement>('[data-level-id]').forEach((button) => {
     button.addEventListener('click', () => {
@@ -91,7 +86,5 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
       update(levelId === state.levelId ? state : restartLevel({ ...state, levelId }));
     });
   });
-  root.querySelector<HTMLElement>('[data-action="clear"]')?.addEventListener('click', () => update(clearSelection(state)));
-  root.querySelector<HTMLElement>('[data-action="compose"]')?.addEventListener('click', () => update(composeSelectedBird(state)));
   root.querySelector<HTMLElement>('[data-action="restart"]')?.addEventListener('click', () => update(restartLevel(state)));
 }

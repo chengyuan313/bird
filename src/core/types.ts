@@ -27,7 +27,6 @@ export interface BoardTile extends BoardTileDefinition {
 
 export type WinningAction =
   | { type: 'take'; tileId: string }
-  | { type: 'select'; tileId: string }
   | { type: 'compose'; birdId: string };
 
 export interface LevelDefinition {
@@ -47,7 +46,6 @@ export interface GameState {
   levelId: string;
   boardTiles: BoardTile[];
   tray: Array<RackTile | null>;
-  selectedTrayTileIds: string[];
   score: number;
   completedBirdCount: number;
   discoveredBirdIds: string[];

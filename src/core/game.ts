@@ -61,7 +61,6 @@ export function createGame(levelId = 'level-1'): GameState {
     levelId,
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
     tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
-    selectedTrayTileIds: [],
     score: 0,
     completedBirdCount: 0,
     discoveredBirdIds: [],
@@ -93,52 +92,29 @@ export function selectBoardTile(state: GameState, tileId: string): GameState {
   return { ...state, boardTiles, tray, lastCompletedBird: null, phase };
 }
 
-export function toggleTrayTile(state: GameState, tileId: string): GameState {
-  if (state.phase !== 'playing' || !state.tray.some((tile) => tile?.id === tileId)) {
-    return state;
-  }
-  const selected = state.selectedTrayTileIds;
-  return {
-    ...state,
-    selectedTrayTileIds: selected.includes(tileId)
-      ? selected.filter((id) => id !== tileId)
-      : [...selected, tileId],
-  };
-}
-
-export function clearSelection(state: GameState): GameState {
-  return state.selectedTrayTileIds.length === 0
-    ? state
-    : { ...state, selectedTrayTileIds: [] };
-}
-
-export function getSelectedCharacters(state: GameState): string[] {
-  return state.selectedTrayTileIds.flatMap((id) => {
-    const tile = state.tray.find((candidate) => candidate?.id === id);
-    return tile ? [tile.character] : [];
-  });
-}
-
-export function getSelectedBird(
+export function composeBird(
   state: GameState,
+  birdId: string,
   catalog: readonly BirdDefinition[] = BIRD_CATALOG,
-): BirdDefinition | undefined {
-  const sequence = getSelectedCharacters(state).join('');
-  return catalog.find((bird) => bird.name === sequence);
-}
-
-export function composeSelectedBird(state: GameState): GameState {
+): GameState {
   if (state.phase !== 'playing') return state;
-  const bird = getSelectedBird(state);
+  const bird = catalog.find((candidate) => candidate.id === birdId);
   if (!bird) return state;
 
-  const consumed = new Set(state.selectedTrayTileIds);
+  const consumed = new Set<string>();
+  for (const character of bird.characters) {
+    const tile = state.tray.find(
+      (candidate) => candidate?.character === character && !consumed.has(candidate.id),
+    );
+    if (!tile) return state;
+    consumed.add(tile.id);
+  }
+
   const isNew = !state.discoveredBirdIds.includes(bird.id);
   const tray = state.tray.map((tile) => (tile && consumed.has(tile.id) ? null : tile));
   return {
     ...state,
     tray,
-    selectedTrayTileIds: [],
     score: state.score + bird.score,
     completedBirdCount: state.completedBirdCount + 1,
     discoveredBirdIds: isNew
