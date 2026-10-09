@@ -18,10 +18,16 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .section-heading > span { color: #788177; font-size: 11px; }
 .board-panel, .tray-panel, .compose-panel { margin-top: 10px; padding: 12px; background: #fffdf5cf; border: 1px solid #fff; border-radius: 17px; box-shadow: 0 8px 24px #4a5e4c10; }
 .tile-board { position: relative; height: 258px; overflow: hidden; border-radius: 13px; background: linear-gradient(135deg, #d8dfce, #edf0e4); border: 1px solid #d5dccf; }
+.region-label { position: absolute; z-index: 8; padding: 2px 5px; border-radius: 6px; font-size: 8px; font-weight: 800; letter-spacing: .08em; pointer-events: none; }
+.auxiliary-label { left: 2px; top: 2px; color: #77652d; background: #fff3b9dd; }
+.blind-label { right: 2px; bottom: 2px; color: #ffffff; background: #536357dd; }
 .board-tile { position: absolute; width: 61px; height: 61px; border-radius: 11px; font-family: SimSun, serif; font-size: 25px; transition: transform .12s, filter .12s; }
 .board-tile.exposed { color: #263c2e; background: #fffdf4; border: 2px solid #6f9679; box-shadow: 0 5px 0 #52715a, 0 8px 15px #31493722; cursor: pointer; }
 .board-tile.exposed:active { transform: translateY(3px); box-shadow: 0 2px 0 #52715a; }
 .board-tile.blocked { color: #788077; background: #cdd2c6; border: 1px solid #aeb7aa; box-shadow: 0 3px 0 #9fa99c; filter: saturate(.25); }
+.board-tile.region-auxiliary { width: 44px; height: 44px; border-radius: 9px; color: #5e5128; background: #fff6c9; border-color: #c9af55; box-shadow: 0 3px 0 #af9746; font-size: 20px; }
+.board-tile.region-blind { width: 52px; height: 52px; border-radius: 9px; border-color: #536357; box-shadow: 0 3px 0 #3d493f; }
+.board-tile.hidden-character { color: #aeb8ad; background: #69766c; filter: none; }
 .board-hint { margin: 7px 1px 0; color: #7b867c; font-size: 10px; }
 .cleanup-notice { margin: 7px 0 0; padding: 7px 9px; color: #315c46; background: #dcebdd; border-radius: 9px; font-size: 11px; font-weight: 700; }
 .tray { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }

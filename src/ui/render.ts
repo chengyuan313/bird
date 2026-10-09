@@ -8,13 +8,26 @@ import {
   selectBoardTile,
 } from '../core/game';
 import { AUTHORED_LEVELS, getLevel } from '../core/levels';
-import type { GameState } from '../core/types';
+import type { BoardTile, GameState } from '../core/types';
 
 type StateUpdater = (nextState: GameState) => void;
 
 function birdColor(key: string): string {
   const hash = Array.from(key).reduce((total, character) => total + character.charCodeAt(0), 0);
   return `hsl(${hash % 360} 42% 66%)`;
+}
+
+export function getBoardTilePresentation(
+  tile: BoardTile,
+  exposed: boolean,
+): { text: string; ariaLabel: string } {
+  const hidden = tile.region === 'blind' && !exposed;
+  return hidden
+    ? { text: '？', ariaLabel: '隐藏字，被遮挡' }
+    : {
+        text: tile.character,
+        ariaLabel: `${tile.character}${exposed ? '，可取' : '，被遮挡'}`,
+      };
 }
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater): void {
@@ -42,10 +55,14 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
 
       <section class="board-panel">
         <div class="section-heading"><h2>字层</h2><span>剩余 ${remaining} / ${state.boardTiles.length}</span></div>
-        <div class="tile-board" aria-label="叠字棋盘">
+        <div class="tile-board ${state.levelId === 'level-3' ? 'level-three-board' : ''}" aria-label="叠字棋盘">
+          ${state.levelId === 'level-3' ? '<span class="region-label auxiliary-label">补给区</span><span class="region-label blind-label">盲堆</span>' : ''}
           ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => {
             const exposed = isBoardTileExposed(state, tile.id);
-            return `<button class="board-tile ${exposed ? 'exposed' : 'blocked'}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" data-board-tile-id="${tile.id}" ${exposed && !trayFull && state.phase === 'playing' ? '' : 'disabled'} aria-label="${tile.character}${exposed ? '，可取' : '，被遮挡'}">${tile.character}</button>`;
+            const region = tile.region ?? 'main';
+            const presentation = getBoardTilePresentation(tile, exposed);
+            const hidden = region === 'blind' && !exposed;
+            return `<button class="board-tile region-${region} ${hidden ? 'hidden-character' : ''} ${exposed ? 'exposed' : 'blocked'}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" data-board-tile-id="${tile.id}" ${exposed && !trayFull && state.phase === 'playing' ? '' : 'disabled'} aria-label="${presentation.ariaLabel}">${presentation.text}</button>`;
           }).join('')}
         </div>
         ${boardEmpty && state.phase === 'playing'

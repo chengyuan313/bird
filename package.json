@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "evaluate:level3": "vitest run tools/level3-evaluation.test.ts --reporter=verbose",
     "test": "vitest run",
     "typecheck": "tsc -b"
   },

@@ -12,6 +12,7 @@ import {
   TRAY_SIZE,
 } from '../src/core/game';
 import { AUTHORED_LEVELS } from '../src/core/levels';
+import { getBoardTilePresentation } from '../src/ui/render';
 import type {
   GameState,
   LevelDefinition,
@@ -142,7 +143,7 @@ describe('interconnected layered board', () => {
           && blocker!.x + 61 > tile.x
           && blocker!.y < tile.y + 61
           && blocker!.y + 61 > tile.y;
-        expect(overlaps).toBe(true);
+        expect(overlaps, `${blockerId} must overlap ${tile.id}`).toBe(true);
       }
     }
   });
@@ -270,8 +271,55 @@ describe('automatic recognition and one-tap composition', () => {
 
 describe('authored levels and winning paths', () => {
   it('keeps the requested tile counts and true logical depths', () => {
-    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 44]);
-    expect(AUTHORED_LEVELS.map((level) => Math.max(...level.tiles.map((tile) => tile.layer)))).toEqual([2, 3, 4]);
+    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 59]);
+    expect(AUTHORED_LEVELS.map((level) => Math.max(...level.tiles.map((tile) => tile.layer)))).toEqual([2, 3, 7]);
+  });
+
+  it('gives Level 3 the intended main, auxiliary, and blind proportions', () => {
+    const level = AUTHORED_LEVELS[2];
+    const counts = level.tiles.reduce<Record<string, number>>((total, tile) => {
+      const region = tile.region ?? 'main';
+      total[region] = (total[region] ?? 0) + 1;
+      return total;
+    }, {});
+    expect(counts).toEqual({ main: 40, auxiliary: 12, blind: 7 });
+  });
+
+  it('keeps only the top blind-stack character visible initially', () => {
+    const state = createGame('level-3');
+    const blindTiles = state.boardTiles.filter((tile) => tile.region === 'blind');
+    expect(blindTiles.filter((tile) => isBoardTileExposed(state, tile.id)).map((tile) => tile.id))
+      .toEqual(['l3-q01']);
+    expect(blindTiles.filter((tile) => !isBoardTileExposed(state, tile.id))).toHaveLength(6);
+    const hidden = blindTiles.find((tile) => tile.id === 'l3-q02')!;
+    const presentation = getBoardTilePresentation(hidden, false);
+    expect(presentation).toEqual({ text: '？', ariaLabel: '隐藏字，被遮挡' });
+    expect(`${presentation.text}${presentation.ariaLabel}`).not.toContain(hidden.character);
+  });
+
+  it('interleaves Level 3 birds across blockers, regions, and depths', () => {
+    const level = AUTHORED_LEVELS[2];
+    const tileById = new Map(level.tiles.map((tile) => [tile.id, tile]));
+    const groupByTile = new Map<string, number>();
+    const groups = solutionGroups(level);
+    groups.forEach((group, index) => group.tileIds.forEach((id) => groupByTile.set(id, index)));
+
+    expect(level.tiles.some((tile) => tile.blockedBy.some(
+      (blockerId) => groupByTile.get(blockerId) !== groupByTile.get(tile.id),
+    ))).toBe(true);
+    expect(groups.some((group) => {
+      const tiles = group.tileIds.map((id) => tileById.get(id)!);
+      return new Set(tiles.map((tile) => tile.region ?? 'main')).size > 1
+        && new Set(tiles.map((tile) => tile.layer)).size > 1;
+    })).toBe(true);
+  });
+
+  it('starts Level 3 with multiple choices but no complete bird', () => {
+    const state = createGame('level-3');
+    const exposed = getExposedBoardTiles(state);
+    expect(exposed.length).toBeGreaterThan(10);
+    expect(findFormableBirds(exposed.map((tile) => ({ id: tile.id, character: tile.character }))))
+      .toHaveLength(0);
   });
 
   it.each(AUTHORED_LEVELS)('$label solution obeys exposure and capacity and consumes every tile', (level) => {

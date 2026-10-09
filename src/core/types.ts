@@ -12,6 +12,8 @@ export interface RackTile {
   character: string;
 }
 
+export type TileRegion = 'main' | 'auxiliary' | 'blind';
+
 export interface BoardTileDefinition {
   id: string;
   character: string;
@@ -19,6 +21,7 @@ export interface BoardTileDefinition {
   x: number;
   y: number;
   blockedBy: readonly string[];
+  region?: TileRegion;
 }
 
 export interface BoardTile extends BoardTileDefinition {
