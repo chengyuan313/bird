@@ -25,10 +25,16 @@ export interface BoardTile extends BoardTileDefinition {
   removed: boolean;
 }
 
+export type WinningAction =
+  | { type: 'take'; tileId: string }
+  | { type: 'select'; tileId: string }
+  | { type: 'compose'; birdId: string };
+
 export interface LevelDefinition {
   id: string;
   label: string;
   tiles: readonly BoardTileDefinition[];
+  winningSolution: readonly WinningAction[];
 }
 
 export interface CompletedBird {

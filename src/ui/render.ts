@@ -28,6 +28,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   const trayFull = isTrayFull(state.tray);
   const formableBirds = trayFull ? findFormableBirds(state.tray) : [];
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
+  const boardEmpty = remaining === 0;
   const completedBird = state.lastCompletedBird
     ? BIRD_CATALOG.find((bird) => bird.id === state.lastCompletedBird?.birdId)
     : undefined;
@@ -53,7 +54,9 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
             return `<button class="board-tile ${exposed ? 'exposed' : 'blocked'}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" data-board-tile-id="${tile.id}" ${exposed && !trayFull && state.phase === 'playing' ? '' : 'disabled'} aria-label="${tile.character}${exposed ? '，可取' : '，被遮挡'}">${tile.character}</button>`;
           }).join('')}
         </div>
-        <p class="board-hint">亮起的字可以拿取；移开上层，露出下层。</p>
+        ${boardEmpty && state.phase === 'playing'
+          ? '<p class="cleanup-notice">棋盘已清空，拼完字槽里的鸟。</p>'
+          : '<p class="board-hint">亮起的字可以拿取；移开上层，露出下层。</p>'}
       </section>
 
       <section class="tray-panel">
@@ -72,7 +75,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
         <button class="compose-button" data-action="compose" ${selectedBird ? '' : 'disabled'}>拼成鸟</button>
       </section>
 
-      ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">字槽已满</p><h2>无鸟可拼</h2><p>这次被字层困住了。换一种拿字顺序再试试。</p><button data-action="restart">重试本关</button></div></div>` : ''}
+      ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p><button data-action="restart">重试本关</button></div></div>` : ''}
       ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p><button data-action="restart">重新挑战</button></div></div>` : ''}
     </section>`;
 

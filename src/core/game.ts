@@ -29,6 +29,20 @@ export function isTrayFull(tray: readonly (RackTile | null)[]): boolean {
   return tray.every(Boolean);
 }
 
+export function evaluateTerminalState(
+  boardTiles: readonly BoardTile[],
+  tray: readonly (RackTile | null)[],
+): GameState['phase'] {
+  const boardEmpty = boardTiles.every((tile) => tile.removed);
+  const trayEmpty = tray.every((tile) => tile === null);
+  const hasFormableBird = findFormableBirds(tray).length > 0;
+
+  if (boardEmpty && trayEmpty) return 'level_complete';
+  if (boardEmpty) return hasFormableBird ? 'playing' : 'game_over';
+  if (isTrayFull(tray)) return hasFormableBird ? 'playing' : 'game_over';
+  return 'playing';
+}
+
 export function isBoardTileExposed(state: GameState, tileId: string): boolean {
   const tile = state.boardTiles.find((candidate) => candidate.id === tileId);
   if (!tile || tile.removed) return false;
@@ -74,12 +88,7 @@ export function selectBoardTile(state: GameState, tileId: string): GameState {
   const boardTiles = state.boardTiles.map((tile) =>
     tile.id === tileId ? { ...tile, removed: true } : tile,
   );
-  const boardCleared = boardTiles.every((tile) => tile.removed);
-  const phase = boardCleared
-    ? 'level_complete'
-    : isTrayFull(tray) && findFormableBirds(tray).length === 0
-      ? 'game_over'
-      : 'playing';
+  const phase = evaluateTerminalState(boardTiles, tray);
 
   return { ...state, boardTiles, tray, lastCompletedBird: null, phase };
 }
@@ -125,9 +134,10 @@ export function composeSelectedBird(state: GameState): GameState {
 
   const consumed = new Set(state.selectedTrayTileIds);
   const isNew = !state.discoveredBirdIds.includes(bird.id);
+  const tray = state.tray.map((tile) => (tile && consumed.has(tile.id) ? null : tile));
   return {
     ...state,
-    tray: state.tray.map((tile) => (tile && consumed.has(tile.id) ? null : tile)),
+    tray,
     selectedTrayTileIds: [],
     score: state.score + bird.score,
     completedBirdCount: state.completedBirdCount + 1,
@@ -135,6 +145,7 @@ export function composeSelectedBird(state: GameState): GameState {
       ? [...state.discoveredBirdIds, bird.id]
       : state.discoveredBirdIds,
     lastCompletedBird: { birdId: bird.id, score: bird.score, isNew },
+    phase: evaluateTerminalState(state.boardTiles, tray),
   };
 }
 

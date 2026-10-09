@@ -1,68 +1,194 @@
-import { BIRD_CATALOG } from './birdCatalog';
-import type { BoardTileDefinition, LevelDefinition } from './types';
+import type {
+  BoardTileDefinition,
+  LevelDefinition,
+  WinningAction,
+} from './types';
 
-interface AuthoredStack {
-  key: string;
+const tile = (
+  id: string,
+  character: string,
+  x: number,
+  y: number,
+  layer: number,
+  blockedBy: readonly string[],
+): BoardTileDefinition => ({ id, character, x, y, layer, blockedBy });
+
+interface SolutionBird {
   birdId: string;
-  x: number;
-  y: number;
+  tileIds: readonly string[];
 }
 
-const positions = [
-  [8, 8], [92, 8], [176, 8], [260, 8],
-  [8, 94], [92, 94], [176, 94], [260, 94],
-  [8, 180], [92, 180], [176, 180], [260, 180],
-] as const;
-
-function stacksFor(prefix: string, birdIds: readonly string[]): AuthoredStack[] {
-  return birdIds.map((birdId, index) => ({
-    key: `${prefix}-stack-${String(index + 1).padStart(2, '0')}`,
-    birdId,
-    x: positions[index][0],
-    y: positions[index][1],
-  }));
+function winningActions(birds: readonly SolutionBird[]): WinningAction[] {
+  return birds.flatMap(({ birdId, tileIds }) => [
+    ...tileIds.map((tileId): WinningAction => ({ type: 'take', tileId })),
+    ...tileIds.map((tileId): WinningAction => ({ type: 'select', tileId })),
+    { type: 'compose', birdId },
+  ]);
 }
 
-function buildTiles(stacks: readonly AuthoredStack[]): BoardTileDefinition[] {
-  return stacks.flatMap((stack) => {
-    const bird = BIRD_CATALOG.find((candidate) => candidate.id === stack.birdId);
-    if (!bird) throw new Error(`Unknown authored bird: ${stack.birdId}`);
-
-    return bird.characters.map((character, index) => ({
-      id: `${stack.key}-tile-${String(index + 1).padStart(2, '0')}`,
-      character,
-      layer: bird.characters.length - index,
-      x: stack.x + index * 5,
-      y: stack.y + index * 6,
-      blockedBy: index === 0
-        ? []
-        : [`${stack.key}-tile-${String(index).padStart(2, '0')}`],
-    }));
-  });
-}
-
-function defineLevel(id: string, label: string, birdIds: readonly string[]): LevelDefinition {
-  return { id, label, tiles: buildTiles(stacksFor(id, birdIds)) };
-}
-
-export const AUTHORED_LEVELS: readonly LevelDefinition[] = [
-  defineLevel('level-1', '第一关', [
-    'bird:xique', 'bird:bailu', 'bird:canglu', 'bird:yelu',
-    'bird:chilu', 'bird:hongsun', 'bird:daisheng', 'bird:xique',
-    'bird:bailu', 'bird:canglu', 'bird:hongsun',
+const level1: LevelDefinition = {
+  id: 'level-1',
+  label: '第一关',
+  tiles: [
+    tile('l1-u01', '喜', 49, 22, 2, []),
+    tile('l1-u02', '鹊', 123, 22, 2, []),
+    tile('l1-u03', '白', 197, 22, 2, []),
+    tile('l1-u04', '鹭', 12, 80, 2, []),
+    tile('l1-u05', '红', 86, 100, 2, []),
+    tile('l1-u06', '隼', 160, 100, 2, []),
+    tile('l1-u07', '戴', 234, 100, 2, []),
+    tile('l1-u08', '胜', 49, 178, 2, []),
+    tile('l1-u09', '苍', 160, 178, 2, []),
+    tile('l1-u10', '鹭', 271, 158, 2, []),
+    tile('l1-u11', '喜', 271, 62, 2, []),
+    tile('l1-n01', '鹊', 8, 8, 1, ['l1-u01']),
+    tile('l1-n02', '白', 92, 8, 1, ['l1-u01']),
+    tile('l1-n03', '鹭', 176, 8, 1, ['l1-u02', 'l1-u03']),
+    tile('l1-n04', '苍', 252, 8, 1, ['l1-u03', 'l1-u11']),
+    tile('l1-n05', '鹭', 8, 94, 1, ['l1-u04']),
+    tile('l1-n06', '夜', 92, 94, 1, ['l1-u05']),
+    tile('l1-n07', '鹭', 176, 94, 1, ['l1-u06', 'l1-u07']),
+    tile('l1-n08', '池', 260, 94, 1, ['l1-u07', 'l1-u11']),
+    tile('l1-n09', '鹭', 8, 180, 1, ['l1-u08']),
+    tile('l1-n10', '红', 104, 180, 1, ['l1-u08', 'l1-u09']),
+    tile('l1-n11', '隼', 214, 180, 1, ['l1-u09', 'l1-u10']),
+  ],
+  winningSolution: winningActions([
+    { birdId: 'bird:xique', tileIds: ['l1-u01', 'l1-u02'] },
+    { birdId: 'bird:bailu', tileIds: ['l1-u03', 'l1-u04'] },
+    { birdId: 'bird:hongsun', tileIds: ['l1-u05', 'l1-u06'] },
+    { birdId: 'bird:daisheng', tileIds: ['l1-u07', 'l1-u08'] },
+    { birdId: 'bird:canglu', tileIds: ['l1-u09', 'l1-u10'] },
+    { birdId: 'bird:xique', tileIds: ['l1-u11', 'l1-n01'] },
+    { birdId: 'bird:bailu', tileIds: ['l1-n02', 'l1-n03'] },
+    { birdId: 'bird:canglu', tileIds: ['l1-n04', 'l1-n05'] },
+    { birdId: 'bird:yelu', tileIds: ['l1-n06', 'l1-n07'] },
+    { birdId: 'bird:chilu', tileIds: ['l1-n08', 'l1-n09'] },
+    { birdId: 'bird:hongsun', tileIds: ['l1-n10', 'l1-n11'] },
   ]),
-  defineLevel('level-2', '第二关', [
-    'bird:huixique', 'bird:dabailu', 'bird:xiaobailu', 'bird:baitoubei',
-    'bird:heishuiji', 'bird:shanbanjiu', 'bird:shumaque', 'bird:huixique',
-    'bird:dabailu', 'bird:heishuiji', 'bird:shanbanjiu',
+};
+
+const level2: LevelDefinition = {
+  id: 'level-2',
+  label: '第二关',
+  tiles: [
+    tile('l2-z01', '灰', 67, 14, 3, []),
+    tile('l2-z02', '喜', 141, 14, 3, []),
+    tile('l2-z03', '鹊', 215, 14, 3, []),
+    tile('l2-z04', '大', 30, 92, 3, []),
+    tile('l2-z05', '白', 104, 92, 3, []),
+    tile('l2-z06', '鹭', 178, 92, 3, []),
+    tile('l2-z07', '小', 252, 92, 3, []),
+    tile('l2-z08', '白', 67, 170, 3, []),
+    tile('l2-z09', '鹭', 141, 170, 3, []),
+    tile('l2-z10', '白', 215, 170, 3, []),
+    tile('l2-z11', '头', 289, 140, 3, []),
+    tile('l2-m01', '鹎', 49, 22, 2, ['l2-z01']),
+    tile('l2-m02', '黑', 123, 22, 2, ['l2-z01']),
+    tile('l2-m03', '水', 197, 22, 2, ['l2-z02', 'l2-z03']),
+    tile('l2-m04', '鸡', 12, 80, 2, ['l2-z04']),
+    tile('l2-m05', '山', 86, 100, 2, ['l2-z04', 'l2-z05']),
+    tile('l2-m06', '斑', 160, 100, 2, ['l2-z05', 'l2-z06']),
+    tile('l2-m07', '鸠', 234, 100, 2, ['l2-z06', 'l2-z07']),
+    tile('l2-m08', '树', 49, 178, 2, ['l2-z08']),
+    tile('l2-m09', '麻', 160, 178, 2, ['l2-z09', 'l2-z10']),
+    tile('l2-m10', '雀', 271, 158, 2, ['l2-z10', 'l2-z11']),
+    tile('l2-m11', '灰', 271, 62, 2, ['l2-z03', 'l2-z07']),
+    tile('l2-n01', '喜', 8, 8, 1, ['l2-m01']),
+    tile('l2-n02', '鹊', 92, 8, 1, ['l2-m01']),
+    tile('l2-n03', '大', 176, 8, 1, ['l2-m02', 'l2-m03']),
+    tile('l2-n04', '白', 252, 8, 1, ['l2-m03', 'l2-m11']),
+    tile('l2-n05', '鹭', 8, 94, 1, ['l2-m04']),
+    tile('l2-n06', '黑', 92, 94, 1, ['l2-m05']),
+    tile('l2-n07', '水', 176, 94, 1, ['l2-m06', 'l2-m07']),
+    tile('l2-n08', '鸡', 260, 94, 1, ['l2-m07', 'l2-m11']),
+    tile('l2-n09', '山', 8, 180, 1, ['l2-m08']),
+    tile('l2-n10', '斑', 104, 180, 1, ['l2-m08', 'l2-m09']),
+    tile('l2-n11', '鸠', 214, 180, 1, ['l2-m09', 'l2-m10']),
+  ],
+  winningSolution: winningActions([
+    { birdId: 'bird:huixique', tileIds: ['l2-z01', 'l2-z02', 'l2-z03'] },
+    { birdId: 'bird:dabailu', tileIds: ['l2-z04', 'l2-z05', 'l2-z06'] },
+    { birdId: 'bird:xiaobailu', tileIds: ['l2-z07', 'l2-z08', 'l2-z09'] },
+    { birdId: 'bird:baitoubei', tileIds: ['l2-z10', 'l2-z11', 'l2-m01'] },
+    { birdId: 'bird:heishuiji', tileIds: ['l2-m02', 'l2-m03', 'l2-m04'] },
+    { birdId: 'bird:shanbanjiu', tileIds: ['l2-m05', 'l2-m06', 'l2-m07'] },
+    { birdId: 'bird:shumaque', tileIds: ['l2-m08', 'l2-m09', 'l2-m10'] },
+    { birdId: 'bird:huixique', tileIds: ['l2-m11', 'l2-n01', 'l2-n02'] },
+    { birdId: 'bird:dabailu', tileIds: ['l2-n03', 'l2-n04', 'l2-n05'] },
+    { birdId: 'bird:heishuiji', tileIds: ['l2-n06', 'l2-n07', 'l2-n08'] },
+    { birdId: 'bird:shanbanjiu', tileIds: ['l2-n09', 'l2-n10', 'l2-n11'] },
   ]),
-  defineLevel('level-3', '第三关', [
-    'bird:zhujingbanjiu', 'bird:hongfujinji', 'bird:zhujingbanjiu',
-    'bird:hongfujinji', 'bird:zhujingbanjiu', 'bird:hongfujinji',
-    'bird:zhujingbanjiu', 'bird:hongfujinji', 'bird:zhujingbanjiu',
-    'bird:hongfujinji', 'bird:xique', 'bird:bailu',
+};
+
+const level3: LevelDefinition = {
+  id: 'level-3',
+  label: '第三关',
+  tiles: [
+    tile('l3-d01', '红', 84, 18, 4, []),
+    tile('l3-d02', '腹', 158, 18, 4, []),
+    tile('l3-d03', '锦', 232, 18, 4, []),
+    tile('l3-d04', '鸡', 47, 96, 4, []),
+    tile('l3-d05', '红', 121, 96, 4, []),
+    tile('l3-d06', '隼', 195, 96, 4, []),
+    tile('l3-d07', '珠', 269, 96, 4, []),
+    tile('l3-d08', '颈', 84, 174, 4, []),
+    tile('l3-d09', '斑', 158, 174, 4, []),
+    tile('l3-d10', '鸠', 232, 174, 4, []),
+    tile('l3-d11', '喜', 10, 45, 4, []),
+    tile('l3-c01', '鹊', 67, 14, 3, ['l3-d01', 'l3-d11']),
+    tile('l3-c02', '白', 141, 14, 3, ['l3-d01', 'l3-d02']),
+    tile('l3-c03', '鹭', 215, 14, 3, ['l3-d02', 'l3-d03']),
+    tile('l3-c04', '戴', 30, 92, 3, ['l3-d04', 'l3-d11']),
+    tile('l3-c05', '胜', 104, 92, 3, ['l3-d04', 'l3-d05']),
+    tile('l3-c06', '灰', 178, 92, 3, ['l3-d05', 'l3-d06']),
+    tile('l3-c07', '喜', 252, 92, 3, ['l3-d06', 'l3-d07']),
+    tile('l3-c08', '鹊', 67, 170, 3, ['l3-d08']),
+    tile('l3-c09', '白', 141, 170, 3, ['l3-d08']),
+    tile('l3-c10', '头', 215, 170, 3, ['l3-d09', 'l3-d10']),
+    tile('l3-c11', '鹎', 289, 140, 3, ['l3-d07', 'l3-d10']),
+    tile('l3-b01', '黑', 49, 22, 2, ['l3-c01']),
+    tile('l3-b02', '水', 123, 22, 2, ['l3-c01']),
+    tile('l3-b03', '鸡', 197, 22, 2, ['l3-c02', 'l3-c03']),
+    tile('l3-b04', '山', 12, 80, 2, ['l3-c04']),
+    tile('l3-b05', '斑', 86, 100, 2, ['l3-c04', 'l3-c05']),
+    tile('l3-b06', '鸠', 160, 100, 2, ['l3-c05', 'l3-c06']),
+    tile('l3-b07', '红', 234, 100, 2, ['l3-c06', 'l3-c07']),
+    tile('l3-b08', '腹', 49, 178, 2, ['l3-c08']),
+    tile('l3-b09', '锦', 160, 178, 2, ['l3-c09', 'l3-c10']),
+    tile('l3-b10', '鸡', 271, 158, 2, ['l3-c10', 'l3-c11']),
+    tile('l3-b11', '珠', 271, 62, 2, ['l3-c03', 'l3-c07']),
+    tile('l3-a01', '颈', 8, 8, 1, ['l3-b01']),
+    tile('l3-a02', '斑', 92, 8, 1, ['l3-b01']),
+    tile('l3-a03', '鸠', 176, 8, 1, ['l3-b02', 'l3-b03']),
+    tile('l3-a04', '红', 252, 8, 1, ['l3-b03', 'l3-b11']),
+    tile('l3-a05', '腹', 8, 94, 1, ['l3-b04']),
+    tile('l3-a06', '锦', 92, 94, 1, ['l3-b05']),
+    tile('l3-a07', '鸡', 176, 94, 1, ['l3-b06', 'l3-b07']),
+    tile('l3-a08', '珠', 260, 94, 1, ['l3-b07', 'l3-b11']),
+    tile('l3-a09', '颈', 8, 180, 1, ['l3-b08']),
+    tile('l3-a10', '斑', 104, 180, 1, ['l3-b08', 'l3-b09']),
+    tile('l3-a11', '鸠', 214, 180, 1, ['l3-b09', 'l3-b10']),
+  ],
+  winningSolution: winningActions([
+    { birdId: 'bird:hongfujinji', tileIds: ['l3-d01', 'l3-d02', 'l3-d03', 'l3-d04'] },
+    { birdId: 'bird:hongsun', tileIds: ['l3-d05', 'l3-d06'] },
+    { birdId: 'bird:zhujingbanjiu', tileIds: ['l3-d07', 'l3-d08', 'l3-d09', 'l3-d10'] },
+    { birdId: 'bird:xique', tileIds: ['l3-d11', 'l3-c01'] },
+    { birdId: 'bird:bailu', tileIds: ['l3-c02', 'l3-c03'] },
+    { birdId: 'bird:daisheng', tileIds: ['l3-c04', 'l3-c05'] },
+    { birdId: 'bird:huixique', tileIds: ['l3-c06', 'l3-c07', 'l3-c08'] },
+    { birdId: 'bird:baitoubei', tileIds: ['l3-c09', 'l3-c10', 'l3-c11'] },
+    { birdId: 'bird:heishuiji', tileIds: ['l3-b01', 'l3-b02', 'l3-b03'] },
+    { birdId: 'bird:shanbanjiu', tileIds: ['l3-b04', 'l3-b05', 'l3-b06'] },
+    { birdId: 'bird:hongfujinji', tileIds: ['l3-b07', 'l3-b08', 'l3-b09', 'l3-b10'] },
+    { birdId: 'bird:zhujingbanjiu', tileIds: ['l3-b11', 'l3-a01', 'l3-a02', 'l3-a03'] },
+    { birdId: 'bird:hongfujinji', tileIds: ['l3-a04', 'l3-a05', 'l3-a06', 'l3-a07'] },
+    { birdId: 'bird:zhujingbanjiu', tileIds: ['l3-a08', 'l3-a09', 'l3-a10', 'l3-a11'] },
   ]),
-];
+};
+
+export const AUTHORED_LEVELS: readonly LevelDefinition[] = [level1, level2, level3];
 
 export function getLevel(levelId: string): LevelDefinition {
   const level = AUTHORED_LEVELS.find((candidate) => candidate.id === levelId);
