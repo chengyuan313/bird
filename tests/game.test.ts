@@ -30,6 +30,15 @@ function selectCharacters(state: GameState, indexes: number[]): GameState {
 }
 
 describe('seeded gameplay core', () => {
+  it('uses stable semantic bird IDs and artwork keys', () => {
+    expect(BIRD_CATALOG.every((bird) => bird.id === `bird:${bird.assetKey}`)).toBe(true);
+    expect(new Set(BIRD_CATALOG.map((bird) => bird.assetKey)).size).toBe(BIRD_CATALOG.length);
+    expect(BIRD_CATALOG.find((bird) => bird.name === '红腹锦鸡')).toMatchObject({
+      id: 'bird:hongfujinji',
+      assetKey: 'hongfujinji',
+    });
+  });
+
   it('reproduces random values and offers from the same seed', () => {
     expect(nextRandom(42)).toEqual(nextRandom(42));
     expect(createGame(42).currentOffer).toEqual(createGame(42).currentOffer);
@@ -75,7 +84,7 @@ describe('seeded gameplay core', () => {
 
   it('respects duplicate-character multiplicity', () => {
     const repeatedBird: BirdDefinition = {
-      id: 'double', name: '鹭鹭', characters: ['鹭', '鹭'], score: 10, presentationKey: 'double',
+      id: 'bird:double', name: '鹭鹭', characters: ['鹭', '鹭'], score: 10, assetKey: 'double',
     };
     expect(findFormableBirds(rackFrom('鹭'), [repeatedBird])).toEqual([]);
     expect(findFormableBirds(rackFrom('鹭鹭'), [repeatedBird])).toEqual([repeatedBird]);

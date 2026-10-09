@@ -5,7 +5,7 @@ export interface BirdDefinition {
   name: string;
   characters: readonly string[];
   score: number;
-  presentationKey: string;
+  assetKey: string;
 }
 export interface RackTile {
   id: string;

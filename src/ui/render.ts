@@ -38,7 +38,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
       </header>
 
       ${completedBird ? `
-        <section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.presentationKey)}" aria-live="polite">
+        <section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite">
           <span class="bird-mark" aria-hidden="true">●</span>
           <div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div>
         </section>` : ''}
@@ -77,7 +77,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
             ? '<p>还没有鸟，试试两个字的名字。</p>'
             : state.discoveredBirdIds.map((id) => {
                 const bird = BIRD_CATALOG.find((candidate) => candidate.id === id);
-                return bird ? `<span style="--bird-color: ${birdColor(bird.presentationKey)}">${bird.name}</span>` : '';
+                return bird ? `<span style="--bird-color: ${birdColor(bird.assetKey)}">${bird.name}</span>` : '';
               }).join('')}
         </div>
       </section>
