@@ -314,12 +314,12 @@ describe('authored levels and winning paths', () => {
     })).toBe(true);
   });
 
-  it('starts Level 3 with multiple choices but no complete bird', () => {
+  it('starts generated Level 3 with multiple exposed choices and an empty tray', () => {
     const state = createGame('level-3');
     const exposed = getExposedBoardTiles(state);
     expect(exposed.length).toBeGreaterThan(10);
-    expect(findFormableBirds(exposed.map((tile) => ({ id: tile.id, character: tile.character }))))
-      .toHaveLength(0);
+    expect(state.tray.every((tile) => tile === null)).toBe(true);
+    expect(findFormableBirds(state.tray)).toHaveLength(0);
   });
 
   it.each(AUTHORED_LEVELS)('$label solution obeys exposure and capacity and consumes every tile', (level) => {

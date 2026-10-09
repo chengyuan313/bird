@@ -1,6 +1,6 @@
 import { BIRD_CATALOG } from './birdCatalog';
 import { getLevel } from './levels';
-import type { BirdDefinition, BoardTile, GameState, RackTile } from './types';
+import type { BirdDefinition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
 
 export const TRAY_SIZE = 10;
 
@@ -57,8 +57,12 @@ export function getExposedBoardTiles(state: GameState): BoardTile[] {
 
 export function createGame(levelId = 'level-1'): GameState {
   const level = getLevel(levelId);
+  return createGameFromLevel(level);
+}
+
+export function createGameFromLevel(level: LevelDefinition): GameState {
   return {
-    levelId,
+    levelId: level.id,
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
     tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
     score: 0,
