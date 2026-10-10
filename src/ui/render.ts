@@ -108,7 +108,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   root.querySelectorAll<HTMLElement>('[data-bird-id]').forEach((button) => {
     button.addEventListener('click', () => update(composeBird(state, button.dataset.birdId ?? '')));
   });
-  root.querySelectorAll<HTMLElement>('[data-level-id]').forEach((button) => {
+  root.querySelectorAll<HTMLButtonElement>('.level-tabs button[data-level-id]').forEach((button) => {
     button.addEventListener('click', () => {
       const levelId = button.dataset.levelId ?? state.levelId;
       update(levelId === state.levelId ? state : restartLevel({ ...state, levelId }));
