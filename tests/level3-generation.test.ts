@@ -2,18 +2,26 @@ import { describe, expect, it } from 'vitest';
 import { BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
+  createGame,
   createGameFromLevel,
   findFormableBirds,
   isBoardTileExposed,
   selectBoardTile,
+  restartLevel,
+  switchLevel3Board,
   TRAY_SIZE,
 } from '../src/core/game';
 import {
   DEFAULT_LEVEL_3_CONSTRAINTS,
   generateLevel3Content,
   LEVEL_3_LAYOUT,
+  positionsOverlap,
 } from '../src/core/level3Generator';
-import { PREVALIDATED_LEVEL_3_SEED } from '../src/core/level3Fixture';
+import {
+  PREVALIDATED_LEVEL_3_SEED,
+  PREVALIDATED_LEVEL_3_SEEDS,
+  createPrevalidatedLevel3,
+} from '../src/core/level3Fixture';
 import { getLevel } from '../src/core/levels';
 import type { LevelDefinition } from '../src/core/types';
 import { createUnverifiedLevel, replaySolution, solveLevel } from '../tools/level3Solver';
@@ -88,6 +96,49 @@ describe('seeded Level 3 generation', () => {
       }
     }
   });
+
+  it('keeps position IDs unique and blocker relationships acyclic', () => {
+    expect(new Set(LEVEL_3_LAYOUT.map((position) => position.id)).size).toBe(LEVEL_3_LAYOUT.length);
+    const positionById = new Map(LEVEL_3_LAYOUT.map((position) => [position.id, position]));
+    const visiting = new Set<string>();
+    const visited = new Set<string>();
+    const visit = (id: string): void => {
+      if (visiting.has(id)) throw new Error(`Blocking cycle at ${id}`);
+      if (visited.has(id)) return;
+      visiting.add(id);
+      positionById.get(id)?.blockedBy.forEach(visit);
+      visiting.delete(id);
+      visited.add(id);
+    };
+    LEVEL_3_LAYOUT.forEach((position) => visit(position.id));
+    expect(visited.size).toBe(LEVEL_3_LAYOUT.length);
+  });
+
+  it('derives every cross-layer visual overlap as a blocker', () => {
+    for (const tile of LEVEL_3_LAYOUT) {
+      const expected = LEVEL_3_LAYOUT
+        .filter((candidate) => candidate.layer > tile.layer && positionsOverlap(tile, candidate))
+        .map((candidate) => candidate.id);
+      expect(tile.blockedBy).toEqual(expected);
+    }
+  });
+
+  it('has no visually ambiguous overlap within one layer', () => {
+    for (const [index, tile] of LEVEL_3_LAYOUT.entries()) {
+      for (const candidate of LEVEL_3_LAYOUT.slice(index + 1)) {
+        if (candidate.layer === tile.layer) expect(positionsOverlap(tile, candidate)).toBe(false);
+      }
+    }
+  });
+
+  it('contains multiple blockers and blockers that reveal multiple tiles', () => {
+    expect(LEVEL_3_LAYOUT.some((position) => position.blockedBy.length > 1)).toBe(true);
+    const blockedCounts = new Map<string, number>();
+    LEVEL_3_LAYOUT.forEach((position) => position.blockedBy.forEach((blockerId) => {
+      blockedCounts.set(blockerId, (blockedCounts.get(blockerId) ?? 0) + 1);
+    }));
+    expect([...blockedCounts.values()].some((count) => count > 1)).toBe(true);
+  });
 });
 
 describe('Level 3 solvability verification', () => {
@@ -130,6 +181,35 @@ describe('Level 3 solvability verification', () => {
         : composeBird(state, action.birdId);
     }
     expect(deferred).toBe(true);
+  });
+
+  it.each(PREVALIDATED_LEVEL_3_SEEDS)('replays prevalidated seed %s to Level Complete', (seed) => {
+    const level = createPrevalidatedLevel3(seed);
+    expect(replaySolution(level, level.winningSolution).phase).toBe('level_complete');
+  });
+});
+
+describe('Level 3 seed controls', () => {
+  it('retry preserves the exact seed and character assignment', () => {
+    const initial = createGame('level-3', 10);
+    const played = selectBoardTile(initial, initial.boardTiles.find((tile) => tile.blockedBy.length === 0)!.id);
+    const retried = restartLevel(played);
+    expect(retried.levelSeed).toBe(10);
+    expect(retried.boardTiles.map((tile) => tile.character))
+      .toEqual(initial.boardTiles.map((tile) => tile.character));
+  });
+
+  it('new board rotates to a different prevalidated seed and assignment', () => {
+    const initial = createGame('level-3', 10);
+    const next = switchLevel3Board(initial);
+    expect(PREVALIDATED_LEVEL_3_SEEDS).toContain(next.levelSeed);
+    expect(next.levelSeed).not.toBe(initial.levelSeed);
+    expect(next.boardTiles.map((tile) => tile.character))
+      .not.toEqual(initial.boardTiles.map((tile) => tile.character));
+  });
+
+  it('never accepts an arbitrary unverified seed as a playable level', () => {
+    expect(() => createGame('level-3', 999)).toThrow('Unverified Level 3 seed');
   });
 });
 

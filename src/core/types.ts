@@ -35,6 +35,7 @@ export type WinningAction =
 export interface LevelDefinition {
   id: string;
   label: string;
+  seed?: number;
   tiles: readonly BoardTileDefinition[];
   winningSolution: readonly WinningAction[];
 }
@@ -47,6 +48,7 @@ export interface CompletedBird {
 
 export interface GameState {
   levelId: string;
+  levelSeed?: number;
   boardTiles: BoardTile[];
   tray: Array<RackTile | null>;
   score: number;

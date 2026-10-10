@@ -1,10 +1,24 @@
 import { describe, expect, it } from 'vitest';
+import { composeBird, createGameFromLevel, selectBoardTile } from '../src/core/game';
 import { generateLevel3Content } from '../src/core/level3Generator';
+import type { LevelDefinition, WinningAction } from '../src/core/types';
 import { EVALUATION_STRATEGIES, runStrategyTrial } from './level3Evaluation';
 import { createUnverifiedLevel, replaySolution, solveLevel } from './level3Solver';
 
 const CANDIDATE_ATTEMPTS = 100;
 const SEARCH_BUDGET = { maxNodes: 5_000, maxDurationMs: 250 } as const;
+
+function maximumTrayOccupancy(level: LevelDefinition, actions: readonly WinningAction[]): number {
+  let state = createGameFromLevel(level);
+  let maximum = 0;
+  for (const action of actions) {
+    state = action.type === 'take'
+      ? selectBoardTile(state, action.tileId)
+      : composeBird(state, action.birdId);
+    maximum = Math.max(maximum, state.tray.filter(Boolean).length);
+  }
+  return maximum;
+}
 
 describe('bounded Level 3 generation experiment', () => {
   it('evaluates a fixed sequence of 100 candidate seeds', () => {
@@ -13,7 +27,7 @@ describe('bounded Level 3 generation experiment', () => {
     let rejected = 0;
     let unknown = 0;
     let unsolvable = 0;
-    const accepted: Array<{ seed: number; level: ReturnType<typeof createUnverifiedLevel>; nodes: number; durationMs: number; diversity: number; repetition: number }> = [];
+    const accepted: Array<{ seed: number; level: ReturnType<typeof createUnverifiedLevel>; nodes: number; durationMs: number; diversity: number; repetition: number; maxTray: number }> = [];
     const diversities: number[] = [];
 
     for (let seed = 1; seed <= CANDIDATE_ATTEMPTS; seed += 1) {
@@ -34,7 +48,15 @@ describe('bounded Level 3 generation experiment', () => {
         unsolvable += 1;
         rejected += 1;
       } else if (replaySolution(level, result.actions).phase === 'level_complete') {
-        accepted.push({ seed, level, nodes: result.nodes, durationMs: result.durationMs, diversity, repetition });
+        accepted.push({
+          seed,
+          level,
+          nodes: result.nodes,
+          durationMs: result.durationMs,
+          diversity,
+          repetition,
+          maxTray: maximumTrayOccupancy(level, result.actions),
+        });
       } else {
         rejected += 1;
       }

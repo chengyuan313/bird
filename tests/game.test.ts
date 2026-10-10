@@ -132,6 +132,7 @@ describe('interconnected layered board', () => {
 
   it.each(AUTHORED_LEVELS)('$label has valid, acyclic, visually overlapping blockers', (level) => {
     const tileById = new Map(level.tiles.map((tile) => [tile.id, tile]));
+    const tileSize = level.id === 'level-3' ? 48 : 61;
     expect(tileById.size).toBe(level.tiles.length);
 
     for (const tile of level.tiles) {
@@ -139,10 +140,10 @@ describe('interconnected layered board', () => {
         const blocker = tileById.get(blockerId);
         expect(blocker).toBeDefined();
         expect(blocker!.layer).toBeGreaterThan(tile.layer);
-        const overlaps = blocker!.x < tile.x + 61
-          && blocker!.x + 61 > tile.x
-          && blocker!.y < tile.y + 61
-          && blocker!.y + 61 > tile.y;
+        const overlaps = blocker!.x < tile.x + tileSize
+          && blocker!.x + tileSize > tile.x
+          && blocker!.y < tile.y + tileSize
+          && blocker!.y + tileSize > tile.y;
         expect(overlaps, `${blockerId} must overlap ${tile.id}`).toBe(true);
       }
     }
@@ -289,9 +290,9 @@ describe('authored levels and winning paths', () => {
     const state = createGame('level-3');
     const blindTiles = state.boardTiles.filter((tile) => tile.region === 'blind');
     expect(blindTiles.filter((tile) => isBoardTileExposed(state, tile.id)).map((tile) => tile.id))
-      .toEqual(['l3-q01']);
+      .toEqual(['l3-q07']);
     expect(blindTiles.filter((tile) => !isBoardTileExposed(state, tile.id))).toHaveLength(6);
-    const hidden = blindTiles.find((tile) => tile.id === 'l3-q02')!;
+    const hidden = blindTiles.find((tile) => tile.id === 'l3-q06')!;
     const presentation = getBoardTilePresentation(hidden, false);
     expect(presentation).toEqual({ text: '？', ariaLabel: '隐藏字，被遮挡' });
     expect(`${presentation.text}${presentation.ariaLabel}`).not.toContain(hidden.character);
@@ -317,7 +318,7 @@ describe('authored levels and winning paths', () => {
   it('starts generated Level 3 with multiple exposed choices and an empty tray', () => {
     const state = createGame('level-3');
     const exposed = getExposedBoardTiles(state);
-    expect(exposed.length).toBeGreaterThan(10);
+    expect(exposed.length).toBeGreaterThanOrEqual(8);
     expect(state.tray.every((tile) => tile === null)).toBe(true);
     expect(findFormableBirds(state.tray)).toHaveLength(0);
   });

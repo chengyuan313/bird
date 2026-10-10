@@ -6,6 +6,7 @@ import {
   isTrayFull,
   restartLevel,
   selectBoardTile,
+  switchLevel3Board,
 } from '../core/game';
 import { AUTHORED_LEVELS, getLevel } from '../core/levels';
 import type { BoardTile, GameState } from '../core/types';
@@ -31,7 +32,7 @@ export function getBoardTilePresentation(
 }
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater): void {
-  const level = getLevel(state.levelId);
+  const level = getLevel(state.levelId, state.levelSeed);
   const trayFull = isTrayFull(state.tray);
   const formableBirds = findFormableBirds(state.tray);
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
@@ -54,9 +55,9 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
       ${completedBird ? `<section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite"><span class="bird-mark">●</span><div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div></section>` : ''}
 
       <section class="board-panel">
-        <div class="section-heading"><h2>字层</h2><span>剩余 ${remaining} / ${state.boardTiles.length}</span></div>
+        <div class="section-heading"><h2>字层</h2><div class="board-meta"><span>剩余 ${remaining} / ${state.boardTiles.length}</span>${state.levelId === 'level-3' ? `<button class="new-board-compact" data-action="new-board" aria-label="换一局，当前种子 ${state.levelSeed}">换一局</button>` : ''}</div></div>
         <div class="tile-board ${state.levelId === 'level-3' ? 'level-three-board' : ''}" aria-label="叠字棋盘">
-          ${state.levelId === 'level-3' ? '<span class="region-label auxiliary-label">补给区</span><span class="region-label blind-label">盲堆</span>' : ''}
+          ${state.levelId === 'level-3' ? '<span class="region-label auxiliary-label">侧叠</span><span class="region-label blind-label">盲堆</span>' : ''}
           ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => {
             const exposed = isBoardTileExposed(state, tile.id);
             const region = tile.region ?? 'main';
@@ -87,8 +88,8 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
           : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}
       </section>
 
-      ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p><button data-action="restart">重试本关</button></div></div>` : ''}
-      ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p><button data-action="restart">重新挑战</button></div></div>` : ''}
+      ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="restart">重试本局</button><button class="secondary" data-action="new-board">换一局</button></div>' : '<button data-action="restart">重试本关</button>'}</div></div>` : ''}
+      ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="restart">重试本局</button><button class="secondary" data-action="new-board">换一局</button></div>' : '<button data-action="restart">重新挑战</button>'}</div></div>` : ''}
     </section>`;
 
   root.querySelectorAll<HTMLElement>('[data-board-tile-id]').forEach((button) => {
@@ -104,4 +105,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
     });
   });
   root.querySelector<HTMLElement>('[data-action="restart"]')?.addEventListener('click', () => update(restartLevel(state)));
+  root.querySelectorAll<HTMLElement>('[data-action="new-board"]').forEach((button) => {
+    button.addEventListener('click', () => update(switchLevel3Board(state)));
+  });
 }

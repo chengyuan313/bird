@@ -32,78 +32,100 @@ export type GenerationResult =
   | { ok: true; value: GeneratedLevel3Content }
   | { ok: false; reason: string };
 
+export const LEVEL_3_TILE_SIZE = 48;
+
+type PositionSeed = Omit<LevelPosition, 'blockedBy'>;
+
 const position = (
   id: string,
   x: number,
   y: number,
   layer: number,
-  blockedBy: readonly string[],
   region?: TileRegion,
-): LevelPosition => region
-  ? { id, x, y, layer, blockedBy, region }
-  : { id, x, y, layer, blockedBy };
+): PositionSeed => region ? { id, x, y, layer, region } : { id, x, y, layer };
 
-export const LEVEL_3_LAYOUT: readonly LevelPosition[] = [
-  position('l3-m01', 78, 28, 5, []),
-  position('l3-m02', 138, 28, 5, []),
-  position('l3-m03', 198, 28, 5, []),
-  position('l3-m04', 48, 88, 5, []),
-  position('l3-m05', 108, 88, 5, []),
-  position('l3-m06', 168, 88, 5, []),
-  position('l3-m07', 228, 88, 5, []),
-  position('l3-m08', 138, 148, 5, []),
-  position('l3-m09', 65, 18, 4, ['l3-m01']),
-  position('l3-m10', 112, 18, 4, ['l3-m01', 'l3-m02']),
-  position('l3-m11', 172, 18, 4, ['l3-m02', 'l3-m03']),
-  position('l3-m12', 218, 18, 4, ['l3-m03']),
-  position('l3-m13', 190, 60, 4, ['l3-m03']),
-  position('l3-m14', 120, 78, 4, ['l3-m06']),
-  position('l3-m15', 218, 78, 4, ['l3-m07']),
-  position('l3-m16', 198, 138, 4, ['l3-m07']),
-  position('l3-m17', 85, 28, 3, ['l3-m09', 'l3-m10']),
-  position('l3-m18', 175, 28, 3, ['l3-m11', 'l3-m12']),
-  position('l3-m19', 200, 65, 3, ['l3-m12', 'l3-m13']),
-  position('l3-m20', 125, 88, 3, ['l3-m14']),
-  position('l3-m21', 218, 88, 3, ['l3-m15']),
-  position('l3-m22', 190, 135, 3, ['l3-m16']),
-  position('l3-m23', 235, 120, 3, ['l3-m15', 'l3-m16']),
-  position('l3-m24', 175, 165, 3, ['l3-m16']),
-  position('l3-m25', 75, 40, 2, ['l3-m17']),
-  position('l3-m26', 120, 40, 2, ['l3-m17']),
-  position('l3-m27', 180, 80, 2, ['l3-m19', 'l3-m20']),
-  position('l3-m28', 220, 100, 2, ['l3-m21']),
-  position('l3-m29', 195, 145, 2, ['l3-m21', 'l3-m22']),
-  position('l3-m30', 245, 145, 2, ['l3-m23']),
-  position('l3-m31', 175, 185, 2, ['l3-m24']),
-  position('l3-m32', 140, 55, 2, ['l3-m18']),
-  position('l3-m33', 70, 50, 1, ['l3-m25']),
-  position('l3-m34', 115, 50, 1, ['l3-m25', 'l3-m26']),
-  position('l3-m35', 215, 115, 1, ['l3-m28']),
-  position('l3-m36', 190, 155, 1, ['l3-m29']),
-  position('l3-m37', 245, 170, 1, ['l3-m30']),
-  position('l3-m38', 175, 95, 1, ['l3-m27']),
-  position('l3-m39', 140, 65, 1, ['l3-m32']),
-  position('l3-m40', 145, 110, 1, ['l3-m32']),
-  position('l3-x01', 4, 10, 6, [], 'auxiliary'),
-  position('l3-x02', 4, 60, 6, [], 'auxiliary'),
-  position('l3-x03', 4, 110, 6, [], 'auxiliary'),
-  position('l3-x04', 4, 160, 6, [], 'auxiliary'),
-  position('l3-x05', 4, 210, 6, [], 'auxiliary'),
-  position('l3-x06', 282, 10, 6, [], 'auxiliary'),
-  position('l3-x07', 282, 60, 6, [], 'auxiliary'),
-  position('l3-x08', 282, 110, 6, [], 'auxiliary'),
-  position('l3-x09', 282, 160, 6, [], 'auxiliary'),
-  position('l3-x10', 55, 210, 6, [], 'auxiliary'),
-  position('l3-x11', 105, 210, 6, [], 'auxiliary'),
-  position('l3-x12', 155, 210, 6, [], 'auxiliary'),
-  position('l3-q01', 278, 202, 7, [], 'blind'),
-  position('l3-q02', 276, 200, 6, ['l3-q01'], 'blind'),
-  position('l3-q03', 274, 198, 5, ['l3-q02'], 'blind'),
-  position('l3-q04', 272, 196, 4, ['l3-q03'], 'blind'),
-  position('l3-q05', 270, 194, 3, ['l3-q04'], 'blind'),
-  position('l3-q06', 268, 192, 2, ['l3-q05'], 'blind'),
-  position('l3-q07', 266, 190, 1, ['l3-q06'], 'blind'),
+const POSITION_SEEDS: readonly PositionSeed[] = [
+  // Dense central base: three staggered grids across four logical layers.
+  position('l3-m01', 70, 34, 1),
+  position('l3-m02', 122, 34, 1),
+  position('l3-m03', 174, 34, 1),
+  position('l3-m04', 226, 34, 1),
+  position('l3-m05', 70, 86, 1),
+  position('l3-m06', 122, 86, 1),
+  position('l3-m07', 174, 86, 1),
+  position('l3-m08', 226, 86, 1),
+  position('l3-m09', 70, 138, 1),
+  position('l3-m10', 122, 138, 1),
+  position('l3-m11', 174, 138, 1),
+  position('l3-m12', 226, 138, 1),
+  position('l3-m13', 96, 60, 2),
+  position('l3-m14', 148, 60, 2),
+  position('l3-m15', 200, 60, 2),
+  position('l3-m16', 96, 112, 2),
+  position('l3-m17', 148, 112, 2),
+  position('l3-m18', 200, 112, 2),
+  position('l3-m19', 96, 164, 2),
+  position('l3-m20', 148, 164, 2),
+  position('l3-m21', 200, 164, 2),
+  position('l3-m22', 70, 42, 3),
+  position('l3-m23', 122, 42, 3),
+  position('l3-m24', 174, 42, 3),
+  position('l3-m25', 226, 42, 3),
+  position('l3-m26', 70, 120, 3),
+  position('l3-m27', 122, 120, 3),
+  position('l3-m28', 174, 120, 3),
+  position('l3-m29', 226, 120, 3),
+  position('l3-m30', 96, 70, 4),
+  position('l3-m31', 148, 70, 4),
+  position('l3-m32', 200, 70, 4),
+  position('l3-m33', 122, 148, 4),
+  position('l3-m34', 174, 148, 4),
+
+  // Two short secondary columns form partially independent routes.
+  position('l3-m35', 44, 218, 1),
+  position('l3-m36', 47, 214, 2),
+  position('l3-m37', 50, 210, 3),
+  position('l3-m38', 248, 218, 1),
+  position('l3-m39', 251, 214, 2),
+  position('l3-m40', 254, 210, 3),
+
+  // Six-deep side stacks show their layered edges and open two excavation routes.
+  position('l3-x01', 4, 116, 1, 'auxiliary'),
+  position('l3-x02', 7, 112, 2, 'auxiliary'),
+  position('l3-x03', 10, 108, 3, 'auxiliary'),
+  position('l3-x04', 13, 104, 4, 'auxiliary'),
+  position('l3-x05', 16, 100, 5, 'auxiliary'),
+  position('l3-x06', 19, 96, 6, 'auxiliary'),
+  position('l3-x07', 280, 116, 1, 'auxiliary'),
+  position('l3-x08', 277, 112, 2, 'auxiliary'),
+  position('l3-x09', 274, 108, 3, 'auxiliary'),
+  position('l3-x10', 271, 104, 4, 'auxiliary'),
+  position('l3-x11', 268, 100, 5, 'auxiliary'),
+  position('l3-x12', 265, 96, 6, 'auxiliary'),
+
+  // A compact seven-deep blind stack anchors the lower center.
+  position('l3-q01', 150, 218, 1, 'blind'),
+  position('l3-q02', 153, 214, 2, 'blind'),
+  position('l3-q03', 156, 210, 3, 'blind'),
+  position('l3-q04', 159, 206, 4, 'blind'),
+  position('l3-q05', 162, 202, 5, 'blind'),
+  position('l3-q06', 165, 198, 6, 'blind'),
+  position('l3-q07', 168, 194, 7, 'blind'),
 ];
+
+export function positionsOverlap(first: Pick<LevelPosition, 'x' | 'y'>, second: Pick<LevelPosition, 'x' | 'y'>): boolean {
+  return first.x < second.x + LEVEL_3_TILE_SIZE
+    && first.x + LEVEL_3_TILE_SIZE > second.x
+    && first.y < second.y + LEVEL_3_TILE_SIZE
+    && first.y + LEVEL_3_TILE_SIZE > second.y;
+}
+
+export const LEVEL_3_LAYOUT: readonly LevelPosition[] = POSITION_SEEDS.map((tile) => ({
+  ...tile,
+  blockedBy: POSITION_SEEDS
+    .filter((candidate) => candidate.layer > tile.layer && positionsOverlap(tile, candidate))
+    .map((candidate) => candidate.id),
+}));
 
 export const DEFAULT_LEVEL_3_CONSTRAINTS: GenerationConstraints = {
   tileCount: LEVEL_3_LAYOUT.length,

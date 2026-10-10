@@ -1,4 +1,5 @@
 import { BIRD_CATALOG } from './birdCatalog';
+import { nextPrevalidatedLevel3Seed } from './level3Fixture';
 import { getLevel } from './levels';
 import type { BirdDefinition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
 
@@ -55,14 +56,15 @@ export function getExposedBoardTiles(state: GameState): BoardTile[] {
   return state.boardTiles.filter((tile) => isBoardTileExposed(state, tile.id));
 }
 
-export function createGame(levelId = 'level-1'): GameState {
-  const level = getLevel(levelId);
+export function createGame(levelId = 'level-1', levelSeed?: number): GameState {
+  const level = getLevel(levelId, levelSeed);
   return createGameFromLevel(level);
 }
 
 export function createGameFromLevel(level: LevelDefinition): GameState {
   return {
     levelId: level.id,
+    ...(level.seed === undefined ? {} : { levelSeed: level.seed }),
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
     tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
     score: 0,
@@ -130,5 +132,10 @@ export function composeBird(
 }
 
 export function restartLevel(state: GameState): GameState {
-  return createGame(state.levelId);
+  return createGame(state.levelId, state.levelSeed);
+}
+
+export function switchLevel3Board(state: GameState): GameState {
+  if (state.levelId !== 'level-3') return state;
+  return createGame('level-3', nextPrevalidatedLevel3Seed(state.levelSeed));
 }

@@ -4,7 +4,10 @@ import type {
   TileRegion,
   WinningAction,
 } from './types';
-import { createPrevalidatedLevel3 } from './level3Fixture';
+import {
+  createPrevalidatedLevel3,
+  isPrevalidatedLevel3Seed,
+} from './level3Fixture';
 
 const tile = (
   id: string,
@@ -129,7 +132,11 @@ const level3 = createPrevalidatedLevel3();
 
 export const AUTHORED_LEVELS: readonly LevelDefinition[] = [level1, level2, level3];
 
-export function getLevel(levelId: string): LevelDefinition {
+export function getLevel(levelId: string, seed?: number): LevelDefinition {
+  if (levelId === 'level-3' && seed !== undefined) {
+    if (!isPrevalidatedLevel3Seed(seed)) throw new Error(`Unverified Level 3 seed: ${seed}`);
+    return createPrevalidatedLevel3(seed);
+  }
   const level = AUTHORED_LEVELS.find((candidate) => candidate.id === levelId);
   if (!level) throw new Error(`Unknown level: ${levelId}`);
   return level;
