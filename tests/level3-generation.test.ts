@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BIRD_CATALOG } from '../src/core/birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGame,
@@ -62,7 +62,7 @@ describe('seeded Level 3 generation', () => {
     const generated = generateLevel3Content(29);
     expect(generated.ok).toBe(true);
     if (!generated.ok) return;
-    const birds = generated.value.sampledBirdIds.map((id) => BIRD_CATALOG.find((bird) => bird.id === id)!);
+    const birds = generated.value.sampledBirdIds.map((id) => LEGACY_GAMEPLAY_BIRD_CATALOG.find((bird) => bird.id === id)!);
     expect(sortedCharacters(generated.value.characters))
       .toBe(sortedCharacters(birds.flatMap((bird) => [...bird.characters])));
   });
@@ -83,7 +83,7 @@ describe('seeded Level 3 generation', () => {
   it('rejects impossible generation constraints explicitly', () => {
     const result = generateLevel3Content(1, {
       ...DEFAULT_LEVEL_3_CONSTRAINTS,
-      minDistinctSpecies: BIRD_CATALOG.length + 1,
+      minDistinctSpecies: LEGACY_GAMEPLAY_BIRD_CATALOG.length + 1,
     });
     expect(result).toEqual({ ok: false, reason: 'No bird multiset satisfies the configured constraints' });
   });

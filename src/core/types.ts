@@ -4,8 +4,15 @@ export interface BirdDefinition {
   id: string;
   name: string;
   characters: readonly string[];
+  characterCount: number;
   score: number;
   assetKey: string;
+  scientificName: string;
+  family: string;
+  source: string;
+  aliases?: readonly string[];
+  legacyOnly?: boolean;
+  canonicalBirdId?: string;
 }
 export interface RackTile {
   id: string;

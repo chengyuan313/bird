@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from '../core/birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../core/birdCatalog';
 import {
   composeBird,
   findFormableBirds,
@@ -38,7 +38,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
   const boardEmpty = remaining === 0;
   const completedBird = state.lastCompletedBird
-    ? BIRD_CATALOG.find((bird) => bird.id === state.lastCompletedBird?.birdId)
+    ? LEGACY_GAMEPLAY_BIRD_CATALOG.find((bird) => bird.id === state.lastCompletedBird?.birdId)
     : undefined;
 
   root.innerHTML = `

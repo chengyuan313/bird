@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from '../src/core/birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGameFromLevel,
@@ -60,7 +60,7 @@ function choose<T>(values: readonly T[], random: () => number): T {
 
 function birdFor(action: WinningAction): BirdDefinition | undefined {
   return action.type === 'compose'
-    ? BIRD_CATALOG.find((bird) => bird.id === action.birdId)
+    ? LEGACY_GAMEPLAY_BIRD_CATALOG.find((bird) => bird.id === action.birdId)
     : undefined;
 }
 

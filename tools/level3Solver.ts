@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from '../src/core/birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGameFromLevel,
@@ -135,5 +135,5 @@ export function createUnverifiedLevel(
 }
 
 export function isCompositionAvailable(state: GameState, birdId: string): boolean {
-  return findFormableBirds(state.tray, BIRD_CATALOG).some((bird) => bird.id === birdId);
+  return findFormableBirds(state.tray, LEGACY_GAMEPLAY_BIRD_CATALOG).some((bird) => bird.id === birdId);
 }

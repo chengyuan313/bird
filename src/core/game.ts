@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from './birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from './birdCatalog';
 import { nextPrevalidatedLevel3Seed } from './level3Fixture';
 import { getLevel } from './levels';
 import type { BirdDefinition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
@@ -15,7 +15,7 @@ function countCharacters(characters: readonly string[]): Map<string, number> {
 
 export function findFormableBirds(
   tray: readonly (RackTile | null)[],
-  catalog: readonly BirdDefinition[] = BIRD_CATALOG,
+  catalog: readonly BirdDefinition[] = LEGACY_GAMEPLAY_BIRD_CATALOG,
 ): BirdDefinition[] {
   const available = countCharacters(tray.flatMap((tile) => (tile ? [tile.character] : [])));
   return catalog.filter((bird) => {
@@ -101,7 +101,7 @@ export function selectBoardTile(state: GameState, tileId: string): GameState {
 export function composeBird(
   state: GameState,
   birdId: string,
-  catalog: readonly BirdDefinition[] = BIRD_CATALOG,
+  catalog: readonly BirdDefinition[] = LEGACY_GAMEPLAY_BIRD_CATALOG,
 ): GameState {
   if (state.phase !== 'playing') return state;
   const bird = catalog.find((candidate) => candidate.id === birdId);

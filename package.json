@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "analyze:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-analysis.experiment.ts --reporter=verbose",
+    "experiment:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-sampling.experiment.ts --reporter=verbose",
     "evaluate:level3": "vitest run --config tools/vitest.experiment.config.ts --reporter=verbose",
     "test": "vitest run",
     "typecheck": "tsc -b"

@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from './birdCatalog';
+import { LEGACY_GAMEPLAY_BIRD_CATALOG } from './birdCatalog';
 import type { BirdDefinition, BoardTileDefinition, TileRegion } from './types';
 
 export interface LevelPosition {
@@ -237,7 +237,7 @@ function sampleBirds(
 export function generateLevel3Content(
   seed: number,
   constraints: GenerationConstraints = DEFAULT_LEVEL_3_CONSTRAINTS,
-  catalog: readonly BirdDefinition[] = BIRD_CATALOG,
+  catalog: readonly BirdDefinition[] = LEGACY_GAMEPLAY_BIRD_CATALOG,
 ): GenerationResult {
   if (constraints.tileCount !== LEVEL_3_LAYOUT.length) {
     return { ok: false, reason: `Layout has ${LEVEL_3_LAYOUT.length} positions, not ${constraints.tileCount}` };

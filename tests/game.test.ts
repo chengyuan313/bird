@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BIRD_CATALOG } from '../src/core/birdCatalog';
+import { BIRD_CATALOG, IOC_15_2_SOURCE, LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGame,
@@ -211,8 +211,12 @@ describe('automatic recognition and one-tap composition', () => {
       id: 'bird:test-repeat',
       name: '白白鹭',
       characters: ['白', '白', '鹭'],
+      characterCount: 3,
       score: 30,
       assetKey: 'test-repeat',
+      scientificName: 'Testus repetitus',
+      family: 'Testidae',
+      source: IOC_15_2_SOURCE,
     };
     expect(findFormableBirds(trayFrom('白鹭'), [repeatedBird])).toEqual([]);
     expect(findFormableBirds(trayFrom('鹭白白'), [repeatedBird])).toEqual([repeatedBird]);
@@ -243,6 +247,16 @@ describe('automatic recognition and one-tap composition', () => {
 
     const long = composeBird(state, 'bird:hongfujinji');
     expect(long.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['隼']);
+  });
+
+  it('keeps expanded species opt-in while Levels 1–3 retain legacy recognition', () => {
+    const tray = trayFrom('家燕');
+    expect(findFormableBirds(tray).map((bird) => bird.id)).not.toContain('bird:jiayan');
+    expect(findFormableBirds(tray, BIRD_CATALOG).map((bird) => bird.id)).toContain('bird:jiayan');
+    const state = { ...createGame(), tray };
+    expect(composeBird(state, 'bird:jiayan')).toBe(state);
+    expect(composeBird(state, 'bird:jiayan', BIRD_CATALOG).tray.every((tile) => tile === null)).toBe(true);
+    expect(LEGACY_GAMEPLAY_BIRD_CATALOG.map((bird) => bird.id)).toContain('bird:xiaobailu');
   });
 
   it('returns the original state for invalid and unformable bird requests', () => {
