@@ -1,5 +1,5 @@
 import { BIRD_CATALOG } from './birdCatalog';
-import { FUTURE_90_TILE_CONSTRAINTS, sampleBirdContent } from './contentSampler';
+import { BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_LEVEL_3_CATALOG, sampleBirdContent } from './contentSampler';
 import { createSeededRandom, fisherYates } from './level3Generator';
 import { PIACHAN_POSITIONS } from '../preview/piachanLayout';
 import { PLAYABLE_LEVEL_3_TRACES } from './level3ValidatedTraces';
@@ -36,7 +36,7 @@ function removalOrder(seed: number): readonly string[] {
 
 /** Candidate generation only; the runtime selects seeds from the validated fixture list. */
 export function generatePiachanLevel3(seed: number): LevelDefinition {
-  const sampled = sampleBirdContent(seed, FUTURE_90_TILE_CONSTRAINTS);
+  const sampled = sampleBirdContent(seed, BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_LEVEL_3_CATALOG);
   if (!sampled.ok) throw new Error(`Cannot sample Level 3 seed ${seed}: ${sampled.reason}`);
   const byId = new Map(BIRD_CATALOG.map((bird) => [bird.id, bird]));
   const sampledBirds = fisherYates(sampled.value.sampledBirdIds, createSeededRandom(seed ^ 0x42495244))

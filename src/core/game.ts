@@ -136,6 +136,13 @@ export function restartLevel(state: GameState): GameState {
   return createGame(state.levelId, state.levelSeed);
 }
 
+export function advanceLevel(state: GameState): GameState {
+  if (state.phase !== 'level_complete') return state;
+  if (state.levelId === 'level-1') return createGame('level-2');
+  if (state.levelId === 'level-2') return createGame('level-3');
+  return state;
+}
+
 export function switchLevel3Board(state: GameState): GameState {
   if (state.levelId !== 'level-3') return state;
   return createGame('level-3', nextPlayableLevel3Seed(state.levelSeed));

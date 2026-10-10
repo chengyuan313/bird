@@ -51,6 +51,14 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .bird-option strong { font-family: SimSun, serif; font-size: 17px; }
 .bird-option span { font-size: 11px; font-weight: 800; }
 .compose-empty { min-height: 40px; margin: 0; padding: 12px; color: #929b90; background: #f0f3e9; border-radius: 10px; font-size: 11px; }
+.bird-reference { margin-top: 10px; padding: 11px 12px; border: 1px solid #d5dfd1; border-radius: 14px; background: #f8faf2; }
+.bird-reference summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; color: #315c46; font-size: 13px; font-weight: 800; }
+.bird-reference summary span { color: #768477; font-size: 11px; }
+.bird-reference p { margin: 9px 0; color: #738173; font-size: 11px; }
+.bird-reference ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.bird-reference li { min-width: 0; padding: 6px 4px; border-radius: 7px; background: #e8eee3; text-align: center; font-family: SimSun, serif; font-size: 12px; }
+.bird-reference li.completed { color: #45654d; background: #d7e9d3; }
+.bird-reference li small { display: block; font-family: system-ui, sans-serif; font-size: 9px; }
 .bird-reveal { display: flex; align-items: center; gap: 9px; margin-top: 9px; padding: 8px 11px; border-radius: 13px; background: color-mix(in srgb, var(--bird-color) 42%, white); animation: reveal .28s ease-out; }
 .bird-mark { display: grid; place-items: center; width: 35px; height: 35px; color: #ffffffba; background: var(--bird-color); border-radius: 9px; }
 .bird-reveal strong, .bird-reveal small { display: block; }

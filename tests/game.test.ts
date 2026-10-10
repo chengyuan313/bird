@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BIRD_CATALOG, IOC_15_2_SOURCE, LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
+  advanceLevel,
   composeBird,
   createGame,
   evaluateTerminalState,
@@ -12,7 +13,8 @@ import {
   TRAY_SIZE,
 } from '../src/core/game';
 import { AUTHORED_LEVELS } from '../src/core/levels';
-import { getBoardTilePresentation } from '../src/ui/render';
+import { replaySolution } from '../tools/level3Solver';
+import { getBoardTilePresentation, renderGame } from '../src/ui/render';
 import type {
   GameState,
   LevelDefinition,
@@ -30,6 +32,66 @@ function withEmptyBoard(state: GameState): GameState {
     boardTiles: state.boardTiles.map((tile) => ({ ...tile, removed: true })),
   };
 }
+
+describe('victory progression', () => {
+  it('advances through Levels 1 and 2 into the beginner Level 3 pool', () => {
+    let state = createGame('level-1');
+    expect(advanceLevel(state)).toBe(state);
+    for (const expectedNext of ['level-2', 'level-3']) {
+      const level = AUTHORED_LEVELS.find((candidate) => candidate.id === state.levelId)!;
+      state = replaySolution(level, level.winningSolution);
+      expect(state.phase).toBe('level_complete');
+      state = advanceLevel(state);
+      expect(state.levelId).toBe(expectedNext);
+      expect(state.score).toBe(0);
+      expect(state.tray.every((tile) => tile === null)).toBe(true);
+      expect(state.boardTiles.every((tile) => !tile.removed)).toBe(true);
+    }
+    expect(state.activeCatalog.length).toBeGreaterThanOrEqual(18);
+    expect(state.activeCatalog.length).toBeLessThanOrEqual(22);
+    const completed = replaySolution(AUTHORED_LEVELS[2], AUTHORED_LEVELS[2].winningSolution);
+    expect(advanceLevel(completed)).toBe(completed);
+  });
+});
+
+function renderMarkup(state: GameState): string {
+  const root = {
+    innerHTML: '',
+    querySelector: () => null,
+    querySelectorAll: () => [],
+  } as unknown as HTMLElement;
+  renderGame(root, state, () => undefined);
+  return root.innerHTML;
+}
+
+describe('progression and bird-reference presentation', () => {
+  it('shows next level first on Level 1 and 2 victories', () => {
+    for (const id of ['level-1', 'level-2']) {
+      const state = replaySolution(AUTHORED_LEVELS.find((level) => level.id === id)!, AUTHORED_LEVELS.find((level) => level.id === id)!.winningSolution);
+      const markup = renderMarkup(state);
+      expect(markup).toContain('data-action="next-level">下一关');
+      expect(markup).toContain('class="secondary" data-action="restart">重新挑战');
+      expect(markup).not.toContain('class="bird-reference"');
+    }
+  });
+
+  it('lists only sampled Chinese names and marks completed birds without changing state', () => {
+    const initial = createGame('level-3', 1);
+    const before = JSON.stringify(initial);
+    const markup = renderMarkup(initial);
+    expect(markup).toContain('<details class="bird-reference" >');
+    expect(markup).toContain(`本关鸟名 <span>${initial.activeCatalog.length} 种</span>`);
+    for (const bird of initial.activeCatalog) expect(markup).toContain(`<li class="">${bird.name}</li>`);
+    expect(markup).not.toContain('scientificName');
+    expect(JSON.stringify(initial)).toBe(before);
+
+    const completed = replaySolution(AUTHORED_LEVELS[2], AUTHORED_LEVELS[2].winningSolution);
+    const victory = renderMarkup(completed);
+    expect(victory).toContain('data-action="new-board">换一局');
+    expect(victory).toContain('class="secondary" data-action="restart">重试本局');
+    expect(victory).toContain('<small>已拼成</small>');
+  });
+});
 
 function solutionGroups(level: LevelDefinition): Array<{ birdId: string; tileIds: string[] }> {
   const groups: Array<{ birdId: string; tileIds: string[] }> = [];

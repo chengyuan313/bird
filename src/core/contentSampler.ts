@@ -43,6 +43,44 @@ export const FUTURE_90_TILE_CONSTRAINTS: ContentSamplingConstraints = {
   },
 };
 
+// A deliberately familiar-first subset of the verified canonical catalog. The final
+// eight entries add less familiar names for discovery without dominating a board.
+export const BEGINNER_FAMILIAR_BIRD_IDS = [
+  'bird:xique', 'bird:huixique', 'bird:bailu', 'bird:dabailu',
+  'bird:canglu', 'bird:yelu', 'bird:hongsun', 'bird:heishuiji',
+  'bird:shanbanjiu', 'bird:hongfujinji', 'bird:daisheng', 'bird:shumaque',
+  'bird:jiayan', 'bird:yunque', 'bird:wudong', 'bird:bage',
+  'bird:dashanque', 'bird:huangque', 'bird:jinchique', 'bird:yousun',
+  'bird:anchun', 'bird:lutouya', 'bird:yuanyang', 'bird:datiane',
+  'bird:dandinghe', 'bird:baihe', 'bird:hongzuiou', 'bird:huamei',
+] as const;
+
+export const BEGINNER_DISCOVERY_BIRD_IDS = [
+  'bird:baiyaoyuyan', 'bird:baijiling', 'bird:putongcuiniao',
+  'bird:baizhenhe', 'bird:heiguan', 'bird:putongluci',
+  'bird:zongbeibolao', 'bird:beihongweiqu',
+] as const;
+
+const beginnerIds = new Set<string>([
+  ...BEGINNER_FAMILIAR_BIRD_IDS,
+  ...BEGINNER_DISCOVERY_BIRD_IDS,
+]);
+export const BEGINNER_LEVEL_3_CATALOG: readonly BirdDefinition[] = BIRD_CATALOG.filter(
+  (bird) => beginnerIds.has(bird.id),
+);
+
+export const BEGINNER_90_TILE_CONSTRAINTS: ContentSamplingConstraints = {
+  tileCount: 90,
+  minDistinctSpecies: 18,
+  maxDistinctSpecies: 22,
+  maxSpeciesOccurrences: 3,
+  maxSpeciesPerFamily: 3,
+  sharedCharacterTargets: {
+    minimumOverlappingSpeciesPairs: 6,
+    maximumOverlapPairDensity: 0.25,
+  },
+};
+
 function characterCounts(characters: readonly string[]): ReadonlyMap<string, number> {
   const counts = new Map<string, number>();
   for (const character of characters) counts.set(character, (counts.get(character) ?? 0) + 1);

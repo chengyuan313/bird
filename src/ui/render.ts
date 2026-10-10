@@ -1,4 +1,5 @@
 import {
+  advanceLevel,
   composeBird,
   findFormableBirds,
   isBoardTileExposed,
@@ -31,6 +32,8 @@ export function getBoardTilePresentation(
 }
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater): void {
+  const referenceWasOpen = root.querySelector<HTMLDetailsElement>('.bird-reference')?.open ?? false;
+  const previousLevel = root.querySelector<HTMLElement>('.game-shell')?.dataset.levelId;
   const level = getLevel(state.levelId, state.levelSeed);
   const trayFull = isTrayFull(state.tray);
   const formableBirds = findFormableBirds(state.tray, state.activeCatalog);
@@ -41,7 +44,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
     : undefined;
 
   root.innerHTML = `
-    <section class="game-shell" aria-label="字里有鸟游戏">
+    <section class="game-shell" data-level-id="${state.levelId}" aria-label="字里有鸟游戏">
       <header class="topbar">
         <div><p class="eyebrow">字里有鸟</p><h1>拨开字层，拼出鸟名。</h1></div>
         <div class="score"><span>${level.label} · 得分</span><strong>${state.score}</strong></div>
@@ -89,8 +92,14 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
           : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}
       </section>
 
+      ${state.levelId === 'level-3' ? `<details class="bird-reference" ${referenceWasOpen && previousLevel === state.levelId ? 'open' : ''}>
+        <summary>本关鸟名 <span>${state.activeCatalog.length} 种</span></summary>
+        <p>这些鸟名都可能由本关字块拼成。</p>
+        <ul>${[...state.activeCatalog].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.id) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.id) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
+      </details>` : ''}
+
       ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="restart">重试本局</button><button class="secondary" data-action="new-board">换一局</button></div>' : '<button data-action="restart">重试本关</button>'}</div></div>` : ''}
-      ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="restart">重试本局</button><button class="secondary" data-action="new-board">换一局</button></div>' : '<button data-action="restart">重新挑战</button>'}</div></div>` : ''}
+      ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="new-board">换一局</button><button class="secondary" data-action="restart">重试本局</button></div>' : '<div class="result-actions"><button data-action="next-level">下一关</button><button class="secondary" data-action="restart">重新挑战</button></div>'}</div></div>` : ''}
     </section>`;
 
   root.querySelectorAll<HTMLElement>('[data-board-tile-id]').forEach((button) => {
@@ -110,5 +119,8 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   });
   root.querySelectorAll<HTMLElement>('[data-action="new-board"]').forEach((button) => {
     button.addEventListener('click', () => update(switchLevel3Board(state)));
+  });
+  root.querySelectorAll<HTMLElement>('[data-action="next-level"]').forEach((button) => {
+    button.addEventListener('click', () => update(advanceLevel(state)));
   });
 }
