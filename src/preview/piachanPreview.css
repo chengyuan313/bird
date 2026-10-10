@@ -1,0 +1,176 @@
+body.piachan-preview-page {
+  min-width: 320px;
+  background: radial-gradient(circle at 50% 0, #f9f4df 0, #e4eadc 54%, #d3ddd2 100%);
+}
+
+.piachan-preview-shell {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 14px 16px 22px;
+  overflow: hidden;
+}
+
+.piachan-preview-header,
+.piachan-toolbar,
+.piachan-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.piachan-preview-eyebrow {
+  margin: 0 0 3px;
+  color: #647369;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.piachan-preview-header h1 {
+  margin: 0;
+  font: 700 22px SimSun, serif;
+}
+
+.piachan-remaining {
+  min-width: 66px;
+  padding: 7px 10px;
+  color: white;
+  text-align: right;
+  background: #28533f;
+  border-radius: 12px;
+  box-shadow: 0 5px 14px #28533f26;
+}
+
+.piachan-remaining strong,
+.piachan-remaining span {
+  display: block;
+}
+
+.piachan-remaining strong { font-size: 20px; line-height: 1; }
+.piachan-remaining span { margin-top: 2px; font-size: 9px; opacity: .75; }
+
+.piachan-toolbar { margin-top: 11px; }
+.piachan-scale-control { display: flex; gap: 5px; }
+
+.piachan-toolbar button {
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid #aebbac;
+  border-radius: 9px;
+  color: #355443;
+  background: #fffff3c9;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.piachan-scale-control button[aria-pressed="true"] {
+  color: white;
+  background: #466f57;
+  border-color: #466f57;
+}
+
+.piachan-board-frame {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 330px;
+  margin-top: 11px;
+  padding: 10px;
+  overflow: hidden;
+  background: #f8f7ecb8;
+  border: 1px solid #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px #34503d14;
+}
+
+.piachan-board {
+  position: relative;
+  flex: none;
+  overflow: hidden;
+  background:
+    linear-gradient(#ffffff12 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff12 1px, transparent 1px),
+    linear-gradient(145deg, #94b298, #73977d);
+  background-size: calc(100% / 14) calc(100% / 14), calc(100% / 14) calc(100% / 14), auto;
+  border: 1px solid #6f8d75;
+  border-radius: 13px;
+  box-shadow: inset 0 0 0 1px #ffffff3d;
+}
+
+.piachan-tile {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  padding: 0;
+  border-radius: calc(var(--tile-size) * .16);
+  font-family: SimSun, serif;
+  font-size: calc(var(--tile-size) * .46);
+  font-weight: 800;
+  transition: transform .1s, filter .1s;
+}
+
+.piachan-tile small {
+  position: absolute;
+  right: 3px;
+  bottom: 1px;
+  font: 700 7px ui-monospace, monospace;
+}
+
+.piachan-tile.is-exposed {
+  color: #213d2d;
+  background: #fffbed;
+  border: 2px solid #476f55;
+  box-shadow: 0 3px 0 #365440, 0 6px 10px #203c2a35, inset 0 0 0 2px #ffffff;
+  cursor: pointer;
+}
+
+.piachan-tile.is-exposed:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #365440, 0 3px 7px #203c2a35;
+}
+
+.piachan-tile.is-blocked {
+  color: #67736a;
+  background: #c9cfc4;
+  border: 1px solid #929f93;
+  box-shadow: 0 2px 0 #7e8c80, inset 0 0 0 1px #e9ede5;
+  filter: saturate(.3) brightness(.9);
+  pointer-events: none;
+}
+
+.piachan-tile.is-blocked small { color: #59665c; }
+
+.piachan-legend {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  margin-top: 10px;
+  color: #59685e;
+  font-size: 10px;
+}
+
+.piachan-legend span { display: flex; align-items: center; gap: 4px; }
+.piachan-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.legend-exposed { background: #fffbed; border: 2px solid #476f55; }
+.legend-blocked { background: #c9cfc4; border: 1px solid #929f93; }
+
+.piachan-preview-note {
+  margin: 9px 1px 0;
+  color: #6f7c73;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (min-width: 700px) {
+  .piachan-preview-shell {
+    min-height: 844px;
+    margin-block: 28px;
+    border-radius: 26px;
+    background: #f4f5ebaa;
+    box-shadow: 0 28px 80px #3f55422b;
+  }
+}
