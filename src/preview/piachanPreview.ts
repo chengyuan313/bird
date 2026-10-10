@@ -21,10 +21,11 @@ export function mountPiachanPreview(root: HTMLElement): void {
   function render(): void {
     const boardSize = tileSize * 7;
     const tiles = PIACHAN_POSITIONS
-      .filter((tile) => !state.removedIds.has(tile.id))
-      .map((tile, index) => {
+      .map((tile, sourceIndex) => ({ tile, sourceIndex }))
+      .filter(({ tile }) => !state.removedIds.has(tile.id))
+      .map(({ tile, sourceIndex }) => {
         const exposed = isPiachanTileExposed(state, tile.id);
-        const character = PLACEHOLDER_CHARACTERS[index % PLACEHOLDER_CHARACTERS.length];
+        const character = PLACEHOLDER_CHARACTERS[sourceIndex % PLACEHOLDER_CHARACTERS.length];
         return `
           <button
             class="piachan-tile ${exposed ? 'is-exposed' : 'is-blocked'}"
