@@ -33,6 +33,11 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .board-tile.hidden-character { color: #aeb8ad; background: #69766c; filter: none; }
 .level-three-board .board-tile { width: 48px; height: 48px; border-radius: 9px; font-size: 21px; }
 .level-three-board .board-tile.region-auxiliary, .level-three-board .board-tile.region-blind { width: 48px; height: 48px; }
+.tile-board.piachan-game-board { width: min(100%, 310px); height: 310px; margin-inline: auto; background: linear-gradient(145deg, #a4bd9e, #7f9f85); }
+.piachan-game-board .board-tile { width: 44px; height: 44px; border-radius: 7px; font-size: 20px; }
+.piachan-game-board .board-tile.blocked { color: #67736a; background: #c9cfc4; border-color: #929f93; pointer-events: none; }
+.piachan-game-board .board-tile.exposed { border-color: #476f55; }
+.board-meta { flex-wrap: wrap; justify-content: flex-end; }
 .board-hint { margin: 7px 1px 0; color: #7b867c; font-size: 10px; }
 .cleanup-notice { margin: 7px 0 0; padding: 7px 9px; color: #315c46; background: #dcebdd; border-radius: 9px; font-size: 11px; font-weight: 700; }
 .tray { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }

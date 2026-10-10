@@ -1,5 +1,5 @@
 import { LEGACY_GAMEPLAY_BIRD_CATALOG } from './birdCatalog';
-import { nextPrevalidatedLevel3Seed } from './level3Fixture';
+import { nextPlayableLevel3Seed } from './level3Playable';
 import { getLevel } from './levels';
 import type { BirdDefinition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
 
@@ -33,10 +33,11 @@ export function isTrayFull(tray: readonly (RackTile | null)[]): boolean {
 export function evaluateTerminalState(
   boardTiles: readonly BoardTile[],
   tray: readonly (RackTile | null)[],
+  catalog: readonly BirdDefinition[] = LEGACY_GAMEPLAY_BIRD_CATALOG,
 ): GameState['phase'] {
   const boardEmpty = boardTiles.every((tile) => tile.removed);
   const trayEmpty = tray.every((tile) => tile === null);
-  const hasFormableBird = findFormableBirds(tray).length > 0;
+  const hasFormableBird = findFormableBirds(tray, catalog).length > 0;
 
   if (boardEmpty && trayEmpty) return 'level_complete';
   if (boardEmpty) return hasFormableBird ? 'playing' : 'game_over';
@@ -65,6 +66,7 @@ export function createGameFromLevel(level: LevelDefinition): GameState {
   return {
     levelId: level.id,
     ...(level.seed === undefined ? {} : { levelSeed: level.seed }),
+    activeCatalog: level.catalog ?? LEGACY_GAMEPLAY_BIRD_CATALOG,
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
     tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
     score: 0,
@@ -93,7 +95,7 @@ export function selectBoardTile(state: GameState, tileId: string): GameState {
   const boardTiles = state.boardTiles.map((tile) =>
     tile.id === tileId ? { ...tile, removed: true } : tile,
   );
-  const phase = evaluateTerminalState(boardTiles, tray);
+  const phase = evaluateTerminalState(boardTiles, tray, state.activeCatalog);
 
   return { ...state, boardTiles, tray, lastCompletedBird: null, phase };
 }
@@ -101,10 +103,9 @@ export function selectBoardTile(state: GameState, tileId: string): GameState {
 export function composeBird(
   state: GameState,
   birdId: string,
-  catalog: readonly BirdDefinition[] = LEGACY_GAMEPLAY_BIRD_CATALOG,
 ): GameState {
   if (state.phase !== 'playing') return state;
-  const bird = catalog.find((candidate) => candidate.id === birdId);
+  const bird = state.activeCatalog.find((candidate) => candidate.id === birdId);
   if (!bird) return state;
 
   const consumed = new Set<string>();
@@ -127,7 +128,7 @@ export function composeBird(
       ? [...state.discoveredBirdIds, bird.id]
       : state.discoveredBirdIds,
     lastCompletedBird: { birdId: bird.id, score: bird.score, isNew },
-    phase: evaluateTerminalState(state.boardTiles, tray),
+    phase: evaluateTerminalState(state.boardTiles, tray, state.activeCatalog),
   };
 }
 
@@ -137,5 +138,5 @@ export function restartLevel(state: GameState): GameState {
 
 export function switchLevel3Board(state: GameState): GameState {
   if (state.levelId !== 'level-3') return state;
-  return createGame('level-3', nextPrevalidatedLevel3Seed(state.levelSeed));
+  return createGame('level-3', nextPlayableLevel3Seed(state.levelSeed));
 }

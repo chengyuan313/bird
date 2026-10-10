@@ -66,7 +66,7 @@ function replayWinningSolution(level: LevelDefinition): {
       takenIds.push(action.tileId);
       maxTrayCount = Math.max(maxTrayCount, state.tray.filter(Boolean).length);
     } else {
-      expect(findFormableBirds(state.tray).map((bird) => bird.id)).toContain(action.birdId);
+      expect(findFormableBirds(state.tray, state.activeCatalog).map((bird) => bird.id)).toContain(action.birdId);
       const beforeIds = state.tray.flatMap((tile) => tile ? [tile.id] : []);
       state = composeBird(state, action.birdId);
       const afterIds = new Set(state.tray.flatMap((tile) => tile ? [tile.id] : []));
@@ -132,7 +132,7 @@ describe('interconnected layered board', () => {
 
   it.each(AUTHORED_LEVELS)('$label has valid, acyclic, visually overlapping blockers', (level) => {
     const tileById = new Map(level.tiles.map((tile) => [tile.id, tile]));
-    const tileSize = level.id === 'level-3' ? 48 : 61;
+    const tileSize = level.id === 'level-3' ? 44 : 61;
     expect(tileById.size).toBe(level.tiles.length);
 
     for (const tile of level.tiles) {
@@ -140,10 +140,11 @@ describe('interconnected layered board', () => {
         const blocker = tileById.get(blockerId);
         expect(blocker).toBeDefined();
         expect(blocker!.layer).toBeGreaterThan(tile.layer);
-        const overlaps = blocker!.x < tile.x + tileSize
-          && blocker!.x + tileSize > tile.x
-          && blocker!.y < tile.y + tileSize
-          && blocker!.y + tileSize > tile.y;
+        const scale = level.id === 'level-3' ? tileSize / 2 : 1;
+        const overlaps = blocker!.x * scale < tile.x * scale + tileSize
+          && blocker!.x * scale + tileSize > tile.x * scale
+          && blocker!.y * scale < tile.y * scale + tileSize
+          && blocker!.y * scale + tileSize > tile.y * scale;
         expect(overlaps, `${blockerId} must overlap ${tile.id}`).toBe(true);
       }
     }
@@ -222,9 +223,8 @@ describe('automatic recognition and one-tap composition', () => {
     expect(findFormableBirds(trayFrom('鹭白白'), [repeatedBird])).toEqual([repeatedBird]);
 
     const composed = composeBird(
-      { ...createGame(), tray: trayFrom('白鹭白白') },
+      { ...createGame(), tray: trayFrom('白鹭白白'), activeCatalog: [repeatedBird] },
       repeatedBird.id,
-      [repeatedBird],
     );
     expect(composed.tray.map((tile) => tile?.character ?? null).slice(0, 4)).toEqual([
       null, null, null, '白',
@@ -249,13 +249,13 @@ describe('automatic recognition and one-tap composition', () => {
     expect(long.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['隼']);
   });
 
-  it('keeps expanded species opt-in while Levels 1–3 retain legacy recognition', () => {
+  it('keeps expanded species unavailable in Levels 1 and 2', () => {
     const tray = trayFrom('家燕');
     expect(findFormableBirds(tray).map((bird) => bird.id)).not.toContain('bird:jiayan');
     expect(findFormableBirds(tray, BIRD_CATALOG).map((bird) => bird.id)).toContain('bird:jiayan');
     const state = { ...createGame(), tray };
     expect(composeBird(state, 'bird:jiayan')).toBe(state);
-    expect(composeBird(state, 'bird:jiayan', BIRD_CATALOG).tray.every((tile) => tile === null)).toBe(true);
+    expect(composeBird({ ...state, activeCatalog: BIRD_CATALOG }, 'bird:jiayan').tray.every((tile) => tile === null)).toBe(true);
     expect(LEGACY_GAMEPLAY_BIRD_CATALOG.map((bird) => bird.id)).toContain('bird:xiaobailu');
   });
 
@@ -286,33 +286,28 @@ describe('automatic recognition and one-tap composition', () => {
 
 describe('authored levels and winning paths', () => {
   it('keeps the requested tile counts and true logical depths', () => {
-    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 59]);
-    expect(AUTHORED_LEVELS.map((level) => Math.max(...level.tiles.map((tile) => tile.layer)))).toEqual([2, 3, 7]);
+    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 90]);
+    expect(AUTHORED_LEVELS.map((level) => Math.max(...level.tiles.map((tile) => tile.layer)))).toEqual([2, 3, 4]);
   });
 
-  it('gives Level 3 the intended main, auxiliary, and blind proportions', () => {
+  it('uses the connected Piachan board without auxiliary or blind regions', () => {
     const level = AUTHORED_LEVELS[2];
     const counts = level.tiles.reduce<Record<string, number>>((total, tile) => {
       const region = tile.region ?? 'main';
       total[region] = (total[region] ?? 0) + 1;
       return total;
     }, {});
-    expect(counts).toEqual({ main: 40, auxiliary: 12, blind: 7 });
+    expect(counts).toEqual({ main: 90 });
   });
 
-  it('keeps only the top blind-stack character visible initially', () => {
+  it('shows covered Piachan characters without blind-stack masking', () => {
     const state = createGame('level-3');
-    const blindTiles = state.boardTiles.filter((tile) => tile.region === 'blind');
-    expect(blindTiles.filter((tile) => isBoardTileExposed(state, tile.id)).map((tile) => tile.id))
-      .toEqual(['l3-q07']);
-    expect(blindTiles.filter((tile) => !isBoardTileExposed(state, tile.id))).toHaveLength(6);
-    const hidden = blindTiles.find((tile) => tile.id === 'l3-q06')!;
-    const presentation = getBoardTilePresentation(hidden, false);
-    expect(presentation).toEqual({ text: '？', ariaLabel: '隐藏字，被遮挡' });
-    expect(`${presentation.text}${presentation.ariaLabel}`).not.toContain(hidden.character);
+    expect(state.boardTiles.some((tile) => tile.region === 'blind')).toBe(false);
+    const covered = state.boardTiles.find((tile) => !isBoardTileExposed(state, tile.id))!;
+    expect(getBoardTilePresentation(covered, false).text).toBe(covered.character);
   });
 
-  it('interleaves Level 3 birds across blockers, regions, and depths', () => {
+  it('interleaves Level 3 birds across blockers and depths', () => {
     const level = AUTHORED_LEVELS[2];
     const tileById = new Map(level.tiles.map((tile) => [tile.id, tile]));
     const groupByTile = new Map<string, number>();
@@ -324,8 +319,7 @@ describe('authored levels and winning paths', () => {
     ))).toBe(true);
     expect(groups.some((group) => {
       const tiles = group.tileIds.map((id) => tileById.get(id)!);
-      return new Set(tiles.map((tile) => tile.region ?? 'main')).size > 1
-        && new Set(tiles.map((tile) => tile.layer)).size > 1;
+      return new Set(tiles.map((tile) => tile.layer)).size > 1;
     })).toBe(true);
   });
 

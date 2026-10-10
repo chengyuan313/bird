@@ -123,8 +123,8 @@ describe('imported piachan Level 1 geometry', () => {
     expect(remainingPiachanTiles(createPiachanPreviewState())).toBe(90);
   });
 
-  it('does not alter the existing playable level definitions', () => {
-    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 59]);
-    expect(AUTHORED_LEVELS.map((level) => level.winningSolution.length)).toEqual([33, 44, 81]);
+  it('preserves the earlier levels while Level 3 uses the imported geometry', () => {
+    expect(AUTHORED_LEVELS.map((level) => level.tiles.length)).toEqual([22, 33, 90]);
+    expect(AUTHORED_LEVELS.slice(0, 2).map((level) => level.winningSolution.length)).toEqual([33, 44]);
   });
 });

@@ -23,6 +23,7 @@ import {
   createPrevalidatedLevel3,
 } from '../src/core/level3Fixture';
 import { getLevel } from '../src/core/levels';
+import { PLAYABLE_LEVEL_3_SEEDS } from '../src/core/level3Playable';
 import type { LevelDefinition } from '../src/core/types';
 import { createUnverifiedLevel, replaySolution, solveLevel } from '../tools/level3Solver';
 
@@ -155,14 +156,14 @@ describe('Level 3 solvability verification', () => {
   });
 
   it('emits only exposed takes and available compositions while staying within capacity', () => {
-    const level = getLevel('level-3');
+    const level = createPrevalidatedLevel3();
     let state = createGameFromLevel(level);
     for (const action of level.winningSolution) {
       if (action.type === 'take') {
         expect(isBoardTileExposed(state, action.tileId)).toBe(true);
         state = selectBoardTile(state, action.tileId);
       } else {
-        expect(findFormableBirds(state.tray).map((bird) => bird.id)).toContain(action.birdId);
+        expect(findFormableBirds(state.tray, state.activeCatalog).map((bird) => bird.id)).toContain(action.birdId);
         state = composeBird(state, action.birdId);
       }
       expect(state.tray.filter(Boolean).length).toBeLessThanOrEqual(TRAY_SIZE);
@@ -171,11 +172,11 @@ describe('Level 3 solvability verification', () => {
   });
 
   it('allows a verified path to defer composition when taking another tile is strategic', () => {
-    const level = getLevel('level-3');
+    const level = createPrevalidatedLevel3();
     let state = createGameFromLevel(level);
     let deferred = false;
     for (const action of level.winningSolution) {
-      if (action.type === 'take' && findFormableBirds(state.tray).length > 0) deferred = true;
+      if (action.type === 'take' && findFormableBirds(state.tray, state.activeCatalog).length > 0) deferred = true;
       state = action.type === 'take'
         ? selectBoardTile(state, action.tileId)
         : composeBird(state, action.birdId);
@@ -191,18 +192,18 @@ describe('Level 3 solvability verification', () => {
 
 describe('Level 3 seed controls', () => {
   it('retry preserves the exact seed and character assignment', () => {
-    const initial = createGame('level-3', 10);
+    const initial = createGame('level-3', 2);
     const played = selectBoardTile(initial, initial.boardTiles.find((tile) => tile.blockedBy.length === 0)!.id);
     const retried = restartLevel(played);
-    expect(retried.levelSeed).toBe(10);
+    expect(retried.levelSeed).toBe(2);
     expect(retried.boardTiles.map((tile) => tile.character))
       .toEqual(initial.boardTiles.map((tile) => tile.character));
   });
 
   it('new board rotates to a different prevalidated seed and assignment', () => {
-    const initial = createGame('level-3', 10);
+    const initial = createGame('level-3', 2);
     const next = switchLevel3Board(initial);
-    expect(PREVALIDATED_LEVEL_3_SEEDS).toContain(next.levelSeed);
+    expect(PLAYABLE_LEVEL_3_SEEDS).toContain(next.levelSeed);
     expect(next.levelSeed).not.toBe(initial.levelSeed);
     expect(next.boardTiles.map((tile) => tile.character))
       .not.toEqual(initial.boardTiles.map((tile) => tile.character));

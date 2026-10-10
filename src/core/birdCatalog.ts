@@ -170,7 +170,7 @@ const LEGACY_BIRD_IDS = [
   'bird:shumaque',
 ] as const;
 
-/** Frozen Levels 1–3 recognition catalog, including the historical 小白鹭 entry. */
+/** Frozen Levels 1–2 recognition catalog, including the historical 小白鹭 entry. */
 export const LEGACY_GAMEPLAY_BIRD_CATALOG: readonly BirdDefinition[] = LEGACY_BIRD_IDS.map((id) => {
   const bird = id === legacyLittleEgret.id
     ? legacyLittleEgret

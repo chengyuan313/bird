@@ -22,4 +22,4 @@ The upstream cover test compares the four corner keys `(x,y)`, `(x+1,y)`, `(x,y+
 
 ## Boundary
 
-The route `/preview/piachan` is an inspection-only UI with placeholder Chinese characters, tile removal, exposure updates, remaining count, reset, and 36/44 px scale comparison. It does not use the bird catalogs, RNG, composition, tray, scoring, solver, or playable level data, and it does not replace Level 3.
+The route `/bird/preview/piachan` remains an inspection-only UI with placeholder Chinese characters, tile removal, exposure updates, remaining count, reset, and 36/44 px scale comparison. It does not use the bird catalogs, RNG, composition, tray, scoring, solver, or playable level data. The normal game route `/bird/` now uses these exact positions for playable Level 3.

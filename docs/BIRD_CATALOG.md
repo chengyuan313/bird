@@ -21,14 +21,14 @@ The catalog was matched row-by-row against IOC v15.2. A scientific-name join aga
 2. Names must be present in the inspected multilingual taxonomy source. Generic bird groups, invented names, and synonyms are excluded as standalone canonical entries.
 3. Stable IDs use `bird:<assetKey>`. They do not derive from scientific names, so later taxonomic genus changes do not break artwork or saved references.
 4. Aliases are research metadata only. They are not accepted as additional composition words and do not create extra sampling entries.
-5. Canonical sampling uses only `BIRD_CATALOG`. Levels 1–3 and their solver/evaluation tools use the frozen `LEGACY_GAMEPLAY_BIRD_CATALOG`.
+5. Canonical sampling uses only `BIRD_CATALOG`. Levels 1–2 retain the frozen `LEGACY_GAMEPLAY_BIRD_CATALOG`. Playable Level 3 recognizes only the canonical species sampled for its validated seed; its solver and strategy evaluator use that same active catalog.
 
 ## Legacy compatibility
 
 - `bird:bailu` remains the canonical *Egretta garzetta* entry, with 小白鹭 recorded as an alias.
 - `bird:xiaobailu` and asset key `xiaobailu` remain in the frozen 16-entry gameplay catalog only. The legacy record points to `bird:bailu` and is excluded from canonical species counts, graph analysis, and V2 sampling.
 - `bird:shumaque` retains its accepted gameplay name 树麻雀 and asset key. 麻雀 is stored only as research alias metadata.
-- No score, bird ID, accepted legacy composition name, Level 1–3 content, or prevalidated Level 3 replay was changed.
+- No score, bird ID, or accepted Level 1–2 legacy composition name was changed. The earlier 59-tile Level 3 fixtures remain as historical solver regression data; playable Level 3 now uses the 90-tile Piachan board and canonical sampled species.
 
 ## Known uncertainties
 

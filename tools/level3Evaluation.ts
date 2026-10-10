@@ -1,4 +1,3 @@
-import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGameFromLevel,
@@ -41,7 +40,7 @@ function trayCount(state: GameState): number {
 
 function legalActions(state: GameState): WinningAction[] {
   return [
-    ...findFormableBirds(state.tray).map((bird): WinningAction => ({ type: 'compose', birdId: bird.id })),
+    ...findFormableBirds(state.tray, state.activeCatalog).map((bird): WinningAction => ({ type: 'compose', birdId: bird.id })),
     ...(trayCount(state) < 10
       ? getExposedBoardTiles(state).map((tile): WinningAction => ({ type: 'take', tileId: tile.id }))
       : []),
@@ -58,9 +57,9 @@ function choose<T>(values: readonly T[], random: () => number): T {
   return values[Math.floor(random() * values.length)];
 }
 
-function birdFor(action: WinningAction): BirdDefinition | undefined {
+function birdFor(action: WinningAction, catalog: readonly BirdDefinition[]): BirdDefinition | undefined {
   return action.type === 'compose'
-    ? LEGACY_GAMEPLAY_BIRD_CATALOG.find((bird) => bird.id === action.birdId)
+    ? catalog.find((bird) => bird.id === action.birdId)
     : undefined;
 }
 
@@ -75,7 +74,7 @@ function heuristic(state: GameState): number {
   if (state.phase === 'level_complete') return 1_000_000;
   if (state.phase === 'game_over') return -1_000_000 - state.boardTiles.filter((tile) => !tile.removed).length;
   return state.score * 3
-    + findFormableBirds(state.tray).reduce((sum, bird) => sum + bird.score, 0) * 4
+    + findFormableBirds(state.tray, state.activeCatalog).reduce((sum, bird) => sum + bird.score, 0) * 4
     + getExposedBoardTiles(state).length * 3
     - trayCount(state) * 25
     - state.boardTiles.filter((tile) => !tile.removed).length;
@@ -104,20 +103,20 @@ function selectAction(
   const take = actions.filter((action) => action.type === 'take');
   if (strategy === 'always-compose' && compose.length > 0) return choose(compose, random);
   if (strategy === 'shortest' && compose.length > 0) {
-    return pickBest(compose, (action) => -(birdFor(action)?.characters.length ?? 0), random);
+    return pickBest(compose, (action) => -(birdFor(action, state.activeCatalog)?.characters.length ?? 0), random);
   }
   if (strategy === 'highest-score' && compose.length > 0) {
-    return pickBest(compose, (action) => birdFor(action)?.score ?? 0, random);
+    return pickBest(compose, (action) => birdFor(action, state.activeCatalog)?.score ?? 0, random);
   }
   if (strategy === 'clear-blockers') {
     if (take.length > 0 && (trayCount(state) < 8 || compose.length === 0)) {
       return pickBest(take, (action) => takeExposureScore(state, action), random);
     }
-    return pickBest(compose, (action) => birdFor(action)?.characters.length ?? 0, random);
+    return pickBest(compose, (action) => birdFor(action, state.activeCatalog)?.characters.length ?? 0, random);
   }
   if (strategy === 'capacity-aware') {
     if (compose.length > 0 && (trayCount(state) >= 6 || take.length === 0)) {
-      return pickBest(compose, (action) => birdFor(action)?.characters.length ?? 0, random);
+      return pickBest(compose, (action) => birdFor(action, state.activeCatalog)?.characters.length ?? 0, random);
     }
     if (take.length > 0) {
       return pickBest(take, (action) => {

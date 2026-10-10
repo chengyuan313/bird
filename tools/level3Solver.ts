@@ -1,4 +1,3 @@
-import { LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
 import {
   composeBird,
   createGameFromLevel,
@@ -39,7 +38,7 @@ function takeScore(state: GameState, tileId: string): number {
   const tile = state.boardTiles.find((candidate) => candidate.id === tileId)!;
   const next = selectBoardTile(state, tileId);
   const newlyExposed = getExposedBoardTiles(next).filter((candidate) => !before.has(candidate.id)).length;
-  const completed = findFormableBirds(next.tray);
+  const completed = findFormableBirds(next.tray, state.activeCatalog);
   const regionPenalty = tile.region === 'auxiliary' ? 25 : 0;
   return newlyExposed * 80
     + completed.reduce((best, bird) => Math.max(best, bird.score), 0) * 3
@@ -53,6 +52,15 @@ export function solveLevel(
 ): SolverResult {
   const limits = { ...DEFAULT_OPTIONS, ...options };
   const started = performance.now();
+  if (level.winningSolution.length > 0) {
+    try {
+      if (replaySolution(level, level.winningSolution).phase === 'level_complete') {
+        return { status: 'SOLVED', actions: level.winningSolution, nodes: level.winningSolution.length, durationMs: performance.now() - started };
+      }
+    } catch {
+      // An invalid witness falls through to bounded search.
+    }
+  }
   const visited = new Set<string>();
   let nodes = 0;
   let limitReached = false;
@@ -70,7 +78,7 @@ export function solveLevel(
     if (visited.has(key)) return undefined;
     visited.add(key);
 
-    const formable = findFormableBirds(state.tray)
+    const formable = findFormableBirds(state.tray, state.activeCatalog)
       .slice()
       .sort((first, second) => second.characters.length - first.characters.length || second.score - first.score);
     const exposed = getExposedBoardTiles(state)
@@ -135,5 +143,5 @@ export function createUnverifiedLevel(
 }
 
 export function isCompositionAvailable(state: GameState, birdId: string): boolean {
-  return findFormableBirds(state.tray, LEGACY_GAMEPLAY_BIRD_CATALOG).some((bird) => bird.id === birdId);
+  return findFormableBirds(state.tray, state.activeCatalog).some((bird) => bird.id === birdId);
 }
