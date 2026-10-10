@@ -29,4 +29,28 @@ describe('game DOM interactions', () => {
     expect(root.querySelector('.score')?.textContent).toContain('第三关');
     expect(root.querySelector('.board-meta')?.textContent).toContain('90 / 90');
   });
+
+  it('offers and consumes the Level 2 麻雀 spelling through the rendered controls', async () => {
+    const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
+    vi.stubGlobal('window', dom.window);
+    vi.stubGlobal('document', dom.window.document);
+    vi.resetModules();
+    await import('../src/main');
+
+    const root = dom.window.document.querySelector('#app')!;
+    root.querySelector<HTMLButtonElement>('[data-level-id="level-2"]')!.click();
+    for (const tileId of ['l2-z09', 'l2-z10', 'l2-z11', 'l2-m09', 'l2-m10']) {
+      const tile = root.querySelector<HTMLButtonElement>(`[data-board-tile-id="${tileId}"]`)!;
+      expect(tile.disabled).toBe(false);
+      tile.click();
+    }
+    expect(root.querySelector('.board-meta')?.textContent).toContain('28 / 33');
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(5);
+    const option = root.querySelector<HTMLButtonElement>('[data-bird-id="composition:maque"]');
+    expect(option?.textContent).toContain('麻雀');
+    option!.click();
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(3);
+    expect(root.querySelector('.board-meta')?.textContent).toContain('28 / 33');
+    expect(root.querySelector('.score')?.textContent).toContain('10');
+  });
 });

@@ -14,6 +14,16 @@ export interface BirdDefinition {
   legacyOnly?: boolean;
   canonicalBirdId?: string;
 }
+
+/** A playable spelling; multiple spellings may identify the same species. */
+export interface BirdComposition {
+  id: string;
+  speciesId: string;
+  name: string;
+  characters: readonly string[];
+  score: number;
+  assetKey: string;
+}
 export interface RackTile {
   id: string;
   character: string;
@@ -44,6 +54,7 @@ export interface LevelDefinition {
   label: string;
   seed?: number;
   catalog?: readonly BirdDefinition[];
+  compositions?: readonly BirdComposition[];
   tiles: readonly BoardTileDefinition[];
   winningSolution: readonly WinningAction[];
 }
@@ -58,10 +69,12 @@ export interface GameState {
   levelId: string;
   levelSeed?: number;
   activeCatalog: readonly BirdDefinition[];
+  activeCompositions: readonly BirdComposition[];
   boardTiles: BoardTile[];
   tray: Array<RackTile | null>;
   score: number;
   completedBirdCount: number;
+  /** Biological species IDs, not playable-spelling IDs. */
   discoveredBirdIds: string[];
   lastCompletedBird: CompletedBird | null;
   phase: GamePhase;

@@ -1,4 +1,4 @@
-import { BIRD_CATALOG } from './birdCatalog';
+import { BIRD_CATALOG, compositionForBird } from './birdCatalog';
 import { BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_LEVEL_3_CATALOG, sampleBirdContent } from './contentSampler';
 import { createSeededRandom, fisherYates } from './level3Generator';
 import { PIACHAN_POSITIONS } from '../preview/piachanLayout';
@@ -69,7 +69,7 @@ export function generatePiachanLevel3(seed: number): LevelDefinition {
     winningSolution.push({ type: 'compose', birdId: bird.id });
     offset += bird.characters.length;
   }
-  return { id: 'level-3', label: '第三关', seed, catalog, tiles, winningSolution };
+  return { id: 'level-3', label: '第三关', seed, catalog, compositions: catalog.map(compositionForBird), tiles, winningSolution };
 }
 
 export function createPlayableLevel3(seed: PlayableLevel3Seed = DEFAULT_PLAYABLE_LEVEL_3_SEED): LevelDefinition {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { BIRD_CATALOG, LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
+import { BIRD_CATALOG, LEGACY_GAMEPLAY_BIRD_CATALOG, LEGACY_GAMEPLAY_COMPOSITIONS, LEVEL_2_COMPOSITIONS, LEVEL_2_SPECIES_CATALOG } from '../src/core/birdCatalog';
 import {
   FUTURE_90_TILE_CONSTRAINTS,
   characterOverlap,
@@ -75,6 +75,20 @@ describe('canonical Bird Catalog V2', () => {
     for (const bird of BIRD_CATALOG) {
       for (const alias of bird.aliases ?? []) expect(names.has(alias)).toBe(false);
     }
+  });
+
+  it('keeps biological IDs separate from unique playable spelling IDs', () => {
+    expect(LEGACY_GAMEPLAY_COMPOSITIONS.map((composition) => composition.id)).toEqual(ORIGINAL_IDS);
+    expect(new Set(LEVEL_2_COMPOSITIONS.map((composition) => composition.id)).size).toBe(LEVEL_2_COMPOSITIONS.length);
+    expect(new Set(LEVEL_2_SPECIES_CATALOG.map((bird) => bird.id)).size).toBe(LEVEL_2_SPECIES_CATALOG.length);
+    for (const composition of LEVEL_2_COMPOSITIONS) {
+      expect(BIRD_CATALOG.some((bird) => bird.id === composition.speciesId)).toBe(true);
+      expect(composition.characters).toEqual(Array.from(composition.name));
+      expect(composition.score).toBe(composition.characters.length === 2 ? 10 : composition.characters.length === 3 ? 30 : 70);
+    }
+    expect(LEVEL_2_COMPOSITIONS.find((composition) => composition.id === 'bird:xiaobailu')?.speciesId).toBe('bird:bailu');
+    expect(LEVEL_2_COMPOSITIONS.find((composition) => composition.id === 'composition:maque')?.speciesId).toBe('bird:shumaque');
+    expect(LEVEL_2_COMPOSITIONS.find((composition) => composition.id === 'bird:shanmaque')?.speciesId).toBe('bird:shanmaque');
   });
 
   it('keeps the artwork-planning JSON export synchronized', () => {

@@ -163,7 +163,7 @@ describe('Level 3 solvability verification', () => {
         expect(isBoardTileExposed(state, action.tileId)).toBe(true);
         state = selectBoardTile(state, action.tileId);
       } else {
-        expect(findFormableBirds(state.tray, state.activeCatalog).map((bird) => bird.id)).toContain(action.birdId);
+        expect(findFormableBirds(state.tray, state.activeCompositions).map((bird) => bird.id)).toContain(action.birdId);
         state = composeBird(state, action.birdId);
       }
       expect(state.tray.filter(Boolean).length).toBeLessThanOrEqual(TRAY_SIZE);
@@ -176,7 +176,7 @@ describe('Level 3 solvability verification', () => {
     let state = createGameFromLevel(level);
     let deferred = false;
     for (const action of level.winningSolution) {
-      if (action.type === 'take' && findFormableBirds(state.tray, state.activeCatalog).length > 0) deferred = true;
+      if (action.type === 'take' && findFormableBirds(state.tray, state.activeCompositions).length > 0) deferred = true;
       state = action.type === 'take'
         ? selectBoardTile(state, action.tileId)
         : composeBird(state, action.birdId);

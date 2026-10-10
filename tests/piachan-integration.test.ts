@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BIRD_CATALOG, LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
+import { BIRD_CATALOG, LEGACY_GAMEPLAY_COMPOSITIONS, LEGACY_GAMEPLAY_SPECIES_CATALOG } from '../src/core/birdCatalog';
 import { BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_DISCOVERY_BIRD_IDS, BEGINNER_FAMILIAR_BIRD_IDS, BEGINNER_LEVEL_3_CATALOG, sampleBirdContent } from '../src/core/contentSampler';
 import {
   composeBird,
@@ -63,14 +63,15 @@ describe('playable Piachan Level 3', () => {
 
   it('preserves the legacy catalog for Levels 1 and 2', () => {
     for (const id of ['level-1', 'level-2']) {
-      expect(createGame(id).activeCatalog).toEqual(LEGACY_GAMEPLAY_BIRD_CATALOG);
+      expect(createGame(id).activeCompositions.slice(0, 16)).toEqual(LEGACY_GAMEPLAY_COMPOSITIONS);
     }
+    expect(createGame('level-1').activeCatalog).toEqual(LEGACY_GAMEPLAY_SPECIES_CATALOG);
     expect(createGame('level-3', 4).activeCatalog.every((bird) => BIRD_CATALOG.includes(bird))).toBe(true);
   });
 
   it('recognizes, consumes, and scores only birds in the active sampled pool', () => {
     const state = { ...createGame('level-3', 2), tray: tray('喜鹊') };
-    expect(findFormableBirds(state.tray, state.activeCatalog).map((bird) => bird.id))
+    expect(findFormableBirds(state.tray, state.activeCompositions).map((bird) => bird.id))
       .toContain('bird:xique');
     const composed = composeBird(state, 'bird:xique');
     expect(composed.score).toBe(10);
@@ -83,10 +84,10 @@ describe('playable Piachan Level 3', () => {
   it('uses the active catalog for board-empty cleanup and full-tray defeat', () => {
     const state = createGame('level-3', 2);
     const emptyBoard = state.boardTiles.map((tile) => ({ ...tile, removed: true }));
-    expect(evaluateTerminalState(emptyBoard, tray('喜鹊'), state.activeCatalog)).toBe('playing');
+    expect(evaluateTerminalState(emptyBoard, tray('喜鹊'), state.activeCompositions)).toBe('playing');
     const cleanup = composeBird({ ...state, boardTiles: emptyBoard, tray: tray('喜鹊') }, 'bird:xique');
     expect(cleanup.phase).toBe('level_complete');
-    expect(evaluateTerminalState(state.boardTiles, tray('〇〇〇〇〇〇〇〇〇〇'), state.activeCatalog))
+    expect(evaluateTerminalState(state.boardTiles, tray('〇〇〇〇〇〇〇〇〇〇'), state.activeCompositions))
       .toBe('game_over');
   });
 

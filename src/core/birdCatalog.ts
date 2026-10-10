@@ -1,4 +1,4 @@
-import type { BirdDefinition } from './types';
+import type { BirdComposition, BirdDefinition } from './types';
 
 export const SCORE_BY_LENGTH: Readonly<Record<number, number>> = {
   2: 10,
@@ -178,3 +178,55 @@ export const LEGACY_GAMEPLAY_BIRD_CATALOG: readonly BirdDefinition[] = LEGACY_BI
   if (!bird) throw new Error(`Missing legacy bird: ${id}`);
   return bird;
 });
+
+export function compositionForBird(bird: BirdDefinition): BirdComposition {
+  return {
+    id: bird.id,
+    speciesId: bird.canonicalBirdId ?? bird.id,
+    name: bird.name,
+    characters: bird.characters,
+    score: SCORE_BY_LENGTH[bird.characters.length],
+    assetKey: bird.assetKey,
+  };
+}
+
+/** Historical 16 spellings remain playable without duplicating biological identity. */
+export const LEGACY_GAMEPLAY_COMPOSITIONS: readonly BirdComposition[] =
+  LEGACY_GAMEPLAY_BIRD_CATALOG.map(compositionForBird);
+
+export const LEGACY_GAMEPLAY_SPECIES_CATALOG: readonly BirdDefinition[] =
+  [...new Map(LEGACY_GAMEPLAY_BIRD_CATALOG.map((bird) => {
+    const species = BIRD_CATALOG.find((candidate) => candidate.id === (bird.canonicalBirdId ?? bird.id));
+    if (!species) throw new Error(`Missing biological species for ${bird.id}`);
+    return [species.id, species] as const;
+  })).values()];
+
+function additionalComposition(id: string, name: string, speciesId: string): BirdComposition {
+  const species = BIRD_CATALOG.find((candidate) => candidate.id === speciesId);
+  if (!species) throw new Error(`Missing species for composition ${id}`);
+  const characters = Array.from(name);
+  const score = SCORE_BY_LENGTH[characters.length];
+  if (score === undefined) throw new Error(`Unsupported spelling length: ${name}`);
+  return { id, speciesId, name, characters, score, assetKey: species.assetKey };
+}
+
+/** Level 2 alone offers these validated extra spellings. */
+export const LEVEL_2_ADDITIONAL_COMPOSITIONS: readonly BirdComposition[] = [
+  additionalComposition('bird:dashanque', '大山雀', 'bird:dashanque'),
+  additionalComposition('composition:maque', '麻雀', 'bird:shumaque'),
+  additionalComposition('bird:shanmaque', '山麻雀', 'bird:shanmaque'),
+];
+
+export const LEVEL_2_COMPOSITIONS: readonly BirdComposition[] = [
+  ...LEGACY_GAMEPLAY_COMPOSITIONS,
+  ...LEVEL_2_ADDITIONAL_COMPOSITIONS,
+];
+
+export const LEVEL_2_SPECIES_CATALOG: readonly BirdDefinition[] = [
+  ...LEGACY_GAMEPLAY_SPECIES_CATALOG,
+  ...['bird:dashanque', 'bird:shanmaque'].map((id) => {
+    const species = BIRD_CATALOG.find((bird) => bird.id === id);
+    if (!species) throw new Error(`Missing Level 2 species ${id}`);
+    return species;
+  }),
+];

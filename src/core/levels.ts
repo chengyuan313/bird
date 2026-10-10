@@ -5,6 +5,7 @@ import type {
   WinningAction,
 } from './types';
 import { createPlayableLevel3, isPlayableLevel3Seed } from './level3Playable';
+import { LEGACY_GAMEPLAY_COMPOSITIONS, LEGACY_GAMEPLAY_SPECIES_CATALOG, LEVEL_2_COMPOSITIONS, LEVEL_2_SPECIES_CATALOG } from './birdCatalog';
 
 const tile = (
   id: string,
@@ -33,6 +34,8 @@ function winningActions(birds: readonly SolutionBird[]): WinningAction[] {
 const level1: LevelDefinition = {
   id: 'level-1',
   label: '第一关',
+  catalog: LEGACY_GAMEPLAY_SPECIES_CATALOG,
+  compositions: LEGACY_GAMEPLAY_COMPOSITIONS,
   tiles: [
     tile('l1-u01', '喜', 49, 22, 2, []),
     tile('l1-u02', '鹊', 123, 22, 2, []),
@@ -75,6 +78,8 @@ const level1: LevelDefinition = {
 const level2: LevelDefinition = {
   id: 'level-2',
   label: '第二关',
+  catalog: LEVEL_2_SPECIES_CATALOG,
+  compositions: LEVEL_2_COMPOSITIONS,
   tiles: [
     tile('l2-z01', '灰', 67, 14, 3, []),
     tile('l2-z02', '喜', 141, 14, 3, []),

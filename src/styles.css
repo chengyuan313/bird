@@ -20,6 +20,7 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .new-board-compact { min-height: 27px; padding: 3px 9px; border: 1px solid #91a494; border-radius: 8px; color: #315c46; background: #f7fbf4; cursor: pointer; font-size: 10px; font-weight: 800; }
 .board-panel, .tray-panel, .compose-panel { margin-top: 10px; padding: 12px; background: #fffdf5cf; border: 1px solid #fff; border-radius: 17px; box-shadow: 0 8px 24px #4a5e4c10; }
 .tile-board { position: relative; height: 258px; overflow: hidden; border-radius: 13px; background: linear-gradient(135deg, #d8dfce, #edf0e4); border: 1px solid #d5dccf; }
+.board-canvas { position: absolute; top: 0; left: 0; transform-origin: top left; }
 .level-three-board { height: 270px; }
 .region-label { position: absolute; z-index: 8; padding: 2px 5px; border-radius: 6px; font-size: 8px; font-weight: 800; letter-spacing: .08em; pointer-events: none; }
 .auxiliary-label { left: 2px; top: 82px; color: #77652d; background: #fff3b9dd; }
@@ -33,7 +34,7 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .board-tile.hidden-character { color: #aeb8ad; background: #69766c; filter: none; }
 .level-three-board .board-tile { width: 48px; height: 48px; border-radius: 9px; font-size: 21px; }
 .level-three-board .board-tile.region-auxiliary, .level-three-board .board-tile.region-blind { width: 48px; height: 48px; }
-.tile-board.piachan-game-board { width: min(100%, 310px); height: 310px; margin-inline: auto; background: linear-gradient(145deg, #a4bd9e, #7f9f85); }
+.tile-board.piachan-game-board { background: linear-gradient(145deg, #a4bd9e, #7f9f85); }
 .piachan-game-board .board-tile { width: 44px; height: 44px; border-radius: 7px; font-size: 20px; }
 .piachan-game-board .board-tile.blocked { color: #67736a; background: #c9cfc4; border-color: #929f93; pointer-events: none; }
 .piachan-game-board .board-tile.exposed { border-color: #476f55; }

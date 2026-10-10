@@ -38,7 +38,7 @@ function takeScore(state: GameState, tileId: string): number {
   const tile = state.boardTiles.find((candidate) => candidate.id === tileId)!;
   const next = selectBoardTile(state, tileId);
   const newlyExposed = getExposedBoardTiles(next).filter((candidate) => !before.has(candidate.id)).length;
-  const completed = findFormableBirds(next.tray, state.activeCatalog);
+  const completed = findFormableBirds(next.tray, state.activeCompositions);
   const regionPenalty = tile.region === 'auxiliary' ? 25 : 0;
   return newlyExposed * 80
     + completed.reduce((best, bird) => Math.max(best, bird.score), 0) * 3
@@ -78,7 +78,7 @@ export function solveLevel(
     if (visited.has(key)) return undefined;
     visited.add(key);
 
-    const formable = findFormableBirds(state.tray, state.activeCatalog)
+    const formable = findFormableBirds(state.tray, state.activeCompositions)
       .slice()
       .sort((first, second) => second.characters.length - first.characters.length || second.score - first.score);
     const exposed = getExposedBoardTiles(state)
@@ -143,5 +143,5 @@ export function createUnverifiedLevel(
 }
 
 export function isCompositionAvailable(state: GameState, birdId: string): boolean {
-  return findFormableBirds(state.tray, state.activeCatalog).some((bird) => bird.id === birdId);
+  return findFormableBirds(state.tray, state.activeCompositions).some((bird) => bird.id === birdId);
 }

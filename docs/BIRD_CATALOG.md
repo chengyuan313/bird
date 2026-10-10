@@ -20,14 +20,15 @@ The catalog was matched row-by-row against IOC v15.2. A scientific-name join aga
 1. Each canonical entry represents one unique scientific species; scientific names, IDs, asset keys, and approved gameplay names are unique.
 2. Names must be present in the inspected multilingual taxonomy source. Generic bird groups, invented names, and synonyms are excluded as standalone canonical entries.
 3. Stable IDs use `bird:<assetKey>`. They do not derive from scientific names, so later taxonomic genus changes do not break artwork or saved references.
-4. Aliases are research metadata only. They are not accepted as additional composition words and do not create extra sampling entries.
-5. Canonical sampling uses only `BIRD_CATALOG`. Levels 1–2 retain the frozen `LEGACY_GAMEPLAY_BIRD_CATALOG`. Playable Level 3 recognizes only the canonical species sampled for its validated seed; its solver and strategy evaluator use that same active catalog.
+4. Aliases are research metadata unless a playable spelling is explicitly added to a level's composition list. The Level 2 spelling 麻雀 is the sole new alias composition in this milestone and maps to `bird:shumaque`; it does not create a new species or sampling entry.
+5. Canonical sampling uses only `BIRD_CATALOG`. The historical 16 spellings remain available in Levels 1–2. Level 2 additionally allows 大山雀, 麻雀, and 山麻雀. Playable Level 3 recognizes only canonical spellings of species sampled for its validated seed; its solver and strategy evaluator use the same explicit composition list.
 
 ## Legacy compatibility
 
 - `bird:bailu` remains the canonical *Egretta garzetta* entry, with 小白鹭 recorded as an alias.
 - `bird:xiaobailu` and asset key `xiaobailu` remain in the frozen 16-entry gameplay catalog only. The legacy record points to `bird:bailu` and is excluded from canonical species counts, graph analysis, and V2 sampling.
-- `bird:shumaque` retains its accepted gameplay name 树麻雀 and asset key. 麻雀 is stored only as research alias metadata.
+- `bird:shumaque` retains its accepted gameplay name 树麻雀 and asset key. Level 2 additionally allows `composition:maque` (麻雀) as a two-character spelling of the same biological species. It scores by spelling length, and composing both spellings records only one species discovery.
+- Level 2 also permits the already verified canonical 大山雀 (`bird:dashanque`) and 山麻雀 (`bird:shanmaque`). The latter is its own biological species, not an alias of 树麻雀.
 - No score, bird ID, or accepted Level 1–2 legacy composition name was changed. The earlier 59-tile Level 3 fixtures remain as historical solver regression data; playable Level 3 now uses the 90-tile Piachan board and canonical sampled species.
 
 ## Known uncertainties

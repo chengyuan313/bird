@@ -12,6 +12,40 @@ import { AUTHORED_LEVELS, getLevel } from '../core/levels';
 import type { BoardTile, GameState } from '../core/types';
 
 type StateUpdater = (nextState: GameState) => void;
+const boardObservers = new WeakMap<HTMLElement, ResizeObserver>();
+
+export function getBoardBounds(state: GameState): { width: number; height: number } {
+  const levelThree = state.levelId === 'level-3';
+  const tileSize = levelThree ? 44 : 61;
+  const coordinate = (value: number) => levelThree ? value * tileSize / 2 : value;
+  return {
+    width: Math.max(levelThree ? 310 : 0, ...state.boardTiles.map((tile) => coordinate(tile.x) + tileSize)),
+    height: Math.max(levelThree ? 310 : 258, ...state.boardTiles.map((tile) => coordinate(tile.y) + tileSize)),
+  };
+}
+
+function fitBoard(root: HTMLElement, bounds: { width: number; height: number }): void {
+  boardObservers.get(root)?.disconnect();
+  const viewport = root.querySelector<HTMLElement>('.tile-board');
+  const canvas = root.querySelector<HTMLElement>('.board-canvas');
+  if (!viewport || !canvas) return;
+  canvas.style.width = `${bounds.width}px`;
+  canvas.style.height = `${bounds.height}px`;
+  const resize = () => {
+    const scale = Math.min(1, (viewport.clientWidth || bounds.width) / bounds.width);
+    canvas.style.transform = `scale(${scale})`;
+    canvas.style.left = viewport.classList.contains('piachan-game-board')
+      ? `${Math.max(0, ((viewport.clientWidth || bounds.width) - bounds.width * scale) / 2)}px`
+      : '0px';
+    viewport.style.height = `${bounds.height * scale}px`;
+  };
+  resize();
+  if (typeof ResizeObserver !== 'undefined') {
+    const observer = new ResizeObserver(resize);
+    observer.observe(viewport);
+    boardObservers.set(root, observer);
+  }
+}
 
 function birdColor(key: string): string {
   const hash = Array.from(key).reduce((total, character) => total + character.charCodeAt(0), 0);
@@ -36,11 +70,12 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   const previousLevel = root.querySelector<HTMLElement>('.game-shell')?.dataset.levelId;
   const level = getLevel(state.levelId, state.levelSeed);
   const trayFull = isTrayFull(state.tray);
-  const formableBirds = findFormableBirds(state.tray, state.activeCatalog);
+  const formableBirds = findFormableBirds(state.tray, state.activeCompositions);
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
   const boardEmpty = remaining === 0;
+  const boardBounds = getBoardBounds(state);
   const completedBird = state.lastCompletedBird
-    ? state.activeCatalog.find((bird) => bird.id === state.lastCompletedBird?.birdId)
+    ? state.activeCompositions.find((bird) => bird.id === state.lastCompletedBird?.birdId)
     : undefined;
 
   root.innerHTML = `
@@ -54,11 +89,18 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
         ${AUTHORED_LEVELS.map((candidate) => `<button data-level-id="${candidate.id}" class="${candidate.id === state.levelId ? 'active' : ''}">${candidate.label.replace('第', '').replace('关', '')}</button>`).join('')}
       </nav>
 
+      ${state.levelId === 'level-3' ? `<details class="bird-reference" ${referenceWasOpen && previousLevel === state.levelId ? 'open' : ''}>
+        <summary>本关鸟名 · 点此查看 <span>${state.activeCompositions.length} 种</span></summary>
+        <p>这些鸟名都可能由本关字块拼成。</p>
+        <ul>${[...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.speciesId) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.speciesId) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
+      </details>` : ''}
+
       ${completedBird ? `<section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite"><span class="bird-mark">●</span><div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div></section>` : ''}
 
       <section class="board-panel">
         <div class="section-heading"><h2>字层</h2><div class="board-meta"><span>剩余 ${remaining} / ${state.boardTiles.length}</span>${state.levelId === 'level-3' ? '<button class="new-board-compact" data-action="restart">重试本局</button><button class="new-board-compact" data-action="new-board">换一局</button>' : ''}</div></div>
         <div class="tile-board ${state.levelId === 'level-3' ? 'piachan-game-board' : ''}" aria-label="叠字棋盘">
+          <div class="board-canvas">
           ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => {
             const exposed = isBoardTileExposed(state, tile.id);
             const region = tile.region ?? 'main';
@@ -69,6 +111,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
             const y = state.levelId === 'level-3' ? tile.y * tileSize / 2 : tile.y;
             return `<button class="board-tile region-${region} ${hidden ? 'hidden-character' : ''} ${exposed ? 'exposed' : 'blocked'}" style="left:${x}px;top:${y}px;z-index:${tile.layer}" data-board-tile-id="${tile.id}" ${exposed && !trayFull && state.phase === 'playing' ? '' : 'disabled'} aria-label="${presentation.ariaLabel}">${presentation.text}</button>`;
           }).join('')}
+          </div>
         </div>
         ${boardEmpty && state.phase === 'playing'
           ? '<p class="cleanup-notice">棋盘已清空，拼完字槽里的鸟。</p>'
@@ -92,15 +135,11 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
           : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}
       </section>
 
-      ${state.levelId === 'level-3' ? `<details class="bird-reference" ${referenceWasOpen && previousLevel === state.levelId ? 'open' : ''}>
-        <summary>本关鸟名 <span>${state.activeCatalog.length} 种</span></summary>
-        <p>这些鸟名都可能由本关字块拼成。</p>
-        <ul>${[...state.activeCatalog].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.id) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.id) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
-      </details>` : ''}
-
       ${state.phase === 'game_over' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">${boardEmpty ? '棋盘已清空' : '字槽已满'}</p><h2>无鸟可拼</h2><p>${boardEmpty ? '字槽里的剩余字无法组成鸟名。' : '这次被字层困住了。换一种拿字顺序再试试。'}</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="restart">重试本局</button><button class="secondary" data-action="new-board">换一局</button></div>' : '<button data-action="restart">重试本关</button>'}</div></div>` : ''}
       ${state.phase === 'level_complete' ? `<div class="result-surface" role="dialog" aria-modal="true"><div><p class="eyebrow">LEVEL COMPLETE</p><h2>${level.label}完成</h2><p>得分 ${state.score} · 拼成 ${state.completedBirdCount} 只鸟</p>${state.levelId === 'level-3' ? '<div class="result-actions"><button data-action="new-board">换一局</button><button class="secondary" data-action="restart">重试本局</button></div>' : '<div class="result-actions"><button data-action="next-level">下一关</button><button class="secondary" data-action="restart">重新挑战</button></div>'}</div></div>` : ''}
     </section>`;
+
+  fitBoard(root, boardBounds);
 
   root.querySelectorAll<HTMLElement>('[data-board-tile-id]').forEach((button) => {
     button.addEventListener('click', () => update(selectBoardTile(state, button.dataset.boardTileId ?? '')));
