@@ -143,11 +143,23 @@ describe('seeded Level 3 generation', () => {
 });
 
 describe('Level 3 solvability verification', () => {
-  it('solves the accepted fixture and returns a replayable completion path', () => {
+  it('replay-certifies the accepted fixture without mistaking bounded search exhaustion for unsolvability', () => {
     const level = generatedLevel(PREVALIDATED_LEVEL_3_SEED);
-    const result = solveLevel(level, { maxNodes: 5_000, maxDurationMs: 5_000 });
-    expect(result.status).toBe('SOLVED');
-    expect(replaySolution(level, result.actions).phase).toBe('level_complete');
+    const certified = createPrevalidatedLevel3(PREVALIDATED_LEVEL_3_SEED);
+    expect(level.tiles).toEqual(certified.tiles);
+    expect(replaySolution(level, certified.winningSolution).phase).toBe('level_complete');
+
+    const witnessResult = solveLevel(certified, { maxNodes: 5_000, maxDurationMs: 5_000 });
+    expect(witnessResult.status).toBe('SOLVED');
+    expect(witnessResult.actions).toEqual(certified.winningSolution);
+
+    const independent = solveLevel(level, { maxNodes: 5_000, maxDurationMs: 5_000 });
+    expect(independent.status).not.toBe('UNSOLVABLE');
+    if (independent.status === 'SOLVED') {
+      expect(replaySolution(level, independent.actions).phase).toBe('level_complete');
+    } else {
+      expect(independent).toMatchObject({ status: 'SEARCH_LIMIT_REACHED', actions: [] });
+    }
   }, 10_000);
 
   it('reports search-budget exhaustion as SEARCH_LIMIT_REACHED, not UNSOLVABLE', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BIRD_CATALOG, LEGACY_GAMEPLAY_COMPOSITIONS, LEGACY_GAMEPLAY_SPECIES_CATALOG } from '../src/core/birdCatalog';
+import { GLOBAL_BIRD_COMPOSITIONS } from '../src/core/recognitionRegistry';
 import { BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_DISCOVERY_BIRD_IDS, BEGINNER_FAMILIAR_BIRD_IDS, BEGINNER_LEVEL_3_CATALOG, sampleBirdContent } from '../src/core/contentSampler';
 import {
   composeBird,
@@ -61,27 +62,30 @@ describe('playable Piachan Level 3', () => {
     expect(level.catalog?.length).toBeLessThanOrEqual(22);
   });
 
-  it('preserves the legacy catalog for Levels 1 and 2', () => {
+  it('preserves tutorial generation catalogs while recognizing all reviewed names', () => {
     for (const id of ['level-1', 'level-2']) {
-      expect(createGame(id).activeCompositions.slice(0, 16)).toEqual(LEGACY_GAMEPLAY_COMPOSITIONS);
+      expect(createGame(id).activeCompositions).toBe(GLOBAL_BIRD_COMPOSITIONS);
     }
+    expect(LEGACY_GAMEPLAY_COMPOSITIONS).toHaveLength(16);
     expect(createGame('level-1').activeCatalog).toEqual(LEGACY_GAMEPLAY_SPECIES_CATALOG);
     expect(createGame('level-3', 4).activeCatalog.every((bird) => BIRD_CATALOG.includes(bird))).toBe(true);
   });
 
-  it('recognizes, consumes, and scores only birds in the active sampled pool', () => {
+  it('recognizes birds beyond the active sampled pool', () => {
     const state = { ...createGame('level-3', 2), tray: tray('喜鹊') };
     expect(findFormableBirds(state.tray, state.activeCompositions).map((bird) => bird.id))
       .toContain('bird:xique');
     const composed = composeBird(state, 'bird:xique');
     expect(composed.score).toBe(10);
     expect(composed.tray.every((tile) => tile === null)).toBe(true);
-    expect(composeBird(state, 'bird:jiayan')).toBe(state);
+    const unsampled = { ...state, tray: tray('家燕') };
+    expect(unsampled.activeCatalog.some((bird) => bird.id === 'bird:jiayan')).toBe(false);
+    expect(composeBird(unsampled, 'bird:jiayan').score).toBe(10);
     const legacy = { ...createGame('level-1'), tray: tray('丹顶鹤') };
-    expect(composeBird(legacy, 'bird:dandinghe')).toBe(legacy);
+    expect(composeBird(legacy, 'bird:dandinghe').score).toBe(30);
   });
 
-  it('uses the active catalog for board-empty cleanup and full-tray defeat', () => {
+  it('uses global recognition for board-empty cleanup and full-tray defeat', () => {
     const state = createGame('level-3', 2);
     const emptyBoard = state.boardTiles.map((tile) => ({ ...tile, removed: true }));
     expect(evaluateTerminalState(emptyBoard, tray('喜鹊'), state.activeCompositions)).toBe('playing');

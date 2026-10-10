@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BIRD_CATALOG, LEGACY_GAMEPLAY_BIRD_CATALOG, compositionForBird } from '../src/core/birdCatalog';
+import { BIRD_CATALOG, LEGACY_GAMEPLAY_BIRD_CATALOG } from '../src/core/birdCatalog';
+import { GLOBAL_BIRD_COMPOSITIONS } from '../src/core/recognitionRegistry';
 import {
   advanceLevel,
   composeBird,
@@ -71,16 +72,17 @@ describe('progression and bird-reference presentation', () => {
       const markup = renderMarkup(state);
       expect(markup).toContain('data-action="next-level">下一关');
       expect(markup).toContain('class="secondary" data-action="restart">重新挑战');
-      expect(markup).not.toContain('class="bird-reference"');
+      expect(markup).toContain('class="bird-reference playable-reference"');
     }
   });
 
-  it('lists only sampled Chinese names and marks completed birds without changing state', () => {
+  it('separates sampled names from all playable names without changing state', () => {
     const initial = createGame('level-3', 1);
     const before = JSON.stringify(initial);
     const markup = renderMarkup(initial);
-    expect(markup).toContain('<details class="bird-reference" >');
-    expect(markup).toContain(`本关鸟名 · 点此查看 <span>${initial.activeCompositions.length} 种</span>`);
+    expect(markup).toContain('<details class="bird-reference generated-reference" >');
+    expect(markup).toContain(`本局生成鸟名 <span>${initial.activeCatalog.length} 种</span>`);
+    expect(markup).toContain(`可消除鸟名 <span>${GLOBAL_BIRD_COMPOSITIONS.length} 种</span>`);
     for (const bird of initial.activeCatalog) expect(markup).toContain(`<li class="">${bird.name}</li>`);
     expect(markup).not.toContain('scientificName');
     expect(JSON.stringify(initial)).toBe(before);
@@ -89,7 +91,7 @@ describe('progression and bird-reference presentation', () => {
     const victory = renderMarkup(completed);
     expect(victory).toContain('data-action="new-board">换一局');
     expect(victory).toContain('class="secondary" data-action="restart">重试本局');
-    expect(victory).toContain('<small>已拼成</small>');
+    expect(victory).toContain('<small>已发现</small>');
   });
 });
 
@@ -277,6 +279,8 @@ describe('automatic recognition and one-tap composition', () => {
       characters: ['白', '白', '鹭'],
       score: 30,
       assetKey: 'test-repeat',
+      classification: 'canonical' as const,
+      provenance: 'test fixture',
     };
     expect(findFormableBirds(trayFrom('白鹭'), [repeatedBird])).toEqual([]);
     expect(findFormableBirds(trayFrom('鹭白白'), [repeatedBird])).toEqual([repeatedBird]);
@@ -308,13 +312,11 @@ describe('automatic recognition and one-tap composition', () => {
     expect(long.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['隼']);
   });
 
-  it('keeps expanded species unavailable in Levels 1 and 2', () => {
+  it('recognizes expanded species in every level', () => {
     const tray = trayFrom('家燕');
-    expect(findFormableBirds(tray).map((bird) => bird.id)).not.toContain('bird:jiayan');
-    expect(findFormableBirds(tray, BIRD_CATALOG.map(compositionForBird)).map((bird) => bird.id)).toContain('bird:jiayan');
+    expect(findFormableBirds(tray).map((bird) => bird.id)).toContain('bird:jiayan');
     const state = { ...createGame(), tray };
-    expect(composeBird(state, 'bird:jiayan')).toBe(state);
-    expect(composeBird({ ...state, activeCompositions: BIRD_CATALOG.map(compositionForBird) }, 'bird:jiayan').tray.every((tile) => tile === null)).toBe(true);
+    expect(composeBird(state, 'bird:jiayan').tray.every((tile) => tile === null)).toBe(true);
     expect(LEGACY_GAMEPLAY_BIRD_CATALOG.map((bird) => bird.id)).toContain('bird:xiaobailu');
   });
 
@@ -410,15 +412,15 @@ describe('explicit Level 2 bird-name compositions', () => {
     expect(next.tray.every((tile) => tile === null)).toBe(true);
   });
 
-  it('rejects incomplete spellings and keeps non-Level-2 vocabularies closed', () => {
+  it('rejects incomplete spellings and recognizes reviewed names globally', () => {
     const state = { ...createGame('level-2'), tray: trayFrom('麻') };
     expect(findFormableBirds(state.tray, state.activeCompositions).some((bird) => bird.id === 'composition:maque')).toBe(false);
     expect(composeBird(state, 'composition:maque')).toBe(state);
     const level1 = { ...createGame('level-1'), tray: trayFrom('大山雀麻') };
-    expect(composeBird(level1, 'bird:dashanque')).toBe(level1);
-    expect(composeBird(level1, 'composition:maque')).toBe(level1);
+    expect(composeBird(level1, 'bird:dashanque').score).toBe(30);
+    expect(composeBird(level1, 'composition:maque').score).toBe(10);
     for (const seed of [1, 2, 3, 4, 5]) {
-      expect(createGame('level-3', seed).activeCompositions.some((bird) => bird.id === 'composition:maque')).toBe(false);
+      expect(createGame('level-3', seed).activeCompositions.some((bird) => bird.id === 'composition:maque')).toBe(true);
     }
   });
 });

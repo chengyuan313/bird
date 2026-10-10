@@ -170,7 +170,7 @@ const LEGACY_BIRD_IDS = [
   'bird:shumaque',
 ] as const;
 
-/** Frozen Levels 1–2 recognition catalog, including the historical 小白鹭 entry. */
+/** Frozen historical tutorial spellings, including the 小白鹭 alias. */
 export const LEGACY_GAMEPLAY_BIRD_CATALOG: readonly BirdDefinition[] = LEGACY_BIRD_IDS.map((id) => {
   const bird = id === legacyLittleEgret.id
     ? legacyLittleEgret
@@ -182,11 +182,13 @@ export const LEGACY_GAMEPLAY_BIRD_CATALOG: readonly BirdDefinition[] = LEGACY_BI
 export function compositionForBird(bird: BirdDefinition): BirdComposition {
   return {
     id: bird.id,
+    classification: bird.legacyOnly ? 'alias' : 'canonical',
     speciesId: bird.canonicalBirdId ?? bird.id,
     name: bird.name,
     characters: bird.characters,
     score: SCORE_BY_LENGTH[bird.characters.length],
     assetKey: bird.assetKey,
+    provenance: bird.legacyOnly ? 'Frozen Level 1–2 gameplay spelling; canonical identity reviewed in BIRD_CATALOG.md' : bird.source,
   };
 }
 
@@ -207,10 +209,10 @@ function additionalComposition(id: string, name: string, speciesId: string): Bir
   const characters = Array.from(name);
   const score = SCORE_BY_LENGTH[characters.length];
   if (score === undefined) throw new Error(`Unsupported spelling length: ${name}`);
-  return { id, speciesId, name, characters, score, assetKey: species.assetKey };
+  return { id, classification: id === 'composition:maque' ? 'alias' : 'canonical', speciesId, name, characters, score, assetKey: species.assetKey, provenance: id === 'composition:maque' ? 'Reviewed V3 Level 2 alternate spelling for 树麻雀' : species.source };
 }
 
-/** Level 2 alone offers these validated extra spellings. */
+/** Historically introduced in Level 2; the reviewed registry now recognizes them globally. */
 export const LEVEL_2_ADDITIONAL_COMPOSITIONS: readonly BirdComposition[] = [
   additionalComposition('bird:dashanque', '大山雀', 'bird:dashanque'),
   additionalComposition('composition:maque', '麻雀', 'bird:shumaque'),

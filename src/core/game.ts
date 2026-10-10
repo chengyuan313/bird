@@ -1,4 +1,5 @@
-import { LEGACY_GAMEPLAY_COMPOSITIONS, LEGACY_GAMEPLAY_SPECIES_CATALOG } from './birdCatalog';
+import { LEGACY_GAMEPLAY_SPECIES_CATALOG } from './birdCatalog';
+import { GLOBAL_BIRD_COMPOSITIONS } from './recognitionRegistry';
 import { nextPlayableLevel3Seed } from './level3Playable';
 import { getLevel } from './levels';
 import type { BirdComposition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
@@ -15,7 +16,7 @@ function countCharacters(characters: readonly string[]): Map<string, number> {
 
 export function findFormableBirds(
   tray: readonly (RackTile | null)[],
-  compositions: readonly BirdComposition[] = LEGACY_GAMEPLAY_COMPOSITIONS,
+  compositions: readonly BirdComposition[] = GLOBAL_BIRD_COMPOSITIONS,
 ): BirdComposition[] {
   const available = countCharacters(tray.flatMap((tile) => (tile ? [tile.character] : [])));
   return compositions.filter((composition) => {
@@ -33,7 +34,7 @@ export function isTrayFull(tray: readonly (RackTile | null)[]): boolean {
 export function evaluateTerminalState(
   boardTiles: readonly BoardTile[],
   tray: readonly (RackTile | null)[],
-  compositions: readonly BirdComposition[] = LEGACY_GAMEPLAY_COMPOSITIONS,
+  compositions: readonly BirdComposition[] = GLOBAL_BIRD_COMPOSITIONS,
 ): GameState['phase'] {
   const boardEmpty = boardTiles.every((tile) => tile.removed);
   const trayEmpty = tray.every((tile) => tile === null);
@@ -67,7 +68,7 @@ export function createGameFromLevel(level: LevelDefinition): GameState {
     levelId: level.id,
     ...(level.seed === undefined ? {} : { levelSeed: level.seed }),
     activeCatalog: level.catalog ?? LEGACY_GAMEPLAY_SPECIES_CATALOG,
-    activeCompositions: level.compositions ?? LEGACY_GAMEPLAY_COMPOSITIONS,
+    activeCompositions: GLOBAL_BIRD_COMPOSITIONS,
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),
     tray: Array<RackTile | null>(TRAY_SIZE).fill(null),
     score: 0,
@@ -118,14 +119,14 @@ export function composeBird(
     consumed.add(tile.id);
   }
 
-  const isNew = !state.discoveredBirdIds.includes(bird.speciesId);
+  const isNew = bird.speciesId !== null && !state.discoveredBirdIds.includes(bird.speciesId);
   const tray = state.tray.map((tile) => (tile && consumed.has(tile.id) ? null : tile));
   return {
     ...state,
     tray,
     score: state.score + bird.score,
     completedBirdCount: state.completedBirdCount + 1,
-    discoveredBirdIds: isNew
+    discoveredBirdIds: isNew && bird.speciesId !== null
       ? [...state.discoveredBirdIds, bird.speciesId]
       : state.discoveredBirdIds,
     lastCompletedBird: { birdId: bird.id, score: bird.score, isNew },

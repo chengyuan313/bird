@@ -66,7 +66,8 @@ export function getBoardTilePresentation(
 }
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater): void {
-  const referenceWasOpen = root.querySelector<HTMLDetailsElement>('.bird-reference')?.open ?? false;
+  const generatedWasOpen = root.querySelector<HTMLDetailsElement>('.generated-reference')?.open ?? false;
+  const playableWasOpen = root.querySelector<HTMLDetailsElement>('.playable-reference')?.open ?? false;
   const previousLevel = root.querySelector<HTMLElement>('.game-shell')?.dataset.levelId;
   const level = getLevel(state.levelId, state.levelSeed);
   const trayFull = isTrayFull(state.tray);
@@ -89,11 +90,16 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
         ${AUTHORED_LEVELS.map((candidate) => `<button data-level-id="${candidate.id}" class="${candidate.id === state.levelId ? 'active' : ''}">${candidate.label.replace('第', '').replace('关', '')}</button>`).join('')}
       </nav>
 
-      ${state.levelId === 'level-3' ? `<details class="bird-reference" ${referenceWasOpen && previousLevel === state.levelId ? 'open' : ''}>
-        <summary>本关鸟名 · 点此查看 <span>${state.activeCompositions.length} 种</span></summary>
-        <p>这些鸟名都可能由本关字块拼成。</p>
-        <ul>${[...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.speciesId) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.speciesId) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
+      ${state.levelId === 'level-3' ? `<details class="bird-reference generated-reference" ${generatedWasOpen && previousLevel === state.levelId ? 'open' : ''}>
+        <summary>本局生成鸟名 <span>${state.activeCatalog.length} 种</span></summary>
+        <p>这些鸟名用于生成本局字块；可消除鸟名不限于此。</p>
+        <ul>${[...state.activeCatalog].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.id) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.id) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
       </details>` : ''}
+      <details class="bird-reference playable-reference" ${playableWasOpen && previousLevel === state.levelId ? 'open' : ''}>
+        <summary>可消除鸟名 <span>${state.activeCompositions.length} 种</span></summary>
+        <p>所有已审核的鸟名都可拼成；类别名不计入物种发现。</p>
+        <ul>${[...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${bird.speciesId !== null && state.discoveredBirdIds.includes(bird.speciesId) ? 'completed' : ''}">${bird.name}${bird.classification === 'group' ? '<small>类别名</small>' : bird.speciesId !== null && state.discoveredBirdIds.includes(bird.speciesId) ? '<small>已发现</small>' : ''}</li>`).join('')}</ul>
+      </details>
 
       ${completedBird ? `<section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite"><span class="bird-mark">●</span><div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div></section>` : ''}
 

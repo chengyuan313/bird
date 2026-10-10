@@ -21,7 +21,7 @@ The catalog was matched row-by-row against IOC v15.2. A scientific-name join aga
 2. Names must be present in the inspected multilingual taxonomy source. Generic bird groups, invented names, and synonyms are excluded as standalone canonical entries.
 3. Stable IDs use `bird:<assetKey>`. They do not derive from scientific names, so later taxonomic genus changes do not break artwork or saved references.
 4. Aliases are research metadata unless a playable spelling is explicitly added to a level's composition list. The Level 2 spelling 麻雀 is the sole new alias composition in this milestone and maps to `bird:shumaque`; it does not create a new species or sampling entry.
-5. Canonical sampling uses only `BIRD_CATALOG`. The historical 16 spellings remain available in Levels 1–2. Level 2 additionally allows 大山雀, 麻雀, and 山麻雀. Playable Level 3 recognizes only canonical spellings of species sampled for its validated seed; its solver and strategy evaluator use the same explicit composition list.
+5. Canonical sampling uses only `BIRD_CATALOG`. V4.1 recognition uses the separate `global-recognition-v4.1.0` registry in every level: 100 canonical spellings, the historical 小白鹭 and 麻雀 aliases, and the reviewed group name 斑鸠. The sampled list still generates and describes the board, but never limits valid player compositions. Solver and strategy evaluator share the gameplay registry.
 
 ## Legacy compatibility
 

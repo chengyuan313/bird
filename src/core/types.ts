@@ -18,11 +18,13 @@ export interface BirdDefinition {
 /** A playable spelling; multiple spellings may identify the same species. */
 export interface BirdComposition {
   id: string;
-  speciesId: string;
+  classification: 'canonical' | 'alias' | 'group';
+  speciesId: string | null;
   name: string;
   characters: readonly string[];
   score: number;
   assetKey: string;
+  provenance: string;
 }
 export interface RackTile {
   id: string;
