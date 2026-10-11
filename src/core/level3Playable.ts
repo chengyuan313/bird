@@ -19,7 +19,7 @@ export function nextPlayableLevel3Seed(seed: number | undefined): PlayableLevel3
 }
 
 /** A seeded topological removal order preserves every authored Piachan position. */
-function removalOrder(seed: number): readonly string[] {
+export function removalOrder(seed: number): readonly string[] {
   const random = createSeededRandom(seed ^ 0x4c41594f);
   const removed = new Set<string>();
   const order: string[] = [];

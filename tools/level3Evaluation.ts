@@ -162,7 +162,9 @@ export function runStrategyTrial(
   for (; actions < maxActions && state.phase === 'playing'; actions += 1) {
     const action = selectAction(state, strategy, random);
     if (!action) break;
-    state = applyAction(state, action);
+    const next = applyAction(state, action);
+    if (next === state) throw new Error(`INVALID_ACTION: ${JSON.stringify(action)}`);
+    state = next;
     if (action.type === 'compose') compositions += 1;
     const occupied = trayCount(state);
     maximum = Math.max(maximum, occupied);
