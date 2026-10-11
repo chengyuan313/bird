@@ -55,6 +55,7 @@ export interface LevelDefinition {
   id: string;
   label: string;
   seed?: number;
+  puzzleId?: string;
   catalog?: readonly BirdDefinition[];
   compositions?: readonly BirdComposition[];
   tiles: readonly BoardTileDefinition[];
@@ -70,6 +71,7 @@ export interface CompletedBird {
 export interface GameState {
   levelId: string;
   levelSeed?: number;
+  puzzleId?: string;
   activeCatalog: readonly BirdDefinition[];
   activeCompositions: readonly BirdComposition[];
   boardTiles: BoardTile[];

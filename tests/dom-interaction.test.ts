@@ -53,4 +53,29 @@ describe('game DOM interactions', () => {
     expect(root.querySelector('.board-meta')?.textContent).toContain('28 / 33');
     expect(root.querySelector('.score')?.textContent).toContain('10');
   });
+
+  it('switches certified puzzle identity and retries that exact board through mounted controls', async () => {
+    const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
+    vi.stubGlobal('window', dom.window);
+    vi.stubGlobal('document', dom.window.document);
+    vi.resetModules();
+    await import('../src/main');
+
+    const root = dom.window.document.querySelector('#app')!;
+    root.querySelector<HTMLButtonElement>('[data-level-id="level-3"]')!.click();
+    const initialId = root.querySelector('.game-shell')!.getAttribute('data-puzzle-id');
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('谜题');
+    const initialCharacters = [...root.querySelectorAll('[data-board-tile-id]')].map((tile) => tile.textContent).join('');
+    root.querySelector<HTMLButtonElement>('[data-action="new-board"]')!.click();
+    const nextId = root.querySelector('.game-shell')!.getAttribute('data-puzzle-id');
+    expect(nextId).not.toBe(initialId);
+    const nextCharacters = [...root.querySelectorAll('[data-board-tile-id]')].map((tile) => tile.textContent).join('');
+    expect(nextCharacters).not.toBe(initialCharacters);
+    root.querySelector<HTMLButtonElement>('.board-tile.exposed')!.click();
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(1);
+    root.querySelector<HTMLButtonElement>('[data-action="restart"]')!.click();
+    expect(root.querySelector('.game-shell')!.getAttribute('data-puzzle-id')).toBe(nextId);
+    expect([...root.querySelectorAll('[data-board-tile-id]')].map((tile) => tile.textContent).join('')).toBe(nextCharacters);
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(0);
+  });
 });

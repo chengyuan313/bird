@@ -4,7 +4,8 @@ import type {
   TileRegion,
   WinningAction,
 } from './types';
-import { createPlayableLevel3, isPlayableLevel3Seed } from './level3Playable';
+import { isPlayableLevel3Seed } from './level3Playable';
+import { CERTIFIED_PUZZLE_BANK, getCertifiedPuzzle, getLegacyPuzzle, levelFromCertifiedPuzzle } from './puzzleBank';
 import { LEGACY_GAMEPLAY_COMPOSITIONS, LEGACY_GAMEPLAY_SPECIES_CATALOG, LEVEL_2_COMPOSITIONS, LEVEL_2_SPECIES_CATALOG } from './birdCatalog';
 
 const tile = (
@@ -130,14 +131,20 @@ const level2: LevelDefinition = {
   ]),
 };
 
-const level3 = createPlayableLevel3();
+const level3 = levelFromCertifiedPuzzle(CERTIFIED_PUZZLE_BANK.records[0]);
 
 export const AUTHORED_LEVELS: readonly LevelDefinition[] = [level1, level2, level3];
 
-export function getLevel(levelId: string, seed?: number): LevelDefinition {
+export function getLevel(levelId: string, seed?: number, requestedPuzzleId?: string): LevelDefinition {
+  if (requestedPuzzleId !== undefined && levelId !== 'level-3') throw new Error('Puzzle ID is only valid for Level 3');
+  if (levelId === 'level-3' && requestedPuzzleId !== undefined) {
+    const record = getCertifiedPuzzle(requestedPuzzleId);
+    if (seed !== undefined && record.seed !== seed) throw new Error('Puzzle ID and seed do not match');
+    return levelFromCertifiedPuzzle(record);
+  }
   if (levelId === 'level-3' && seed !== undefined) {
     if (!isPlayableLevel3Seed(seed)) throw new Error(`Unverified Level 3 seed: ${seed}`);
-    return createPlayableLevel3(seed);
+    return levelFromCertifiedPuzzle(getLegacyPuzzle(seed));
   }
   const level = AUTHORED_LEVELS.find((candidate) => candidate.id === levelId);
   if (!level) throw new Error(`Unknown level: ${levelId}`);

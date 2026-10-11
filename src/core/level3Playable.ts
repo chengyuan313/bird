@@ -34,12 +34,16 @@ function removalOrder(seed: number): readonly string[] {
   return order;
 }
 
-/** Candidate generation only; the runtime selects seeds from the validated fixture list. */
-export function generatePiachanLevel3(seed: number): LevelDefinition {
-  const sampled = sampleBirdContent(seed, BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_LEVEL_3_CATALOG);
+/** Offline candidate generation. Index zero is bit-for-bit compatible with the five V3 seeds. */
+export function generatePiachanLevel3(seed: number, candidateIndex = 0): LevelDefinition {
+  if (!Number.isSafeInteger(seed) || seed < 1 || !Number.isSafeInteger(candidateIndex) || candidateIndex < 0) {
+    throw new Error('Invalid puzzle generation inputs');
+  }
+  const generationSeed = candidateIndex === 0 ? seed : (seed ^ Math.imul(candidateIndex, 0x9e3779b1)) >>> 0;
+  const sampled = sampleBirdContent(generationSeed, BEGINNER_90_TILE_CONSTRAINTS, BEGINNER_LEVEL_3_CATALOG);
   if (!sampled.ok) throw new Error(`Cannot sample Level 3 seed ${seed}: ${sampled.reason}`);
   const byId = new Map(BIRD_CATALOG.map((bird) => [bird.id, bird]));
-  const sampledBirds = fisherYates(sampled.value.sampledBirdIds, createSeededRandom(seed ^ 0x42495244))
+  const sampledBirds = fisherYates(sampled.value.sampledBirdIds, createSeededRandom(generationSeed ^ 0x42495244))
     .map((id) => {
       const bird = byId.get(id);
       if (!bird) throw new Error(`Missing canonical bird ${id}`);
@@ -47,7 +51,7 @@ export function generatePiachanLevel3(seed: number): LevelDefinition {
     });
   const catalog: readonly BirdDefinition[] = [...new Map(sampledBirds.map((bird) => [bird.id, bird])).values()];
   const positions = new Map(PIACHAN_POSITIONS.map((tile) => [tile.id, tile]));
-  const orderedIds = removalOrder(seed);
+  const orderedIds = removalOrder(generationSeed);
   const characters = sampledBirds.flatMap((bird) => bird.characters);
   if (characters.length !== PIACHAN_POSITIONS.length) throw new Error('Sampled character count differs from Piachan geometry');
   const characterById = new Map(orderedIds.map((id, index) => [id, characters[index]]));

@@ -69,7 +69,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
   const generatedWasOpen = root.querySelector<HTMLDetailsElement>('.generated-reference')?.open ?? false;
   const playableWasOpen = root.querySelector<HTMLDetailsElement>('.playable-reference')?.open ?? false;
   const previousLevel = root.querySelector<HTMLElement>('.game-shell')?.dataset.levelId;
-  const level = getLevel(state.levelId, state.levelSeed);
+  const level = getLevel(state.levelId, state.levelSeed, state.puzzleId);
   const trayFull = isTrayFull(state.tray);
   const formableBirds = findFormableBirds(state.tray, state.activeCompositions);
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
@@ -80,7 +80,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
     : undefined;
 
   root.innerHTML = `
-    <section class="game-shell" data-level-id="${state.levelId}" aria-label="字里有鸟游戏">
+    <section class="game-shell" data-level-id="${state.levelId}" ${state.puzzleId ? `data-puzzle-id="${state.puzzleId}"` : ''} aria-label="字里有鸟游戏">
       <header class="topbar">
         <div><p class="eyebrow">字里有鸟</p><h1>拨开字层，拼出鸟名。</h1></div>
         <div class="score"><span>${level.label} · 得分</span><strong>${state.score}</strong></div>
@@ -104,7 +104,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
       ${completedBird ? `<section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite"><span class="bird-mark">●</span><div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div></section>` : ''}
 
       <section class="board-panel">
-        <div class="section-heading"><h2>字层</h2><div class="board-meta"><span>剩余 ${remaining} / ${state.boardTiles.length}</span>${state.levelId === 'level-3' ? '<button class="new-board-compact" data-action="restart">重试本局</button><button class="new-board-compact" data-action="new-board">换一局</button>' : ''}</div></div>
+        <div class="section-heading"><h2>字层</h2><div class="board-meta">${state.puzzleId ? `<span class="puzzle-identity" title="${state.puzzleId}">谜题 ${state.puzzleId.slice(7, 15)}</span>` : ''}<span>剩余 ${remaining} / ${state.boardTiles.length}</span>${state.levelId === 'level-3' ? '<button class="new-board-compact" data-action="restart">重试本局</button><button class="new-board-compact" data-action="new-board">换一局</button>' : ''}</div></div>
         <div class="tile-board ${state.levelId === 'level-3' ? 'piachan-game-board' : ''}" aria-label="叠字棋盘">
           <div class="board-canvas">
           ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => {
