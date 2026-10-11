@@ -78,4 +78,29 @@ describe('game DOM interactions', () => {
     expect([...root.querySelectorAll('[data-board-tile-id]')].map((tile) => tile.textContent).join('')).toBe(nextCharacters);
     expect(root.querySelectorAll('.tray-tile')).toHaveLength(0);
   });
+
+  it('pages through certified challenges and selects an exact puzzle on mobile', async () => {
+    const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
+    vi.stubGlobal('window', dom.window);
+    vi.stubGlobal('document', dom.window.document);
+    vi.resetModules();
+    await import('../src/main');
+    const root = dom.window.document.querySelector('#app')!;
+    expect(root.querySelector('.level-tabs')?.textContent).toContain('教学');
+    root.querySelector<HTMLButtonElement>('[data-level-id="level-3"]')!.click();
+    const picker = root.querySelector<HTMLDetailsElement>('.challenge-picker')!;
+    picker.open = true;
+    expect(root.querySelector('.challenge-facts')?.textContent).toContain('难度未分级');
+    root.querySelector<HTMLButtonElement>('[data-challenge-page="1"]')!.click();
+    expect(root.querySelectorAll('[data-challenge-id]')).toHaveLength(5);
+    const choice = root.querySelector<HTMLButtonElement>('[data-challenge-id]')!;
+    const chosenId = choice.dataset.challengeId;
+    choice.click();
+    expect(root.querySelector('.game-shell')?.getAttribute('data-puzzle-id')).toBe(chosenId);
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('挑战 6');
+    root.querySelector<HTMLButtonElement>('.board-tile.exposed')!.click();
+    root.querySelector<HTMLButtonElement>('[data-action="restart"]')!.click();
+    expect(root.querySelector('.game-shell')?.getAttribute('data-puzzle-id')).toBe(chosenId);
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(0);
+  });
 });

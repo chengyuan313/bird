@@ -18,10 +18,14 @@ export type EvaluationStrategy =
   | 'lookahead';
 
 export interface TrialResult {
+  outcome: 'WIN' | 'LOSS' | 'UNKNOWN';
   won: boolean;
   maxTrayOccupancy: number;
+  highPressureActions: number;
   compositions: number;
   remainingTiles: number;
+  score: number;
+  actions: number;
 }
 
 export const EVALUATION_STRATEGIES: readonly EvaluationStrategy[] = [
@@ -73,9 +77,11 @@ function takeExposureScore(state: GameState, action: WinningAction): number {
 function heuristic(state: GameState): number {
   if (state.phase === 'level_complete') return 1_000_000;
   if (state.phase === 'game_over') return -1_000_000 - state.boardTiles.filter((tile) => !tile.removed).length;
+  const removed = new Set(state.boardTiles.filter((tile) => tile.removed).map((tile) => tile.id));
+  const exposed = state.boardTiles.filter((tile) => !tile.removed && tile.blockedBy.every((id) => removed.has(id))).length;
   return state.score * 3
     + findFormableBirds(state.tray, state.activeCompositions).reduce((sum, bird) => sum + bird.score, 0) * 4
-    + getExposedBoardTiles(state).length * 3
+    + exposed * 3
     - trayCount(state) * 25
     - state.boardTiles.filter((tile) => !tile.removed).length;
 }
@@ -126,18 +132,14 @@ function selectAction(
     }
   }
   if (strategy === 'lookahead') {
-    const candidates = actions
-      .map((action) => ({ action, value: heuristic(applyAction(state, action)) }))
-      .sort((first, second) => second.value - first.value)
-      .slice(0, 8)
-      .map(({ action }) => action);
+    // Fixed-width two-ply planning: consider the first three exposed takes and immediate compositions.
+    const candidates = [...compose.slice(0, 2), ...take.slice(0, 3)];
     return pickBest(candidates, (action) => {
       const next = applyAction(state, action);
-      const replies = legalActions(next)
-        .map((reply) => applyAction(next, reply))
-        .sort((first, second) => heuristic(second) - heuristic(first))
-        .slice(0, 6);
-      return replies.length > 0 ? Math.max(...replies.map(heuristic)) : heuristic(next);
+      const replies = legalActions(next).slice(0, 3);
+      return replies.length > 0
+        ? Math.max(...replies.map((reply) => heuristic(applyAction(next, reply))))
+        : heuristic(next);
     }, random);
   }
   if (take.length > 0) return choose(take, random);
@@ -148,22 +150,34 @@ export function runStrategyTrial(
   level: LevelDefinition,
   strategy: EvaluationStrategy,
   seed: number,
+  maxActions = 180,
 ): TrialResult {
+  if (!Number.isSafeInteger(maxActions) || maxActions < 0) throw new Error('Invalid action budget');
   const random = createSeededRandom(seed ^ 0x51f15e);
   let state = createGameFromLevel(level);
   let maximum = 0;
+  let highPressureActions = 0;
   let compositions = 0;
-  for (let step = 0; step < 300 && state.phase === 'playing'; step += 1) {
+  let actions = 0;
+  for (; actions < maxActions && state.phase === 'playing'; actions += 1) {
     const action = selectAction(state, strategy, random);
     if (!action) break;
     state = applyAction(state, action);
     if (action.type === 'compose') compositions += 1;
-    maximum = Math.max(maximum, trayCount(state));
+    const occupied = trayCount(state);
+    maximum = Math.max(maximum, occupied);
+    if (occupied >= 8) highPressureActions += 1;
   }
+  const outcome = state.phase === 'level_complete' ? 'WIN'
+    : state.phase === 'game_over' || legalActions(state).length === 0 ? 'LOSS' : 'UNKNOWN';
   return {
-    won: state.phase === 'level_complete',
+    outcome,
+    won: outcome === 'WIN',
     maxTrayOccupancy: maximum,
+    highPressureActions,
     compositions,
     remainingTiles: state.boardTiles.filter((tile) => !tile.removed).length,
+    score: state.score,
+    actions,
   };
 }

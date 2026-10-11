@@ -8,12 +8,26 @@ button:focus-visible { outline: 3px solid #f4a261; outline-offset: 2px; }
 .eyebrow { margin: 0 0 3px; color: #657568; font-size: 10px; font-weight: 800; letter-spacing: .2em; }
 h1 { margin: 0; font-family: SimSun, serif; font-size: 19px; }
 h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
+.section-heading h2 { flex-shrink: 0; }
 .score { min-width: 88px; padding: 8px 11px; text-align: right; color: white; background: #264f3c; border-radius: 13px; box-shadow: 0 6px 16px #264f3c24; }
 .score span { display: block; font-size: 9px; opacity: .72; }
 .score strong { font-size: 22px; line-height: 1; }
-.level-tabs { display: flex; gap: 7px; margin-top: 10px; }
-.level-tabs button { width: 34px; height: 27px; border: 1px solid #bdc8ba; border-radius: 9px; color: #687669; background: #ffffff90; cursor: pointer; font-size: 11px; }
+.level-tabs { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+.level-tabs span { color: #687669; font-size: 11px; font-weight: 700; }
+.level-tabs button { min-width: 34px; min-height: 32px; padding: 4px 8px; border: 1px solid #bdc8ba; border-radius: 9px; color: #687669; background: #ffffff90; cursor: pointer; font-size: 11px; }
+.level-tabs button.challenge-tab { min-width: 74px; }
 .level-tabs button.active { color: white; background: #315c46; border-color: #315c46; }
+.challenge-picker { margin-top: 10px; padding: 10px 12px; border: 1px solid #d5dfd1; border-radius: 14px; background: #f8faf2; }
+.challenge-picker summary { display: flex; justify-content: space-between; color: #315c46; font-size: 13px; font-weight: 800; cursor: pointer; }
+.challenge-picker summary span, .challenge-picker p, .challenge-pages span { color: #738173; font-size: 11px; }
+.challenge-picker p { margin: 8px 0; }
+.challenge-pages { display: flex; align-items: center; justify-content: space-between; margin: 8px 0; }
+.challenge-pages button, .challenge-options button { min-height: 36px; padding: 5px 10px; border: 1px solid #91a494; border-radius: 9px; color: #315c46; background: #fff; cursor: pointer; font-size: 11px; font-weight: 700; }
+.challenge-pages button:disabled { opacity: .45; cursor: default; }
+.challenge-options { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px; }
+.challenge-options button { min-width: 0; padding-inline: 3px; }
+.challenge-options button.active { color: white; background: #315c46; }
+.challenge-facts { margin: 0 0 8px; color: #738173; font-size: 10px; }
 .section-heading { margin-bottom: 8px; }
 .section-heading > span { color: #788177; font-size: 11px; }
 .board-meta { display: flex; align-items: center; gap: 8px; color: #788177; font-size: 11px; }
