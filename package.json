@@ -15,6 +15,7 @@
     "experiment:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-sampling.experiment.ts --reporter=verbose",
     "evaluate:level3": "vitest run --config tools/vitest.experiment.config.ts --reporter=verbose",
     "test": "vitest run",
+    "audit:regions": "vitest run --configLoader runner tests/regional-v6.test.ts",
     "typecheck": "tsc -b"
   },
   "devDependencies": {

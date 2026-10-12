@@ -97,3 +97,39 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .result-surface button.secondary { color: #315c46; background: #dfe9dc; }
 @media (min-width: 700px) { .game-shell { min-height: 844px; margin-block: 28px; border-radius: 28px; background: #f4f5ebaa; box-shadow: 0 28px 80px #3f55422b; } }
+.province-shell { width: min(100%, 540px); min-height: 100vh; margin: 0 auto; padding: 22px 16px 34px; }
+.province-shell h1 { margin: 4px 0 8px; font-size: 30px; }
+.province-shell h2 { margin: 22px 0 12px; font-size: 17px; }
+.province-subtitle { margin: 0 0 26px; color: #526757; line-height: 1.6; }
+.province-search-label { display: block; margin: 8px 0 5px; font-size: 12px; font-weight: 700; }
+#province-search { width: 100%; min-height: 44px; padding: 10px 13px; border: 1px solid #a5b9a6; border-radius: 12px; background: #fffdf7; font: inherit; }
+.province-note { min-height: 24px; margin: 10px 0; color: #5e705f; font-size: 12px; }
+.province-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.province-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; min-height: 66px; padding: 11px; border: 1px solid #d4ddd0; border-radius: 12px; color: #59695b; background: #f5f7f0; text-align: left; cursor: pointer; }
+.province-card.available { border-color: #7da487; color: #254d37; background: #edf7e9; }
+.province-card strong { font-size: 14px; }
+.province-card small { font-size: 10px; line-height: 1.4; }
+.province-card[hidden] { display: none; }
+.plain-link, .region-nav button, .region-stage-list button, .region-result button, .national-region-return { min-height: 40px; padding: 7px 12px; border: 1px solid #8fa893; border-radius: 10px; color: #254d37; background: #fffdf6; cursor: pointer; font-weight: 700; }
+.plain-link { margin-top: 15px; }
+.region-nav { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 18px; }
+.region-nav .plain-link { margin: 0; }
+.region-progress, .region-section, .region-result { margin: 14px 0; padding: 16px; border: 1px solid #d9e5d5; border-radius: 16px; background: #fffdf7; }
+.region-progress { display: grid; gap: 5px; }
+.region-progress span, .region-section p { color: #617363; font-size: 12px; line-height: 1.5; }
+.region-section h2 { margin: 0 0 11px; }
+.region-stage-list, .region-collection { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.region-stage-list button { display: grid; gap: 5px; text-align: left; }
+.region-stage-list button:disabled { opacity: .55; cursor: default; }
+.region-stage-list small, .bird-card small { color: #718171; font-size: 10px; }
+.bird-card { display: grid; gap: 4px; min-width: 0; padding: 10px; border-radius: 10px; background: #edf2e9; }
+.bird-card a { color: #315c46; font-size: 10px; }
+.regional-game { width: min(100%, 430px); }
+.regional-game .board-panel { overflow: hidden; }
+.regional-game .board-tile.blocked { pointer-events: none; }
+.regional-meta, .puzzle-identity { color: #647568; font-size: 12px; }
+.regional-game .compose-panel h2 { margin: 0 0 9px; }
+.region-result { display: flex; flex-wrap: wrap; gap: 8px; }
+.region-result h2, .region-result p { width: 100%; margin: 0; }
+.national-region-return { display: block; margin-bottom: 10px; }
+@media (min-width: 560px) { .province-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

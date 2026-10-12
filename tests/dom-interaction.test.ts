@@ -13,6 +13,7 @@ describe('game DOM interactions', () => {
     vi.stubGlobal('document', dom.window.document);
     vi.resetModules();
     await import('../src/main');
+    dom.window.document.querySelector<HTMLButtonElement>('[data-action="legacy"]')!.click();
 
     const root = dom.window.document.querySelector('#app')!;
     expect(root.querySelector('.board-meta')?.textContent).toContain('22 / 22');
@@ -36,6 +37,7 @@ describe('game DOM interactions', () => {
     vi.stubGlobal('document', dom.window.document);
     vi.resetModules();
     await import('../src/main');
+    dom.window.document.querySelector<HTMLButtonElement>('[data-action="legacy"]')!.click();
 
     const root = dom.window.document.querySelector('#app')!;
     root.querySelector<HTMLButtonElement>('[data-level-id="level-2"]')!.click();
@@ -61,6 +63,7 @@ describe('game DOM interactions', () => {
     vi.stubGlobal('document', dom.window.document);
     vi.resetModules();
     await import('../src/main');
+    dom.window.document.querySelector<HTMLButtonElement>('[data-action="legacy"]')!.click();
 
     const root = dom.window.document.querySelector('#app')!;
     root.querySelector<HTMLButtonElement>('[data-level-id="level-3"]')!.click();
@@ -86,6 +89,7 @@ describe('game DOM interactions', () => {
     vi.stubGlobal('document', dom.window.document);
     vi.resetModules();
     await import('../src/main');
+    dom.window.document.querySelector<HTMLButtonElement>('[data-action="legacy"]')!.click();
     const root = dom.window.document.querySelector('#app')!;
     expect(root.querySelector('.level-tabs')?.textContent).toContain('教学');
     root.querySelector<HTMLButtonElement>('[data-level-id="level-3"]')!.click();
@@ -111,6 +115,7 @@ describe('game DOM interactions', () => {
     vi.stubGlobal('document', dom.window.document);
     vi.resetModules();
     await import('../src/main');
+    dom.window.document.querySelector<HTMLButtonElement>('[data-action="legacy"]')!.click();
     const root = dom.window.document.querySelector('#app')!;
     expect(root.querySelector('.experiment-picker')?.textContent).toContain('难度实验');
     root.querySelector<HTMLButtonElement>('[data-experiment-group="A"]')!.click();
