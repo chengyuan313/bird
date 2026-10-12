@@ -2,16 +2,26 @@ import { BIRD_CATALOG } from './birdCatalog';
 import { composeBird, createGameFromLevel, isBoardTileExposed, selectBoardTile } from './gameEngine';
 import { getLevel } from './levels';
 import { boardHash, sha256Hex } from './puzzleIdentity';
-import { REGIONAL_CONTENT_VERSION, speciesForRegion } from './regionalData';
+import { BEIJING_CONTENT_VERSION, REGIONAL_CONTENT_VERSION, speciesForRegion } from './regionalData';
 import { RECOGNITION_REGISTRY_VERSION } from './recognitionRegistry';
 import type { LevelDefinition, WinningAction } from './types';
 
-export const REGIONAL_GENERATOR_VERSION = 'authored-geometry-word-sequence-v6.0';
+export const REGIONAL_GENERATOR_VERSION = 'authored-geometry-word-sequence-v6.1';
+const BEIJING_GENERATOR_VERSION = 'authored-geometry-word-sequence-v6.0';
 
-const stageWords: Readonly<Record<number, readonly string[]>> = {
-  1: ['bird:bailu', 'bird:yelu', 'bird:chilu', 'bird:canglu', 'bird:daisheng', 'bird:hongsun', 'bird:wudong', 'bird:bailu', 'bird:yelu', 'bird:chilu', 'bird:canglu'],
-  2: ['bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu'],
-};
+export interface RegionalStageConfig { regionId: string; regionName: string; stage: 1 | 2; seed: number; words: readonly string[] }
+const stageConfigs: readonly RegionalStageConfig[] = [
+  { regionId: 'CN-BJ', regionName: '北京', stage: 1, seed: 6001, words: ['bird:bailu', 'bird:yelu', 'bird:chilu', 'bird:canglu', 'bird:daisheng', 'bird:hongsun', 'bird:wudong', 'bird:bailu', 'bird:yelu', 'bird:chilu', 'bird:canglu'] },
+  { regionId: 'CN-BJ', regionName: '北京', stage: 2, seed: 6002, words: ['bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu', 'bird:dashanque', 'bird:huixique', 'bird:dabailu'] },
+  { regionId: 'CN-LN', regionName: '辽宁', stage: 1, seed: 6111, words: ['bird:shaoji', 'bird:yuanyang', 'bird:huihe', 'bird:heiguan', 'bird:hongsun', 'bird:yansun', 'bird:liesun', 'bird:yousun', 'bird:yunque', 'bird:huamei', 'bird:shaoji'] },
+  { regionId: 'CN-LN', regionName: '辽宁', stage: 2, seed: 6112, words: ['bird:shaoji', 'bird:yuanyang', 'bird:huihe', 'bird:heiguan', 'bird:hongsun', 'bird:yunque', 'bird:xiaotiane', 'bird:datiane', 'bird:suoyuhe', 'bird:dandinghe', 'bird:hongjiaoxiao', 'bird:changerxiao', 'bird:duanerxiao'] },
+  { regionId: 'CN-GD', regionName: '广东', stage: 1, seed: 6121, words: ['bird:canglu', 'bird:chilu', 'bird:bailu', 'bird:yelu', 'bird:hongsun', 'bird:jiayan', 'bird:shuliu', 'bird:bage', 'bird:quequ', 'bird:canglu', 'bird:chilu'] },
+  { regionId: 'CN-GD', regionName: '广东', stage: 2, seed: 6122, words: ['bird:bage', 'bird:quequ', 'bird:heishuiji', 'bird:fanzuiyu', 'bird:shanbanjiu', 'bird:fengtouqianya', 'bird:sishengdujuan', 'bird:putongcuiniao', 'bird:baixiongfeicui', 'bird:zongbeibolao'] },
+  { regionId: 'CN-SC', regionName: '四川', stage: 1, seed: 6131, words: ['bird:shaoji', 'bird:baixian', 'bird:douyan', 'bird:yuanyang', 'bird:zaojuan', 'bird:canglu', 'bird:bailu', 'bird:jiayan', 'bird:huamei', 'bird:bage', 'bird:wudong'] },
+  { regionId: 'CN-SC', regionName: '四川', stage: 2, seed: 6132, words: ['bird:baixian', 'bird:yuanyang', 'bird:xiaotiane', 'bird:chimaya', 'bird:lutouya', 'bird:shanbanjiu', 'bird:dadujuan', 'bird:suoyuhe', 'bird:huixique', 'bird:hongfujinji', 'bird:putongcuiniao'] },
+  { regionId: 'CN-YN', regionName: '云南', stage: 1, seed: 6141, words: ['bird:zaojuan', 'bird:chilu', 'bird:canglu', 'bird:bailu', 'bird:hongsun', 'bird:yansun', 'bird:yousun', 'bird:jiayan', 'bird:zaojuan', 'bird:chilu', 'bird:canglu'] },
+  { regionId: 'CN-YN', regionName: '云南', stage: 2, seed: 6142, words: ['bird:hongsun', 'bird:jiayan', 'bird:dadujuan', 'bird:dashanque', 'bird:xiaoyunque', 'bird:baiyaoyuyan', 'bird:baixiongfeicui', 'bird:putongcuiniao', 'bird:hongweibolao', 'bird:zongbeibolao'] },
+];
 
 export interface RegionalPuzzle {
   regionId: string;
@@ -22,11 +32,9 @@ export interface RegionalPuzzle {
   certificate: 'ENGINE_REPLAYED';
 }
 
-function makePuzzle(stage: number): RegionalPuzzle {
-  const regionId = 'CN-BJ';
-  const seed = 6000 + stage;
+export function buildRegionalPuzzle(config: RegionalStageConfig): RegionalPuzzle {
+  const { regionId, regionName, stage, seed, words } = config;
   const geometry = getLevel(stage === 1 ? 'level-1' : 'level-2');
-  const words = stageWords[stage];
   const approved = new Set(speciesForRegion(regionId).map((item) => item.speciesId));
   if (words.some((id) => !approved.has(id))) throw new Error('Unapproved regional puzzle species');
   const characters = words.flatMap((id) => BIRD_CATALOG.find((bird) => bird.id === id)!.characters);
@@ -35,8 +43,10 @@ function makePuzzle(stage: number): RegionalPuzzle {
   const assigned = new Map(takeOrder.map((id, index) => [id, characters[index]]));
   const tiles = geometry.tiles.map((tile) => ({ ...tile, character: assigned.get(tile.id)! }));
   const hash = boardHash(tiles);
+  const generatorVersion = regionId === 'CN-BJ' ? BEIJING_GENERATOR_VERSION : REGIONAL_GENERATOR_VERSION;
+  const contentVersion = regionId === 'CN-BJ' ? BEIJING_CONTENT_VERSION : REGIONAL_CONTENT_VERSION;
   const identity = `regional:${sha256Hex(JSON.stringify([
-    regionId, stage, seed, REGIONAL_GENERATOR_VERSION, REGIONAL_CONTENT_VERSION,
+    regionId, stage, seed, generatorVersion, contentVersion,
     RECOGNITION_REGISTRY_VERSION, hash, words,
   ]))}`;
   const winningSolution: WinningAction[] = [];
@@ -48,14 +58,18 @@ function makePuzzle(stage: number): RegionalPuzzle {
   }
   const level: LevelDefinition = {
     id: `regional-${regionId.toLowerCase()}-${stage}`,
-    label: stage === 1 ? '北京·初识' : '北京·入门',
+    label: `${regionName}·${stage === 1 ? '初识' : '入门'}`,
     seed, puzzleId: identity, catalog: BIRD_CATALOG.filter((bird) => approved.has(bird.id)),
     wordOccurrences: words, tiles, winningSolution,
   };
   return { regionId, stage, seed, boardHash: hash, level, certificate: 'ENGINE_REPLAYED' };
 }
 
-export const REGIONAL_PUZZLES: readonly RegionalPuzzle[] = [makePuzzle(1), makePuzzle(2)];
+export const REGIONAL_PUZZLES: readonly RegionalPuzzle[] = stageConfigs.map(buildRegionalPuzzle);
+if (new Set(REGIONAL_PUZZLES.map((puzzle) => puzzle.level.puzzleId)).size !== REGIONAL_PUZZLES.length ||
+  new Set(REGIONAL_PUZZLES.map((puzzle) => `${puzzle.regionId}/${puzzle.stage}`)).size !== REGIONAL_PUZZLES.length) {
+  throw new Error('Duplicate regional puzzle candidate');
+}
 
 export function getRegionalPuzzle(regionId: string, stage: number): RegionalPuzzle | undefined {
   return REGIONAL_PUZZLES.find((puzzle) => puzzle.regionId === regionId && puzzle.stage === stage);

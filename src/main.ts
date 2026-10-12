@@ -2,7 +2,8 @@ import './styles.css';
 import { createGame, composeBird, findPlayableBirds, isBoardTileExposed, selectBoardTile } from './core/game';
 import { createGameFromLevel } from './core/gameEngine';
 import { getRegionalPuzzle, REGIONAL_PUZZLES } from './core/regionalPuzzles';
-import { REGIONS, speciesForRegion } from './core/regionalData';
+import { REGIONS, REGIONAL_SOURCES, speciesForRegion } from './core/regionalData';
+import { BIRD_CATALOG } from './core/birdCatalog';
 import { loadRegionalProgress, recordRegionalResult, saveRegionalProgress } from './core/regionalProgress';
 import type { GameState } from './core/types';
 import { renderGame } from './ui/render';
@@ -39,7 +40,7 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
     root!.innerHTML = `<main class="province-shell"><p class="eyebrow">字里有鸟 · 地域探索</p><h1>字里有鸟</h1>
       <p class="province-subtitle">从一座城市、一片山林，认识身边的鸟。</p><h2>选择你想探索的地区</h2>
       <label class="province-search-label" for="province-search">搜索地区</label><input id="province-search" type="search" placeholder="输入地区名称" autocomplete="off">
-      <p id="province-note" class="province-note">目前北京已开放；其他地区的鸟种资料整理中。</p>
+      <p id="province-note" class="province-note">${REGIONS.filter((item) => item.status === 'playable').map((item) => item.name).join('、')}已开放；其他地区的鸟种资料整理中。</p>
       <div class="province-grid">${REGIONS.map((item) => `<button data-region-id="${item.id}" data-region-name="${item.name}" class="province-card ${item.status === 'playable' ? 'available' : ''}"><strong>${item.name}</strong><small>${item.status === 'playable' ? `本游戏已收录 ${item.curatedPlayableSpeciesCount} 种 · 已发现 ${(progress.discoveredSpeciesIds[item.id] ?? []).length} 种` : '鸟种资料整理中'}</small></button>`).join('')}</div>
       ${nav('legacy', 'national', '进入全国教学与挑战')}</main>`;
     const input = root!.querySelector<HTMLInputElement>('#province-search')!;
@@ -68,13 +69,15 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
     const species = speciesForRegion(region.id);
     const discovered = new Set(progress.discoveredSpeciesIds[region.id] ?? []);
     const completed = new Set(progress.completedPuzzleIds[region.id] ?? []);
+    const puzzles = REGIONAL_PUZZLES.filter((puzzle) => puzzle.regionId === region.id);
+    const sourceScopes = [...new Set(species.map((item) => REGIONAL_SOURCES.find((source) => source.id === item.sourceId)?.scope).filter(Boolean))];
     root!.innerHTML = `<main class="province-shell"><p class="eyebrow">字里有鸟 · 地域探索</p><h1>${region.name}</h1>
       <p class="province-subtitle">从已核对的鸟名开始，拼字认识这片地区的鸟。</p>
-      <div class="region-progress"><strong>本游戏已收录鸟种 ${species.length}</strong><span>已发现 ${species.filter((bird) => discovered.has(bird.speciesId)).length} 种 · 已完成 ${REGIONAL_PUZZLES.filter((puzzle) => puzzle.regionId === region.id && completed.has(puzzle.level.puzzleId!)).length} / 2 关</span></div>
+      <div class="region-progress"><strong>本游戏已收录鸟种 ${species.length}</strong><span>已发现 ${species.filter((bird) => discovered.has(bird.speciesId)).length} 种 · 已完成 ${puzzles.filter((puzzle) => completed.has(puzzle.level.puzzleId!)).length} / ${puzzles.length} 关</span></div>
       <section class="region-section"><h2>地区谜题</h2><div class="region-stage-list">
       ${[1, 2].map((number) => { const puzzle = getRegionalPuzzle(region.id, number); const locked = number > 1 && !completed.has(getRegionalPuzzle(region.id, 1)?.level.puzzleId ?? '');
         return puzzle ? `<button data-stage="${number}" ${locked ? 'disabled' : ''}><strong>${number === 1 ? '初识 · 22 字' : '入门 · 33 字'}</strong><small>${completed.has(puzzle.level.puzzleId!) ? '已完成 · 可重玩' : locked ? '完成初识后开放' : '开始拼字'}</small></button>` : ''; }).join('')}</div></section>
-      <section class="region-section"><h2>地区鸟种收藏</h2><p>本游戏已收录鸟种，并非完整地区鸟类名录。</p><div class="region-collection">
+      <section class="region-section"><h2>地区鸟种收藏</h2><p>本游戏已收录鸟种，并非完整地区鸟类名录。资料范围：${sourceScopes.join('；')}。</p><p>可拼鸟名：${species.map((item) => item.acceptedName).join('、')}</p><div class="region-collection">
       ${species.map((item) => `<article class="bird-card"><strong>${discovered.has(item.speciesId) ? item.acceptedName : '待发现'}</strong><small>${discovered.has(item.speciesId) ? item.scientificName : '拼成鸟名后解锁'}</small><a href="${item.evidenceReference}" target="_blank" rel="noopener noreferrer">地区记录来源</a></article>`).join('')}</div></section>
       <nav class="region-nav">${nav('select', 'select', '切换地区')}${nav('legacy', 'national', '全国教学与挑战')}</nav></main>`;
     root!.querySelectorAll<HTMLButtonElement>('[data-stage]').forEach((button) => button.addEventListener('click', () => {
@@ -94,7 +97,7 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
       <section class="board-panel"><div class="tile-board regional-tile-board"><div class="board-canvas" style="width:350px;height:258px">
       ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => { const exposed = isBoardTileExposed(state, tile.id); return `<button class="board-tile ${exposed ? 'exposed' : 'blocked'}" data-board-tile-id="${tile.id}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" ${exposed && state.phase === 'playing' && state.tray.some((slot) => slot === null) ? '' : 'disabled'} aria-label="${tile.character}${exposed ? '，可取' : '，被遮挡'}">${tile.character}</button>`; }).join('')}</div></div><p class="board-hint">亮起的字可以拿取；移开上层，露出下层。</p></section>
       <section class="tray-panel"><div class="section-heading"><h2>底部字槽</h2><span>${state.tray.filter(Boolean).length} / 10</span></div><div class="tray">${state.tray.map((tile) => tile ? `<span class="tray-tile">${tile.character}</span>` : '<span class="tray-slot"></span>').join('')}</div></section>
-      <section class="compose-panel"><h2>可以拼成</h2>${formable.length ? `<div class="bird-options">${formable.map((bird) => `<button class="bird-option" data-bird-id="${bird.id}"><strong>${bird.name}</strong><span>+${bird.score}</span></button>`).join('')}</div>` : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}</section>
+      <section class="compose-panel"><h2>可以拼成</h2><p>本关鸟名：${[...new Set(puzzle.level.wordOccurrences)].map((id) => BIRD_CATALOG.find((bird) => bird.id === id)?.name).join('、')}</p>${formable.length ? `<div class="bird-options">${formable.map((bird) => `<button class="bird-option" data-bird-id="${bird.id}"><strong>${bird.name}</strong><span>+${bird.score}</span></button>`).join('')}</div>` : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}</section>
       ${state.phase !== 'playing' ? `<section class="region-result" role="status"><h2>${state.phase === 'level_complete' ? '完成地区谜题！' : '这次没能拼完'}</h2><p>${state.phase === 'level_complete' ? `得分 ${state.score} · 新发现会留在${region.name}收藏中。` : '重试会还原同一谜题。'}</p><button data-action="retry">重试本关</button>${nav('home', 'home', '返回地区主页')}${state.phase === 'level_complete' && stage === 1 ? '<button data-action="next">下一关</button>' : ''}</section>` : '<button class="plain-link" data-action="retry">重试本关</button>'}
       <p class="puzzle-identity">谜题 ${puzzle.level.puzzleId!.slice(0, 19)}… · 种子 ${puzzle.seed}</p></main>`;
     const viewport = root!.querySelector<HTMLElement>('.regional-tile-board')!;

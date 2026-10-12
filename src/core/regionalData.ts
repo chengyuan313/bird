@@ -1,8 +1,28 @@
 import { BIRD_CATALOG } from './birdCatalog';
 import review from '../../data/regional-review.json';
+import expansion from '../../data/regional-review-v6.1.json';
 
-export const REGIONAL_CONTENT_VERSION = 'regional-content-v6.0.0';
+export const REGIONAL_CONTENT_VERSION = 'regional-content-v6.1.0';
+export const BEIJING_CONTENT_VERSION = 'regional-content-v6.0.0';
 export const BEIJING_SOURCE = review.source;
+
+export interface RegionalSource {
+  id: string;
+  kind: 'official-list' | 'peer-reviewed-local-survey' | 'peer-reviewed-provincial-checklist';
+  publisher: string;
+  title: string;
+  url: string;
+  version: string;
+  scope: string;
+  rightsNote: string;
+  reviewedAt: string;
+}
+
+export const REGIONAL_SOURCES: readonly RegionalSource[] = [
+  { id: 'bj-2025', kind: 'official-list', publisher: '北京市园林绿化局', title: review.sourceName, url: review.source,
+    version: review.sourceVersion, scope: '北京市', rightsNote: review.rightsNote, reviewedAt: review.reviewedAt },
+  ...expansion.sources.map((source) => ({ ...source, kind: source.kind as RegionalSource['kind'] })),
+];
 
 export type RegionCategory = 'province' | 'autonomous-region' | 'municipality' | 'special-administrative-region' | 'taiwan';
 export type RegionStatus = 'playable' | 'pending';
@@ -38,22 +58,16 @@ const definitions: readonly [string, string, RegionCategory, string | null][] = 
   ['CN-MO', '澳门', 'special-administrative-region', null], ['CN-TW', '台湾', 'taiwan', null],
 ];
 
-/** Research leads only; pending regions have no approved species from these sources. */
-const researchLeads: Readonly<Record<string, string>> = {
-  'CN-LN': 'https://www.ln.gov.cn/web/zwgkx/zfwj/szfwj/zfwj2010/BF4D19B9104442B783BED7FC11A838D8/index.shtml',
-  'CN-GD': 'https://www.gd.gov.cn/attachment/0/435/435303/3368465.pdf',
-  'CN-YN': 'https://lcj.yn.gov.cn/html/2025/zdlyxxgkqt_0922/75325.html',
-  'CN-SC': 'https://lcj.sc.gov.cn/scslyt/c1055/2024/5/20/bd4c4810f1c8465fbc3e3b43bd245e80/files/%E8%AF%BA%E6%B0%B4%E6%B2%B3%E4%BF%9D%E6%8A%A4%E5%8C%BA%E5%8A%9F%E8%83%BD%E5%8C%BA%E8%B0%83%E6%95%B4%E8%AE%BA%E8%AF%81%E6%8A%A5%E5%91%8A%E6%8A%A5%E6%89%B9%E7%A8%BF.pdf',
-};
+const playableRegionIds = new Set(['CN-BJ', 'CN-LN', 'CN-GD', 'CN-SC', 'CN-YN']);
 
 /** ISO codes are internal identities. GBIF stateProvince is an untrusted source text filter, never a geocode. */
 export const REGIONS: readonly RegionRecord[] = definitions.map(([id, name, category, gbifStateProvince]) => ({
   id, name, category,
-  status: id === 'CN-BJ' ? 'playable' : 'pending',
-  curatedPlayableSpeciesCount: review.accepted.filter((item) => item.regionId === id).length,
-  contentVersion: REGIONAL_CONTENT_VERSION,
-  source: id === 'CN-BJ' ? BEIJING_SOURCE : researchLeads[id] ?? null,
-  verifiedAt: id === 'CN-BJ' ? review.reviewedAt : null,
+  status: playableRegionIds.has(id) ? 'playable' : 'pending',
+  curatedPlayableSpeciesCount: review.accepted.filter((item) => item.regionId === id).length + expansion.accepted.filter((item) => item[0] === id).length,
+  contentVersion: id === 'CN-BJ' ? BEIJING_CONTENT_VERSION : REGIONAL_CONTENT_VERSION,
+  source: REGIONAL_SOURCES.find((source) => id === 'CN-BJ' ? source.id === 'bj-2025' : expansion.accepted.some((entry) => entry[0] === id && entry[4] === source.id))?.url ?? null,
+  verifiedAt: playableRegionIds.has(id) ? expansion.reviewedAt : null,
   crosswalk: { iso3166_2: id, gbifStateProvince, gadmGid: null },
 }));
 
@@ -62,24 +76,31 @@ export interface RegionalSpeciesEvidence {
   speciesId: string;
   acceptedName: string;
   scientificName: string;
+  sourceId: string;
   evidenceReference: string;
   sourceRow: number;
   sourceName: string;
   sourceVersion: string;
   license: string;
-  geographicReview: 'official-regional-list';
+  geographicReview: RegionalSource['kind'];
   editorialStatus: 'ACCEPTED';
 }
 
 /** Compact human-reviewed manifest; the source list and records are not bundled. */
-export const REGIONAL_SPECIES: readonly RegionalSpeciesEvidence[] = review.accepted.map((item) => ({
+export const REGIONAL_SPECIES: readonly RegionalSpeciesEvidence[] = [...review.accepted.map((item) => ({
     regionId: item.regionId, speciesId: item.speciesId, acceptedName: item.acceptedName, scientificName: item.scientificName,
-    evidenceReference: BEIJING_SOURCE, sourceRow: item.sourceRow, sourceName: review.sourceName,
+    sourceId: 'bj-2025', evidenceReference: BEIJING_SOURCE, sourceRow: item.sourceRow, sourceName: review.sourceName,
     sourceVersion: review.sourceVersion, license: review.rightsNote,
-    geographicReview: 'official-regional-list', editorialStatus: 'ACCEPTED',
-}));
+    geographicReview: 'official-list', editorialStatus: 'ACCEPTED',
+} as RegionalSpeciesEvidence)), ...expansion.accepted.map(([regionId, speciesId, acceptedName, scientificName, sourceId, sourceRow]) => {
+  const source = REGIONAL_SOURCES.find((item) => item.id === sourceId);
+  return { regionId: String(regionId), speciesId: String(speciesId), acceptedName: String(acceptedName), scientificName: String(scientificName),
+    sourceId: String(sourceId), evidenceReference: source?.url ?? '', sourceRow: Number(sourceRow), sourceName: source?.title ?? '',
+    sourceVersion: source?.version ?? '', license: source?.rightsNote ?? '', geographicReview: source?.kind ?? 'official-list',
+    editorialStatus: 'ACCEPTED' as const };
+})];
 
-export const EDITORIAL_QUEUE = review.editorialQueue;
+export const EDITORIAL_QUEUE = [...review.editorialQueue.filter((item) => item.status !== 'SOURCE_REVIEW_PENDING'), ...expansion.editorialQueue];
 
 export function speciesForRegion(regionId: string): readonly RegionalSpeciesEvidence[] {
   return REGIONAL_SPECIES.filter((item) => item.regionId === regionId && item.editorialStatus === 'ACCEPTED');
@@ -87,9 +108,10 @@ export function speciesForRegion(regionId: string): readonly RegionalSpeciesEvid
 
 export function validateRegionalData(): void {
   if (review.schemaVersion !== 'regional-review-v6.0.0') throw new Error('Unsupported review schema');
+  if (expansion.schemaVersion !== 'regional-review-v6.1.0') throw new Error('Unsupported expansion schema');
   if (REGIONS.length !== 34 || new Set(REGIONS.map((region) => region.id)).size !== 34) throw new Error('Expected 34 unique regions');
   const ids = new Set(REGIONS.map((region) => region.id));
-  const species = new Map(BIRD_CATALOG.map((bird) => [bird.id, bird]));
+  validateRegionalEvidence(REGIONAL_SPECIES, REGIONAL_SOURCES);
   for (const region of REGIONS) {
     if (region.crosswalk.iso3166_2 !== region.id) throw new Error(`Invalid region crosswalk: ${region.id}`);
     if (region.curatedPlayableSpeciesCount !== speciesForRegion(region.id).length) throw new Error(`Invalid species count: ${region.id}`);
@@ -97,14 +119,26 @@ export function validateRegionalData(): void {
     if (region.status === 'playable' && (!region.source || !region.verifiedAt)) throw new Error(`Missing region verification: ${region.id}`);
     if (region.status === 'pending' && region.verifiedAt !== null) throw new Error(`Pending region marked verified: ${region.id}`);
   }
+}
+
+/** Validates candidate manifests before they can be accepted into regional gameplay. */
+export function validateRegionalEvidence(entries: readonly RegionalSpeciesEvidence[], sources: readonly RegionalSource[]): void {
+  const ids = new Set(definitions.map(([id]) => id));
+  const species = new Map(BIRD_CATALOG.map((bird) => [bird.id, bird]));
+  const sourceMap = new Map(sources.map((source) => [source.id, source]));
+  if (sourceMap.size !== sources.length) throw new Error('Duplicate regional source ID');
+  for (const source of sources) {
+    if (!source.id || !['official-list', 'peer-reviewed-local-survey', 'peer-reviewed-provincial-checklist'].includes(source.kind) || !source.publisher || !source.title || !source.url.startsWith('https://') || !source.version || !source.scope || !source.rightsNote || !source.reviewedAt) throw new Error(`Incomplete regional source: ${source.id}`);
+  }
   const pairs = new Set<string>();
-  for (const item of REGIONAL_SPECIES) {
+  for (const item of entries) {
     const pair = `${item.regionId}/${item.speciesId}`;
     if (pairs.has(pair) || !ids.has(item.regionId)) throw new Error(`Duplicate or unknown regional species: ${pair}`);
     pairs.add(pair);
     const reviewed = species.get(item.speciesId);
     if (!reviewed || reviewed.name !== item.acceptedName || reviewed.scientificName !== item.scientificName) throw new Error(`Taxonomic mismatch: ${pair}`);
-    if (!item.evidenceReference || !item.sourceVersion || !item.license || !Number.isSafeInteger(item.sourceRow) || item.editorialStatus !== 'ACCEPTED') throw new Error(`Unreviewed evidence: ${pair}`);
+    const source = sourceMap.get(item.sourceId);
+    if (!source || item.evidenceReference !== source.url || item.sourceVersion !== source.version || item.license !== source.rightsNote || item.geographicReview !== source.kind || !Number.isSafeInteger(item.sourceRow) || item.sourceRow < 1 || item.editorialStatus !== 'ACCEPTED') throw new Error(`Unreviewed evidence: ${pair}`);
   }
 }
 

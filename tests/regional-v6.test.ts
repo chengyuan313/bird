@@ -14,14 +14,15 @@ describe('V6 regional data and certificates', () => {
     expect(() => validateRegionalData()).not.toThrow();
     expect(REGIONS).toHaveLength(34);
     expect(new Set(REGIONS.map((region) => region.id)).size).toBe(34);
-    expect(REGIONS.filter((region) => region.status === 'playable').map((region) => region.id)).toEqual(['CN-BJ']);
+    expect(REGIONS.filter((region) => region.status === 'playable').map((region) => region.id)).toEqual(['CN-BJ', 'CN-LN', 'CN-GD', 'CN-SC', 'CN-YN']);
     expect(REGIONS.find((region) => region.id === 'CN-BJ')?.crosswalk.gbifStateProvince).toBe('Beijing');
     expect(REGIONS.filter((region) => region.status === 'pending').every((region) => region.curatedPlayableSpeciesCount === 0)).toBe(true);
-    expect(speciesForRegion('CN-LN')).toEqual([]);
+    expect(speciesForRegion('CN-BJ')).toHaveLength(10);
+    expect(speciesForRegion('CN-TJ')).toEqual([]);
   });
 
   it('accepts only exact reviewed registry matches with evidence and excludes conflicts', () => {
-    expect(REGIONAL_SPECIES).toHaveLength(10);
+    expect(REGIONAL_SPECIES.length).toBeGreaterThan(10);
     for (const item of REGIONAL_SPECIES) {
       const canonical = BIRD_CATALOG.find((bird) => bird.id === item.speciesId)!;
       expect([item.acceptedName, item.scientificName]).toEqual([canonical.name, canonical.scientificName]);
@@ -37,7 +38,11 @@ describe('V6 regional data and certificates', () => {
 
   it('certifies both Beijing stages through the real engine with exact characters and quotas', () => {
     const ids = new Set<string>();
-    for (const puzzle of REGIONAL_PUZZLES) {
+    expect(REGIONAL_PUZZLES.filter((item) => item.regionId === 'CN-BJ').map((item) => [item.level.puzzleId, item.boardHash])).toEqual([
+      ['regional:638e10601d021dcc26cdf361a6b6dfcfaf456b7f0c7e5fbedd913ae39dd569ae', 'c2e192c3d45837d619365316f4a56ea0b20204423cd59ec5fcacfbefe7e5e91b'],
+      ['regional:e55f64d42b07bad81cf1b4fb9a47152cdcc4df39bc78db7b2bc862748fbab1fb', 'be84b6e38d41481a2dd935125431e33a5eeffe801c6ae85b307579e0d6d109f9'],
+    ]);
+    for (const puzzle of REGIONAL_PUZZLES.filter((item) => item.regionId === 'CN-BJ')) {
       expect(puzzle.regionId).toBe('CN-BJ');
       expect(ids.has(puzzle.level.puzzleId!)).toBe(false);
       ids.add(puzzle.level.puzzleId!);
@@ -58,7 +63,7 @@ describe('V6 regional data and certificates', () => {
       expect(retried.boardTiles.map((tile) => tile.character)).toEqual(state.boardTiles.map((tile) => tile.character));
       expect(composeBird(state, 'composition:banjiu')).toBe(state);
     }
-    expect(getRegionalPuzzle('CN-LN', 1)).toBeUndefined();
+    expect(getRegionalPuzzle('CN-TJ', 1)).toBeUndefined();
   });
 
   it('keeps regional species discovery distinct from puzzle completion and preserves V5 storage', () => {
@@ -96,9 +101,9 @@ describe('V6 region UI', () => {
     const root = dom.window.document.querySelector('#app')!;
     expect(root.querySelectorAll('[data-region-id]')).toHaveLength(34);
     const search = root.querySelector<HTMLInputElement>('#province-search')!;
-    search.value = '辽宁'; search.dispatchEvent(new dom.window.Event('input'));
+    search.value = '天津'; search.dispatchEvent(new dom.window.Event('input'));
     expect(root.querySelectorAll('.province-card:not([hidden])')).toHaveLength(1);
-    root.querySelector<HTMLButtonElement>('[data-region-id="CN-LN"]')!.click();
+    root.querySelector<HTMLButtonElement>('[data-region-id="CN-TJ"]')!.click();
     expect(root.querySelector('#province-note')?.textContent).toContain('鸟种资料整理中');
     search.value = '北京'; search.dispatchEvent(new dom.window.Event('input'));
     root.querySelector<HTMLButtonElement>('[data-region-id="CN-BJ"]')!.click();
