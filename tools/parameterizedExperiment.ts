@@ -1,6 +1,6 @@
 import { BIRD_CATALOG } from '../src/core/birdCatalog';
 import { BEGINNER_DISCOVERY_BIRD_IDS } from '../src/core/contentSampler';
-import { findFormableBirds, getExposedBoardTiles, createGameFromLevel } from '../src/core/gameEngine';
+import { GAMEPLAY_RULESET_VERSION, findFormableBirds, getExposedBoardTiles, createGameFromLevel } from '../src/core/gameEngine';
 import { CERTIFIED_PUZZLE_BANK } from '../src/core/puzzleBank';
 import type { LevelDefinition } from '../src/core/types';
 import { measurePuzzle } from './difficultyEvaluation';
@@ -13,7 +13,7 @@ import {
 import type { DifficultyProfile, PlacementMode } from './parameterizedGeneration';
 import type { SpatialOrder } from './parameterizedGeneration';
 
-export const EXPERIMENT_VERSION = 'parameterized-generation-benchmark-v1';
+export const EXPERIMENT_VERSION = 'parameterized-generation-benchmark-v2';
 export const EXPERIMENT_SEEDS = [31, 37, 43] as const;
 export const EXPERIMENT_PLACEMENTS = ['consecutive', 'paired', 'multi-name'] as const satisfies readonly PlacementMode[];
 export const EXPERIMENT_STRATEGIES = ['always-compose', 'random-legal', 'capacity-aware', 'lookahead'] as const satisfies readonly EvaluationStrategy[];
@@ -62,7 +62,7 @@ function vocabularyMetrics(level: LevelDefinition, sampledBirdIds: readonly stri
     repeatedCharacterTypes: [...characterCounts.values()].filter((count) => count > 1).length,
     initialDistinctCharacters: new Set(exposed.map((tile) => tile.character)).size,
     /** An upper bound: 19 exposed tiles do not all fit in the ten-slot tray. */
-    initialExposedCompositionUpperBound: findFormableBirds(exposedTray, initial.activeCompositions).length,
+    initialExposedCompositionUpperBound: findFormableBirds(exposedTray, initial.activeCompositions, initial.remainingCompositionQuotas).length,
   };
 }
 
@@ -97,6 +97,7 @@ export function runParameterizedExperiment() {
   const accepted = allCells.filter((cell) => cell.status === 'CERTIFIED');
   return {
     version: EXPERIMENT_VERSION,
+    gameplayRulesetVersion: GAMEPLAY_RULESET_VERSION,
     profileVersion: DIFFICULTY_PROFILE_VERSION,
     geometry: validateFixedGeometry(),
     sourceBankPuzzleIds: CERTIFIED_PUZZLE_BANK.records.map((record) => record.puzzleId),

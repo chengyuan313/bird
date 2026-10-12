@@ -1,11 +1,11 @@
-import { createGameFromLevel, findFormableBirds, getExposedBoardTiles, composeBird, selectBoardTile } from '../src/core/game';
+import { createGameFromLevel, GAMEPLAY_RULESET_VERSION, findPlayableBirds, getExposedBoardTiles, composeBird, selectBoardTile } from '../src/core/game';
 import { CERTIFIED_PUZZLE_BANK, levelFromCertifiedPuzzle } from '../src/core/puzzleBank';
 import type { CertifiedPuzzleRecord } from '../src/core/puzzleBank';
 import type { BirdComposition, GameState, LevelDefinition } from '../src/core/types';
 import { runStrategyTrial } from './level3Evaluation';
 import type { EvaluationStrategy, TrialResult } from './level3Evaluation';
 
-export const DIFFICULTY_REPORT_VERSION = 'difficulty-v1';
+export const DIFFICULTY_REPORT_VERSION = 'difficulty-v2';
 export const STRATEGIES = ['always-compose', 'random-legal', 'capacity-aware', 'lookahead'] as const satisfies readonly EvaluationStrategy[];
 export const TRIAL_SEEDS = [101] as const;
 export const ACTION_BUDGET = 140;
@@ -39,7 +39,7 @@ function isFeasible(bird: BirdComposition, available: Map<string, number>): bool
 }
 
 function legalChoiceCount(state: GameState): number {
-  return findFormableBirds(state.tray, state.activeCompositions).length
+  return findPlayableBirds(state).length
     + (state.tray.some((tile) => tile === null) ? getExposedBoardTiles(state).length : 0);
 }
 
@@ -94,6 +94,7 @@ export function evaluatePuzzle(record: CertifiedPuzzleRecord): PuzzleDifficulty 
 export function evaluateBank(limit = CERTIFIED_PUZZLE_BANK.records.length) {
   return {
     reportVersion: DIFFICULTY_REPORT_VERSION,
+    gameplayRulesetVersion: GAMEPLAY_RULESET_VERSION,
     bankSchemaVersion: CERTIFIED_PUZZLE_BANK.schemaVersion,
     strategySeeds: TRIAL_SEEDS,
     actionBudget: ACTION_BUDGET,

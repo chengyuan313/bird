@@ -30,7 +30,7 @@ import { createUnverifiedLevel, replaySolution, solveLevel } from '../tools/leve
 function generatedLevel(seed: number): LevelDefinition {
   const generated = generateLevel3Content(seed);
   if (!generated.ok) throw new Error(generated.reason);
-  return createUnverifiedLevel('level-3-test', '第三关测试', generated.value.tiles);
+  return createUnverifiedLevel('level-3-test', '第三关测试', generated.value.tiles, generated.value.sampledBirdIds);
 }
 
 function sortedCharacters(values: readonly string[]): string {

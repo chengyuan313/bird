@@ -23,7 +23,7 @@ function assertTransition(before: GameState, after: GameState, action: { type: '
   expect(next.length).toBeLessThanOrEqual(TRAY_SIZE);
   expect(new Set(next.map((tile) => tile.id)).size).toBe(next.length);
   expect(new Set(after.discoveredBirdIds).size).toBe(after.discoveredBirdIds.length);
-  expect(after.phase).toBe(evaluateTerminalState(after.boardTiles, after.tray, after.activeCompositions));
+  expect(after.phase).toBe(evaluateTerminalState(after.boardTiles, after.tray, after.activeCompositions, after.remainingCompositionQuotas));
   const removedBefore = before.boardTiles.filter((tile) => tile.removed).length;
   const removedAfter = after.boardTiles.filter((tile) => tile.removed).length;
 

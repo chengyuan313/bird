@@ -3,6 +3,7 @@ import { BIRD_CATALOG } from './birdCatalog';
 import { boardHash } from './puzzleIdentity';
 import { decodeWinningTrace } from './puzzleBank';
 import { PIACHAN_POSITIONS } from '../preview/piachanLayout';
+import { GLOBAL_BIRD_COMPOSITIONS } from './recognitionRegistry';
 import type { LevelDefinition } from './types';
 
 export type ExperimentGroup = 'A' | 'B' | 'C';
@@ -23,6 +24,7 @@ function levelFor(record: PlaytestPuzzle): LevelDefinition {
     }),
     tiles: PIACHAN_POSITIONS.map((tile, index) => ({ ...tile, character: characters[index] })),
     winningSolution: decodeWinningTrace(record.winningTrace),
+    wordOccurrences: record.sampledBirdIds,
   };
 }
 
@@ -39,6 +41,14 @@ function validateBank(): void {
       || record.placement !== ({ A: 'consecutive', B: 'paired', C: 'multi-name' } as const)[record.group as ExperimentGroup]
       || Array.from(record.characters).length !== 90) throw new Error('Invalid playtest generation inputs');
     const level = levelFor(record);
+    const traceWords = level.winningSolution.filter((action) => action.type === 'compose').map((action) => action.birdId);
+    const known = new Map(GLOBAL_BIRD_COMPOSITIONS.map((bird) => [bird.id, bird]));
+    if (traceWords.length !== record.sampledBirdIds.length
+      || traceWords.some((id, index) => id !== record.sampledBirdIds[index])
+      || record.sampledBirdIds.some((id) => !known.has(id))
+      || record.sampledBirdIds.flatMap((id) => known.get(id)!.characters).sort().join('') !== Array.from(record.characters).sort().join('')) {
+      throw new Error(`Invalid experimental word occurrences: ${record.id}`);
+    }
     if (boardHash(level.tiles) !== record.boardHash
       || record.id !== `experiment:experimental-difficulty-v1:${record.profileId}:${record.placement}:${record.spatialOrder}:${record.seed}:${record.boardHash}`) {
       throw new Error('Corrupted experimental puzzle identity');

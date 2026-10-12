@@ -1,4 +1,5 @@
 import type { GameState } from '../core/types';
+import { GAMEPLAY_RULESET_VERSION } from '../core/gameEngine';
 
 export const PLAYTEST_STATS_VERSION = 1;
 export const PLAYTEST_STORAGE_KEY = 'bird.playtest.v1';
@@ -7,6 +8,8 @@ export type AttemptResult = 'WON' | 'LOST' | 'ABANDONED' | 'INTERRUPTED';
 
 export interface AttemptRecord {
   schemaVersion: typeof PLAYTEST_STATS_VERSION;
+  /** Missing on historical global-recognition attempts; never backfilled. */
+  gameplayRulesetVersion?: string;
   puzzleId: string;
   experimentGroup: 'A' | 'B' | 'C' | null;
   attemptIndex: number;
@@ -30,6 +33,7 @@ function validRecord(value: unknown): value is AttemptRecord {
   if (!value || typeof value !== 'object') return false;
   const item = value as Partial<AttemptRecord>;
   return item.schemaVersion === 1 && typeof item.puzzleId === 'string'
+    && (item.gameplayRulesetVersion === undefined || typeof item.gameplayRulesetVersion === 'string')
     && ['A', 'B', 'C', null].includes(item.experimentGroup ?? null)
     && Number.isSafeInteger(item.attemptIndex) && Number.isFinite(item.startedAt)
     && Number.isFinite(item.endedAt) && Number.isFinite(item.activeDurationMs)
@@ -42,6 +46,7 @@ function validActive(value: unknown): value is ActiveAttempt {
   if (!value || typeof value !== 'object') return false;
   const item = value as Partial<ActiveAttempt>;
   return item.schemaVersion === 1 && typeof item.puzzleId === 'string'
+    && (item.gameplayRulesetVersion === undefined || typeof item.gameplayRulesetVersion === 'string')
     && Number.isSafeInteger(item.attemptIndex) && Number.isFinite(item.startedAt)
     && Number.isFinite(item.activeDurationMs) && Number.isSafeInteger(item.tileSelections)
     && Number.isSafeInteger(item.successfulCompositions) && Number.isSafeInteger(item.maximumTrayOccupancy)
@@ -156,7 +161,8 @@ export class PlaytestStatistics {
       const attemptIndex = (this.attemptCounts[puzzleId] ?? 0) + 1;
       this.attemptCounts[puzzleId] = attemptIndex;
       this.active = {
-        schemaVersion: 1, puzzleId, experimentGroup: next.experimentGroup ?? null,
+        schemaVersion: 1, gameplayRulesetVersion: next.gameplayRulesetVersion,
+        puzzleId, experimentGroup: next.experimentGroup ?? null,
         attemptIndex,
         startedAt: now, activeDurationMs: 0, tileSelections: 0,
         successfulCompositions: 0, maximumTrayOccupancy: 0, finalScore: 0,
@@ -174,7 +180,8 @@ export class PlaytestStatistics {
   }
 }
 
-export function summarizeAttempts(records: readonly AttemptRecord[]) {
+export function summarizeAttempts(records: readonly AttemptRecord[], rulesetVersion = GAMEPLAY_RULESET_VERSION) {
+  const scoped = records.filter((record) => record.gameplayRulesetVersion === rulesetVersion);
   const summarize = (items: readonly AttemptRecord[]) => ({
     attempts: items.length,
     wins: items.filter((record) => record.result === 'WON').length,
@@ -182,7 +189,7 @@ export function summarizeAttempts(records: readonly AttemptRecord[]) {
     averageDurationMs: items.length ? items.reduce((sum, record) => sum + record.activeDurationMs, 0) / items.length : null,
     averageMaximumTray: items.length ? items.reduce((sum, record) => sum + record.maximumTrayOccupancy, 0) / items.length : null,
   });
-  return { all: summarize(records), A: summarize(records.filter((record) => record.experimentGroup === 'A')),
-    B: summarize(records.filter((record) => record.experimentGroup === 'B')),
-    C: summarize(records.filter((record) => record.experimentGroup === 'C')) };
+  return { all: summarize(scoped), A: summarize(scoped.filter((record) => record.experimentGroup === 'A')),
+    B: summarize(scoped.filter((record) => record.experimentGroup === 'B')),
+    C: summarize(scoped.filter((record) => record.experimentGroup === 'C')) };
 }

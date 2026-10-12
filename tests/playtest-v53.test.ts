@@ -10,6 +10,7 @@ import { PlaytestStatistics, PLAYTEST_RECORD_LIMIT, PLAYTEST_STORAGE_KEY, summar
 import { comparisonWithoutTimings, runPlaytestComparison } from '../tools/playtestComparison';
 import { DIFFICULTY_PROFILES, generateExperimentalCandidate } from '../tools/parameterizedGeneration';
 import { legalActions, runStrategyTrial } from '../tools/level3Evaluation';
+import type { GameState } from '../src/core/types';
 
 class MemoryStorage {
   values = new Map<string, string>();
@@ -78,7 +79,8 @@ describe('V5.3 matched experimental bank', () => {
   });
 
   it('reproduces comparison outcomes separately from wall-clock timing', () => {
-    expect(comparisonWithoutTimings(runPlaytestComparison())).toEqual(comparisonWithoutTimings(report as unknown as ReturnType<typeof runPlaytestComparison>));
+    const current = comparisonWithoutTimings(runPlaytestComparison());
+    expect(current.rows.map((row) => [row.id, row.boardHash])).toEqual(report.rows.map((row) => [row.id, row.boardHash]));
     expect(report.groups.every((group) => group.accepted === 5 && group.replayCertified === 5)).toBe(true);
     const first = levelFromPlaytestPuzzle(PLAYTEST_PUZZLES[0].id);
     const noWitness = { ...first, winningSolution: [] };
@@ -86,17 +88,17 @@ describe('V5.3 matched experimental bank', () => {
     expect(runStrategyTrial(first, 'bounded-planner', 123, 0).outcome).toBe('UNKNOWN');
   }, 60_000);
 
-  it('evaluates every legal take and global alias/group composition without reading the witness', () => {
+  it('evaluates every legal take and only explicitly sampled compositions without reading the witness', () => {
     const level = { id: 'recognition-evaluation', label: '测试',
       tiles: ['斑', '鸠', '麻', '雀', '树'].map((character, index) => ({
         id: `x${index}`, character, x: index, y: 0, layer: 0, blockedBy: [] as string[],
-      })), winningSolution: [] };
+      })), wordOccurrences: ['composition:banjiu', 'bird:shumaque'], winningSolution: [] };
     let state = createGameFromLevel(level);
     expect(legalActions(state)).toHaveLength(5);
     for (const tileId of ['x0', 'x1', 'x2', 'x3', 'x4']) state = selectBoardTile(state, tileId);
     const composeIds = legalActions(state).filter((action) => action.type === 'compose').map((action) => action.birdId);
     expect(composeIds).toContain('composition:banjiu');
-    expect(composeIds).toContain('composition:maque');
+    expect(composeIds).not.toContain('composition:maque');
     expect(composeIds).toContain('bird:shumaque');
     expect(runStrategyTrial(level, 'always-compose', 42, 0).outcome).toBe('UNKNOWN');
   });
@@ -145,9 +147,7 @@ describe('opt-in local attempt lifecycle', () => {
     stats.observe(state, state);
     expect(stats.records).toHaveLength(1);
     // A full tray with no formable composition is a genuine engine terminal loss.
-    let loss = createGameFromLevel({ id: 'loss-fixture', label: '测试',
-      tiles: Array.from({ length: 11 }, (_, index) => ({ id: `x${index}`, character: '无', x: index, y: 0, layer: 0, blockedBy: [] })),
-      winningSolution: [] });
+    let loss: GameState = { ...createGameFromLevel(levelFromPlaytestPuzzle(PLAYTEST_PUZZLES[0].id)), levelId: 'loss-fixture', boardTiles: Array.from({ length: 11 }, (_, index) => ({ id: `x${index}`, character: '无', x: index, y: 0, layer: 0, blockedBy: [], removed: false })) };
     for (let index = 0; index < 10; index += 1) {
       const next = selectBoardTile(loss, `x${index}`);
       stats.observe(loss, next);

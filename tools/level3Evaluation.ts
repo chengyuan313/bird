@@ -1,7 +1,7 @@
 import {
   composeBird,
   createGameFromLevel,
-  findFormableBirds,
+  findPlayableBirds,
   getExposedBoardTiles,
   selectBoardTile,
 } from '../src/core/game';
@@ -53,7 +53,7 @@ function trayCount(state: GameState): number {
 
 export function legalActions(state: GameState): WinningAction[] {
   return [
-    ...findFormableBirds(state.tray, state.activeCompositions).map((bird): WinningAction => ({ type: 'compose', birdId: bird.id })),
+    ...findPlayableBirds(state).map((bird): WinningAction => ({ type: 'compose', birdId: bird.id })),
     ...(trayCount(state) < 10
       ? getExposedBoardTiles(state).map((tile): WinningAction => ({ type: 'take', tileId: tile.id }))
       : []),
@@ -89,7 +89,7 @@ function heuristic(state: GameState): number {
   const removed = new Set(state.boardTiles.filter((tile) => tile.removed).map((tile) => tile.id));
   const exposed = state.boardTiles.filter((tile) => !tile.removed && tile.blockedBy.every((id) => removed.has(id))).length;
   return state.score * 3
-    + findFormableBirds(state.tray, state.activeCompositions).reduce((sum, bird) => sum + bird.score, 0) * 4
+    + findPlayableBirds(state).reduce((sum, bird) => sum + bird.score, 0) * 4
     + exposed * 3
     - trayCount(state) * 25
     - state.boardTiles.filter((tile) => !tile.removed).length;

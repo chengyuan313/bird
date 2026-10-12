@@ -39,54 +39,45 @@ describe('versioned global recognition', () => {
     ['bird:shanbanjiu', '山斑鸠', 30],
     ['bird:zhujingbanjiu', '珠颈斑鸠', 70],
     ['composition:banjiu', '斑鸠', 10],
-  ])('recognizes and consumes %s in any level', (id, spelling, score) => {
+  ])('retains %s in the reviewed reference registry', (id, spelling, score) => {
     for (const levelId of ['level-1', 'level-2', 'level-3']) {
       const state = withTray(String(spelling), levelId);
       expect(findFormableBirds(state.tray).map((entry) => entry.id)).toContain(id);
-      const next = composeBird(state, String(id));
-      expect(next).not.toBe(state);
-      expect(next.tray.every((tile) => tile === null)).toBe(true);
-      expect(next.score).toBe(score);
-      expect(next.completedBirdCount).toBe(1);
+      expect(GLOBAL_BIRD_COMPOSITIONS.find((entry) => entry.id === id)?.score).toBe(score);
+      if (!state.activeCompositions.some((entry) => entry.id === id)) expect(composeBird(state, String(id))).toBe(state);
     }
   });
 
   it('maps aliases to one species, keeps 山麻雀 distinct, and excludes group discoveries', () => {
-    const first = composeBird(withTray('树麻雀麻雀山麻雀斑鸠'), 'bird:shumaque');
-    const alias = composeBird(first, 'composition:maque');
-    expect(alias.discoveredBirdIds).toEqual(['bird:shumaque']);
-    expect(alias.lastCompletedBird?.isNew).toBe(false);
-    const mountain = composeBird(alias, 'bird:shanmaque');
-    expect(mountain.discoveredBirdIds).toEqual(['bird:shumaque', 'bird:shanmaque']);
-    const group = composeBird(mountain, 'composition:banjiu');
-    expect(group.discoveredBirdIds).toEqual(mountain.discoveredBirdIds);
-    expect(group.lastCompletedBird).toMatchObject({ birdId: 'composition:banjiu', score: 10, isNew: false });
+    const byId = new Map(GLOBAL_BIRD_COMPOSITIONS.map((entry) => [entry.id, entry]));
+    expect(byId.get('composition:maque')?.speciesId).toBe(byId.get('bird:shumaque')?.speciesId);
+    expect(byId.get('bird:shanmaque')?.speciesId).not.toBe(byId.get('bird:shumaque')?.speciesId);
+    expect(byId.get('composition:banjiu')).toMatchObject({ speciesId: null, score: 10 });
   });
 
   it('offers overlapping choices explicitly and consumes only the selected spelling', () => {
-    const state = withTray('山斑鸠');
+    const state = withTray('山斑鸠', 'level-2');
     expect(findFormableBirds(state.tray).map((entry) => entry.id)).toEqual(expect.arrayContaining(['bird:shanbanjiu', 'composition:banjiu']));
-    expect(state.score).toBe(0);
-    const group = composeBird(state, 'composition:banjiu');
-    expect(group.tray.flatMap((tile) => tile ? [tile.character] : [])).toEqual(['山']);
-    expect(group.discoveredBirdIds).toEqual([]);
+    expect(state.activeCompositions.map((entry) => entry.id)).toContain('bird:shanbanjiu');
+    expect(composeBird(state, 'composition:banjiu')).toBe(state);
   });
 
-  it('uses global recognition for terminal states, UI options, and solver actions', () => {
+  it('uses puzzle words for terminal states, UI options, and solver actions', () => {
     const state = withTray('斑鸠');
-    expect(isCompositionAvailable(state, 'composition:banjiu')).toBe(true);
+    expect(isCompositionAvailable(state, 'composition:banjiu')).toBe(false);
     const root = { innerHTML: '', querySelector: () => null, querySelectorAll: () => [] } as unknown as HTMLElement;
     renderGame(root, state, () => undefined);
-    expect(root.innerHTML).toContain('data-bird-id="composition:banjiu"');
-    expect(root.innerHTML).toContain('可消除鸟名 <span>103 种</span>');
+    expect(root.innerHTML).not.toContain('data-bird-id="composition:banjiu"');
+    expect(root.innerHTML).toContain('本局可消除鸟名');
     const emptyBoard = state.boardTiles.map((tile) => ({ ...tile, removed: true }));
-    expect(evaluateTerminalState(emptyBoard, state.tray)).toBe('playing');
-    expect(composeBird({ ...state, boardTiles: emptyBoard }, 'composition:banjiu').phase).toBe('level_complete');
-    expect(evaluateTerminalState(emptyBoard, tray('山'))).toBe('game_over');
-    expect(evaluateTerminalState(emptyBoard, tray(''))).toBe('level_complete');
-    expect(evaluateTerminalState(state.boardTiles, tray('斑鸠山山山山山山山山'))).toBe('playing');
-    expect(evaluateTerminalState(state.boardTiles, tray('山山山山山山山山山山'))).toBe('game_over');
-    const tiny = { id: 'tiny-group', label: 'test', tiles: [
+    expect(evaluateTerminalState(emptyBoard, state.tray, state.activeCompositions, state.remainingCompositionQuotas)).toBe('game_over');
+    const forged = { ...state, boardTiles: emptyBoard };
+    expect(composeBird(forged, 'composition:banjiu')).toBe(forged);
+    expect(evaluateTerminalState(emptyBoard, tray('山'), state.activeCompositions, state.remainingCompositionQuotas)).toBe('game_over');
+    expect(evaluateTerminalState(emptyBoard, tray(''), state.activeCompositions, state.remainingCompositionQuotas)).toBe('level_complete');
+    expect(evaluateTerminalState(state.boardTiles, tray('斑鸠山山山山山山山山'), state.activeCompositions, state.remainingCompositionQuotas)).toBe('game_over');
+    expect(evaluateTerminalState(state.boardTiles, tray('山山山山山山山山山山'), state.activeCompositions, state.remainingCompositionQuotas)).toBe('game_over');
+    const tiny = { id: 'tiny-group', label: 'test', wordOccurrences: ['composition:banjiu'], tiles: [
       { id: 'one', character: '斑', x: 0, y: 0, layer: 1, blockedBy: [] },
       { id: 'two', character: '鸠', x: 100, y: 0, layer: 1, blockedBy: [] },
     ], winningSolution: [] };

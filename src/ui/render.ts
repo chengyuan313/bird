@@ -2,7 +2,7 @@ import {
   advanceLevel,
   composeBird,
   createGame,
-  findFormableBirds,
+  findPlayableBirds,
   isBoardTileExposed,
   isTrayFull,
   restartLevel,
@@ -74,7 +74,6 @@ export function getBoardTilePresentation(
 }
 
 export function renderGame(root: HTMLElement, state: GameState, update: StateUpdater, statistics?: PlaytestStatistics): void {
-  const generatedWasOpen = root.querySelector<HTMLDetailsElement>('.generated-reference')?.open ?? false;
   const playableWasOpen = root.querySelector<HTMLDetailsElement>('.playable-reference')?.open ?? false;
   const challengeWasOpen = root.querySelector<HTMLDetailsElement>('.challenge-picker')?.open ?? false;
   const experimentWasOpen = root.querySelector<HTMLDetailsElement>('.experiment-picker')?.open ?? false;
@@ -88,10 +87,10 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
     ? levelFromPlaytestPuzzle(state.puzzleId) : getLevel(state.levelId, state.levelSeed, state.puzzleId);
   const experimentIndex = state.experimentGroup && state.puzzleId
     ? playtestPuzzlesInGroup(state.experimentGroup).findIndex((record) => record.id === state.puzzleId) + 1 : 0;
-  const summary = statistics ? summarizeAttempts(statistics.records) : null;
+  const summary = statistics ? summarizeAttempts(statistics.records, state.gameplayRulesetVersion) : null;
   const formatSummary = (label: string, value: NonNullable<typeof summary>['all']) => `<li><strong>${label}</strong>：${value.attempts} 次，${value.wins} 次完成${value.completionRate === null ? '（暂无记录）' : `，完成率 ${(value.completionRate * 100).toFixed(0)}%（n=${value.attempts}），平均用时 ${(value.averageDurationMs! / 1000).toFixed(0)} 秒，平均最高字槽 ${value.averageMaximumTray!.toFixed(1)}`}</li>`;
   const trayFull = isTrayFull(state.tray);
-  const formableBirds = findFormableBirds(state.tray, state.activeCompositions);
+  const formableBirds = findPlayableBirds(state);
   const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
   const boardEmpty = remaining === 0;
   const boardBounds = getBoardBounds(state);
@@ -121,7 +120,7 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
       </details>
 
       ${statistics && summary ? `<details class="statistics-panel" ${statisticsWasOpen ? 'open' : ''}>
-        <summary>本机游玩统计</summary><p>可选记录仅保存在此浏览器，不会自动上传；最多保留最近 500 次有实际操作的尝试。切换或重试记为放弃，关闭页面记为中断。</p>
+        <summary>本机游玩统计</summary><p>仅汇总当前规则版本的尝试；旧记录保留在导出中。可选记录仅保存在此浏览器，不会自动上传；最多保留最近 500 次有实际操作的尝试。切换或重试记为放弃，关闭页面记为中断。</p>
         <label><input type="checkbox" data-statistics-enabled ${statistics.enabled ? 'checked' : ''}> 启用本机记录</label>
         <ul>${formatSummary('全部', summary.all)}${formatSummary('实验 A', summary.A)}${formatSummary('实验 B', summary.B)}${formatSummary('实验 C', summary.C)}</ul>
         <div class="statistics-actions"><button data-statistics-export ${statistics.records.length === 0 ? 'disabled' : ''}>导出 JSON</button><button data-statistics-clear ${statistics.records.length === 0 ? 'disabled' : ''}>清除记录</button></div>
@@ -134,15 +133,10 @@ export function renderGame(root: HTMLElement, state: GameState, update: StateUpd
         <div class="challenge-options">${challengePage(challengePageIndex).map((candidate) => `<button data-challenge-id="${candidate.puzzleId}" class="${candidate.puzzleId === state.puzzleId ? 'active' : ''}" ${candidate.puzzleId === state.puzzleId ? 'aria-current="true"' : ''}>挑战 ${candidate.number}</button>`).join('')}</div>
       </details>` : ''}
 
-      ${layeredBoard ? `<details class="bird-reference generated-reference" ${generatedWasOpen && previousLevel === state.levelId ? 'open' : ''}>
-        <summary>本局生成鸟名 <span>${state.activeCatalog.length} 种</span></summary>
-        <p>这些鸟名用于生成本局字块；可消除鸟名不限于此。</p>
-        <ul>${[...state.activeCatalog].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.discoveredBirdIds.includes(bird.id) ? 'completed' : ''}">${bird.name}${state.discoveredBirdIds.includes(bird.id) ? '<small>已拼成</small>' : ''}</li>`).join('')}</ul>
-      </details>` : ''}
       <details class="bird-reference playable-reference" ${playableWasOpen && previousLevel === state.levelId ? 'open' : ''}>
-        <summary>可消除鸟名 <span>${state.activeCompositions.length} 种</span></summary>
-        <p>所有已审核的鸟名都可拼成；类别名不计入物种发现。</p>
-        <ul>${[...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${bird.speciesId !== null && state.discoveredBirdIds.includes(bird.speciesId) ? 'completed' : ''}">${bird.name}${bird.classification === 'group' ? '<small>类别名</small>' : bird.speciesId !== null && state.discoveredBirdIds.includes(bird.speciesId) ? '<small>已发现</small>' : ''}</li>`).join('')}</ul>
+        <summary>本局可消除鸟名 <span>${state.activeCompositions.length} 种</span></summary>
+        <p>只能消除本局列出的鸟名，每种鸟名有固定数量。</p>
+        <ul>${[...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map((bird) => `<li class="${state.remainingCompositionQuotas[bird.id] === 0 ? 'completed' : ''}">${bird.name} ×${state.compositionQuotas[bird.id]}，剩余 ${state.remainingCompositionQuotas[bird.id]}</li>`).join('')}</ul>
       </details>
 
       ${completedBird ? `<section class="bird-reveal" style="--bird-color: ${birdColor(completedBird.assetKey)}" aria-live="polite"><span class="bird-mark">●</span><div><strong>${completedBird.name}</strong><small>+${state.lastCompletedBird?.score}${state.lastCompletedBird?.isNew ? ' · NEW BIRD' : ''}</small></div></section>` : ''}

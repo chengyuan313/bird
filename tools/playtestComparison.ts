@@ -1,4 +1,5 @@
 import { CERTIFIED_PUZZLE_BANK } from '../src/core/puzzleBank';
+import { GAMEPLAY_RULESET_VERSION } from '../src/core/gameEngine';
 import { composeBird, createGameFromLevel, selectBoardTile } from '../src/core/gameEngine';
 import { EXPERIMENT_GROUPS, levelFromPlaytestPuzzle, PLAYTEST_PUZZLES } from '../src/core/playtestBank';
 import { measurePuzzle } from './difficultyEvaluation';
@@ -6,7 +7,7 @@ import type { EvaluationStrategy } from './level3Evaluation';
 import { simulate } from './parameterizedExperiment';
 import { DIFFICULTY_PROFILES, generateExperimentalCandidate } from './parameterizedGeneration';
 
-export const PLAYTEST_COMPARISON_VERSION = 'playtest-comparison-v1';
+export const PLAYTEST_COMPARISON_VERSION = 'playtest-comparison-v2';
 export const PLAYTEST_ACTION_BUDGET = 140;
 export const PLAYTEST_STRATEGIES = ['always-compose', 'random-legal', 'capacity-aware', 'lookahead', 'bounded-planner'] as const satisfies readonly EvaluationStrategy[];
 
@@ -45,9 +46,10 @@ export function runPlaytestComparison() {
   });
   return {
     version: PLAYTEST_COMPARISON_VERSION,
+    gameplayRulesetVersion: GAMEPLAY_RULESET_VERSION,
     bankVersion: 'playtest-bank-v1',
     fixedInputs: { profileId: 'standard', spatialOrder: 'seeded-random', tileCount: 90,
-      geometryId: 'piachan-90-v1', recognitionCompositions: 103,
+      geometryId: 'piachan-90-v1', recognitionRegistryEntries: 103, playableCompositions: 'puzzle-scoped',
       seeds: [31, 37, 43, 47, 53], actionBudget: PLAYTEST_ACTION_BUDGET },
     strategies: PLAYTEST_STRATEGIES,
     groups: EXPERIMENT_GROUPS.map((group) => {

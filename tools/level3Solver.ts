@@ -1,7 +1,7 @@
 import {
   composeBird,
   createGameFromLevel,
-  findFormableBirds,
+  findPlayableBirds,
   getExposedBoardTiles,
   selectBoardTile,
 } from '../src/core/game';
@@ -26,7 +26,8 @@ const DEFAULT_OPTIONS: SolverOptions = { maxNodes: 250_000, maxDurationMs: 5_000
 function stateKey(state: GameState): string {
   const removed = state.boardTiles.map((tile) => tile.removed ? '1' : '0').join('');
   const tray = state.tray.flatMap((tile) => tile ? [tile.character] : []).sort().join('');
-  return `${removed}|${tray}`;
+  const quotas = state.activeCompositions.map((bird) => state.remainingCompositionQuotas[bird.id]).join(',');
+  return `${removed}|${tray}|${quotas}`;
 }
 
 function trayCount(state: GameState): number {
@@ -38,7 +39,7 @@ function takeScore(state: GameState, tileId: string): number {
   const tile = state.boardTiles.find((candidate) => candidate.id === tileId)!;
   const next = selectBoardTile(state, tileId);
   const newlyExposed = getExposedBoardTiles(next).filter((candidate) => !before.has(candidate.id)).length;
-  const completed = findFormableBirds(next.tray, state.activeCompositions);
+  const completed = findPlayableBirds(next);
   const regionPenalty = tile.region === 'auxiliary' ? 25 : 0;
   return newlyExposed * 80
     + completed.reduce((best, bird) => Math.max(best, bird.score), 0) * 3
@@ -78,7 +79,7 @@ export function solveLevel(
     if (visited.has(key)) return undefined;
     visited.add(key);
 
-    const formable = findFormableBirds(state.tray, state.activeCompositions)
+    const formable = findPlayableBirds(state)
       .slice()
       .sort((first, second) => second.characters.length - first.characters.length || second.score - first.score);
     const exposed = getExposedBoardTiles(state)
@@ -138,10 +139,11 @@ export function createUnverifiedLevel(
   id: string,
   label: string,
   tiles: LevelDefinition['tiles'],
+  wordOccurrences: readonly string[],
 ): LevelDefinition {
-  return { id, label, tiles, winningSolution: [] };
+  return { id, label, tiles, wordOccurrences, winningSolution: [] };
 }
 
 export function isCompositionAvailable(state: GameState, birdId: string): boolean {
-  return findFormableBirds(state.tray, state.activeCompositions).some((bird) => bird.id === birdId);
+  return findPlayableBirds(state).some((bird) => bird.id === birdId);
 }

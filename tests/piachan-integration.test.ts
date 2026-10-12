@@ -62,16 +62,16 @@ describe('playable Piachan Level 3', () => {
     expect(level.catalog?.length).toBeLessThanOrEqual(22);
   });
 
-  it('preserves tutorial generation catalogs while recognizing all reviewed names', () => {
+  it('preserves tutorial generation catalogs while restricting gameplay words', () => {
     for (const id of ['level-1', 'level-2']) {
-      expect(createGame(id).activeCompositions).toBe(GLOBAL_BIRD_COMPOSITIONS);
+      expect(createGame(id).activeCompositions.length).toBeLessThan(GLOBAL_BIRD_COMPOSITIONS.length);
     }
     expect(LEGACY_GAMEPLAY_COMPOSITIONS).toHaveLength(16);
     expect(createGame('level-1').activeCatalog).toEqual(LEGACY_GAMEPLAY_SPECIES_CATALOG);
     expect(createGame('level-3', 4).activeCatalog.every((bird) => BIRD_CATALOG.includes(bird))).toBe(true);
   });
 
-  it('recognizes birds beyond the active sampled pool', () => {
+  it('rejects birds beyond the active sampled pool', () => {
     const state = { ...createGame('level-3', 2), tray: tray('喜鹊') };
     expect(findFormableBirds(state.tray, state.activeCompositions).map((bird) => bird.id))
       .toContain('bird:xique');
@@ -80,18 +80,18 @@ describe('playable Piachan Level 3', () => {
     expect(composed.tray.every((tile) => tile === null)).toBe(true);
     const unsampled = { ...state, tray: tray('家燕') };
     expect(unsampled.activeCatalog.some((bird) => bird.id === 'bird:jiayan')).toBe(false);
-    expect(composeBird(unsampled, 'bird:jiayan').score).toBe(10);
+    expect(composeBird(unsampled, 'bird:jiayan')).toBe(unsampled);
     const legacy = { ...createGame('level-1'), tray: tray('丹顶鹤') };
-    expect(composeBird(legacy, 'bird:dandinghe').score).toBe(30);
+    expect(composeBird(legacy, 'bird:dandinghe')).toBe(legacy);
   });
 
   it('uses global recognition for board-empty cleanup and full-tray defeat', () => {
     const state = createGame('level-3', 2);
     const emptyBoard = state.boardTiles.map((tile) => ({ ...tile, removed: true }));
-    expect(evaluateTerminalState(emptyBoard, tray('喜鹊'), state.activeCompositions)).toBe('playing');
+    expect(evaluateTerminalState(emptyBoard, tray('喜鹊'), state.activeCompositions, state.remainingCompositionQuotas)).toBe('playing');
     const cleanup = composeBird({ ...state, boardTiles: emptyBoard, tray: tray('喜鹊') }, 'bird:xique');
     expect(cleanup.phase).toBe('level_complete');
-    expect(evaluateTerminalState(state.boardTiles, tray('〇〇〇〇〇〇〇〇〇〇'), state.activeCompositions))
+    expect(evaluateTerminalState(state.boardTiles, tray('〇〇〇〇〇〇〇〇〇〇'), state.activeCompositions, state.remainingCompositionQuotas))
       .toBe('game_over');
   });
 

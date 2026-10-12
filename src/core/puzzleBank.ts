@@ -221,5 +221,6 @@ export function levelFromCertifiedPuzzle(record: CertifiedPuzzleRecord): LevelDe
   return {
     id: 'level-3', label: '第三关', seed: record.seed, puzzleId: record.puzzleId,
     catalog, tiles: tilesFor(record), winningSolution: decodeWinningTrace(record.winningTrace),
+    wordOccurrences: record.sampledBirdIds,
   };
 }

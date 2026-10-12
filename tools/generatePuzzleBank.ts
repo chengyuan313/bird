@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { BIRD_CATALOG } from '../src/core/birdCatalog';
 import { characterOverlap } from '../src/core/contentSampler';
 import {
-  composeBird, createGameFromLevel, findFormableBirds, isBoardTileExposed,
+  composeBird, createGameFromLevel, findPlayableBirds, isBoardTileExposed,
   selectBoardTile, TRAY_SIZE,
 } from '../src/core/gameEngine';
 import { createPlayableLevel3, generatePiachanLevel3, PLAYABLE_LEVEL_3_SEEDS } from '../src/core/level3Playable';
@@ -57,7 +57,7 @@ function certify(level: LevelDefinition): Omit<PuzzleDiagnostics, 'uniqueBoardAs
 
   let state = createGameFromLevel(level);
   const initialExposedTiles = state.boardTiles.filter((tile) => isBoardTileExposed(state, tile.id)).length;
-  const checkpointFormableCompositions = [findFormableBirds(state.tray, state.activeCompositions).length];
+  const checkpointFormableCompositions = [findPlayableBirds(state).length];
   const selected = new Set<string>();
   let taken = 0;
   let maximumTrayOccupancy = 0;
@@ -74,7 +74,7 @@ function certify(level: LevelDefinition): Omit<PuzzleDiagnostics, 'uniqueBoardAs
       taken += 1;
     } else {
       const bird = birdById.get(action.birdId);
-      if (!bird || !findFormableBirds(before.tray, before.activeCompositions).some((option) => option.id === bird.id)) {
+      if (!bird || !findPlayableBirds(before).some((option) => option.id === bird.id)) {
         throw new Error(`Unrecognized or unavailable composition: ${action.birdId}`);
       }
       next = composeBird(before, action.birdId);
@@ -97,7 +97,7 @@ function certify(level: LevelDefinition): Omit<PuzzleDiagnostics, 'uniqueBoardAs
     occupancyTotal += occupied;
     state = next;
     if (action.type === 'take' && [30, 60, 90].includes(taken)) {
-      checkpointFormableCompositions.push(findFormableBirds(state.tray, state.activeCompositions).length);
+      checkpointFormableCompositions.push(findPlayableBirds(state).length);
     }
   }
   if (selected.size !== 90 || state.phase !== 'level_complete'

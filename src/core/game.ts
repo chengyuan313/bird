@@ -5,7 +5,7 @@ import { levelFromPlaytestPuzzle, nextPlaytestPuzzle, playtestPuzzlesInGroup } f
 import type { GameState } from './types';
 
 export {
-  TRAY_SIZE, findFormableBirds, isTrayFull, evaluateTerminalState,
+  TRAY_SIZE, GAMEPLAY_RULESET_VERSION, findFormableBirds, findPlayableBirds, isTrayFull, evaluateTerminalState,
   isBoardTileExposed, getExposedBoardTiles, createGameFromLevel,
   selectBoardTile, composeBird,
 } from './gameEngine';

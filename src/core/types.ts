@@ -59,6 +59,8 @@ export interface LevelDefinition {
   experimentGroup?: 'A' | 'B' | 'C';
   catalog?: readonly BirdDefinition[];
   compositions?: readonly BirdComposition[];
+  /** Authoritative playable spelling occurrences, including repeats. */
+  wordOccurrences?: readonly string[];
   tiles: readonly BoardTileDefinition[];
   winningSolution: readonly WinningAction[];
 }
@@ -76,6 +78,10 @@ export interface GameState {
   experimentGroup?: 'A' | 'B' | 'C';
   activeCatalog: readonly BirdDefinition[];
   activeCompositions: readonly BirdComposition[];
+  gameplayRulesetVersion: string;
+  /** Immutable starting quotas for this puzzle. */
+  compositionQuotas: Readonly<Record<string, number>>;
+  remainingCompositionQuotas: Readonly<Record<string, number>>;
   boardTiles: BoardTile[];
   tray: Array<RackTile | null>;
   score: number;

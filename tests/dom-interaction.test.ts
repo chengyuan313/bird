@@ -30,7 +30,7 @@ describe('game DOM interactions', () => {
     expect(root.querySelector('.board-meta')?.textContent).toContain('90 / 90');
   });
 
-  it('offers and consumes the Level 2 麻雀 spelling through the rendered controls', async () => {
+  it('offers sampled 树麻雀 but not the unsampled 麻雀 alias through rendered controls', async () => {
     const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
     vi.stubGlobal('window', dom.window);
     vi.stubGlobal('document', dom.window.document);
@@ -39,19 +39,20 @@ describe('game DOM interactions', () => {
 
     const root = dom.window.document.querySelector('#app')!;
     root.querySelector<HTMLButtonElement>('[data-level-id="level-2"]')!.click();
-    for (const tileId of ['l2-z09', 'l2-z10', 'l2-z11', 'l2-m09', 'l2-m10']) {
+    for (const tileId of ['l2-z08', 'l2-z09', 'l2-z10', 'l2-z11', 'l2-m08', 'l2-m09', 'l2-m10']) {
       const tile = root.querySelector<HTMLButtonElement>(`[data-board-tile-id="${tileId}"]`)!;
       expect(tile.disabled).toBe(false);
       tile.click();
     }
-    expect(root.querySelector('.board-meta')?.textContent).toContain('28 / 33');
-    expect(root.querySelectorAll('.tray-tile')).toHaveLength(5);
-    const option = root.querySelector<HTMLButtonElement>('[data-bird-id="composition:maque"]');
-    expect(option?.textContent).toContain('麻雀');
+    expect(root.querySelector('.board-meta')?.textContent).toContain('26 / 33');
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(7);
+    expect(root.querySelector('[data-bird-id="composition:maque"]')).toBeNull();
+    const option = root.querySelector<HTMLButtonElement>('[data-bird-id="bird:shumaque"]');
+    expect(option?.textContent).toContain('树麻雀');
     option!.click();
-    expect(root.querySelectorAll('.tray-tile')).toHaveLength(3);
-    expect(root.querySelector('.board-meta')?.textContent).toContain('28 / 33');
-    expect(root.querySelector('.score')?.textContent).toContain('10');
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(4);
+    expect(root.querySelector('.board-meta')?.textContent).toContain('26 / 33');
+    expect(root.querySelector('.score')?.textContent).toContain('30');
   });
 
   it('switches certified puzzle identity and retries that exact board through mounted controls', async () => {

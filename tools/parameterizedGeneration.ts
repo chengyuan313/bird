@@ -224,7 +224,7 @@ export function generateExperimentalCandidate(
     const level: LevelDefinition = {
       id: 'level-3-experiment', label: '离线实验', seed, puzzleId: experimentId,
       catalog: [...new Map(birds.map((bird) => [bird.id, bird])).values()],
-      tiles, winningSolution,
+      tiles, winningSolution, wordOccurrences: birds.map((bird) => bird.id),
     };
     let state = createGameFromLevel(level);
     for (const action of winningSolution) {

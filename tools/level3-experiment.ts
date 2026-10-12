@@ -40,7 +40,7 @@ describe('bounded Level 3 generation experiment', () => {
       const diversity = Object.keys(generated.value.speciesCounts).length;
       const repetition = Math.max(...Object.values(generated.value.speciesCounts));
       diversities.push(diversity);
-      const level = createUnverifiedLevel(`candidate-${seed}`, `Candidate ${seed}`, generated.value.tiles);
+      const level = createUnverifiedLevel(`candidate-${seed}`, `Candidate ${seed}`, generated.value.tiles, generated.value.sampledBirdIds);
       const result = solveLevel(level, SEARCH_BUDGET);
       if (result.status === 'SEARCH_LIMIT_REACHED') {
         unknown += 1;
