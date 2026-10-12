@@ -1,6 +1,7 @@
 import { nextCertifiedPuzzleId } from './puzzleBank';
 import { getLevel } from './levels';
 import { createGameFromLevel } from './gameEngine';
+import { levelFromPlaytestPuzzle, nextPlaytestPuzzle, playtestPuzzlesInGroup } from './playtestBank';
 import type { GameState } from './types';
 
 export {
@@ -14,9 +15,21 @@ export function createGame(levelId = 'level-1', levelSeed?: number, puzzleId?: s
 }
 
 export function restartLevel(state: GameState): GameState {
+  if (state.experimentGroup && state.puzzleId) return createGameFromLevel(levelFromPlaytestPuzzle(state.puzzleId));
   return state.levelId === 'level-3'
     ? createGame(state.levelId, state.levelSeed, state.puzzleId)
     : createGame(state.levelId);
+}
+
+export function startExperiment(group: 'A' | 'B' | 'C', puzzleId = playtestPuzzlesInGroup(group)[0].id): GameState {
+  const level = levelFromPlaytestPuzzle(puzzleId);
+  if (level.experimentGroup !== group) throw new Error('Puzzle does not belong to selected experiment');
+  return createGameFromLevel(level);
+}
+
+export function switchExperimentalBoard(state: GameState): GameState {
+  if (!state.experimentGroup) return state;
+  return startExperiment(state.experimentGroup, nextPlaytestPuzzle(state.experimentGroup, state.puzzleId).id);
 }
 
 export function advanceLevel(state: GameState): GameState {

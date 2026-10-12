@@ -18,14 +18,14 @@ export const EXPERIMENT_SEEDS = [31, 37, 43] as const;
 export const EXPERIMENT_PLACEMENTS = ['consecutive', 'paired', 'multi-name'] as const satisfies readonly PlacementMode[];
 export const EXPERIMENT_STRATEGIES = ['always-compose', 'random-legal', 'capacity-aware', 'lookahead'] as const satisfies readonly EvaluationStrategy[];
 export const EXPERIMENT_ACTION_BUDGET = 140;
-export type ExperimentOutcome = 'WON' | 'LOST' | 'UNKNOWN_BUDGET' | 'INVALID_ACTION' | 'ERROR';
+export type ExperimentOutcome = 'WON' | 'LOST' | 'UNKNOWN_BUDGET' | 'INVALID_ACTION' | 'EVALUATION_ERROR';
 
 export function classifyTrial(trial: TrialResult): ExperimentOutcome {
   return trial.outcome === 'WIN' ? 'WON' : trial.outcome === 'LOSS' ? 'LOST' : 'UNKNOWN_BUDGET';
 }
 
-export function classifySimulationError(error: unknown): 'INVALID_ACTION' | 'ERROR' {
-  return error instanceof Error && error.message.startsWith('INVALID_ACTION:') ? 'INVALID_ACTION' : 'ERROR';
+export function classifySimulationError(error: unknown): 'INVALID_ACTION' | 'EVALUATION_ERROR' {
+  return error instanceof Error && error.message.startsWith('INVALID_ACTION:') ? 'INVALID_ACTION' : 'EVALUATION_ERROR';
 }
 
 export function simulate(level: LevelDefinition, strategy: EvaluationStrategy, seed: number, budget = EXPERIMENT_ACTION_BUDGET) {

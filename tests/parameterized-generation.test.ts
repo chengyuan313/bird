@@ -92,7 +92,7 @@ describe('offline parameterized difficulty generation', () => {
     expect(classifyTrial({ outcome: 'LOSS' } as Parameters<typeof classifyTrial>[0])).toBe('LOST');
     expect(classifyTrial({ outcome: 'UNKNOWN' } as Parameters<typeof classifyTrial>[0])).toBe('UNKNOWN_BUDGET');
     expect(classifySimulationError(new Error('INVALID_ACTION: bad tile'))).toBe('INVALID_ACTION');
-    expect(classifySimulationError(new Error('unexpected'))).toBe('ERROR');
+    expect(classifySimulationError(new Error('unexpected'))).toBe('EVALUATION_ERROR');
     const candidate = generateExperimentalCandidate(DIFFICULTY_PROFILES[0], 31);
     expect(candidate.ok).toBe(true);
     if (!candidate.ok) return;

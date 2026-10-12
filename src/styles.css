@@ -18,6 +18,15 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .level-tabs button.challenge-tab { min-width: 74px; }
 .level-tabs button.active { color: white; background: #315c46; border-color: #315c46; }
 .challenge-picker { margin-top: 10px; padding: 10px 12px; border: 1px solid #d5dfd1; border-radius: 14px; background: #f8faf2; }
+.experiment-picker, .statistics-panel { margin-top: 10px; padding: 10px 12px; border: 1px solid #d5dfd1; border-radius: 14px; background: #f8faf2; font-size: 11px; }
+.experiment-picker summary, .statistics-panel summary { color: #315c46; font-size: 13px; font-weight: 800; cursor: pointer; }
+.experiment-picker p, .statistics-panel p { margin: 8px 0; color: #657568; line-height: 1.5; }
+.experiment-options, .statistics-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.experiment-options button, .statistics-actions button { min-height: 36px; padding: 5px 9px; border: 1px solid #91a494; border-radius: 9px; color: #315c46; background: white; cursor: pointer; font-size: 11px; font-weight: 700; }
+.experiment-options button.active { color: white; background: #315c46; }
+.statistics-actions button:disabled { opacity: .45; cursor: default; }
+.statistics-panel label { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; }
+.statistics-panel ul { margin: 5px 0 10px; padding-left: 17px; color: #405044; line-height: 1.7; }
 .challenge-picker summary { display: flex; justify-content: space-between; color: #315c46; font-size: 13px; font-weight: 800; cursor: pointer; }
 .challenge-picker summary span, .challenge-picker p, .challenge-pages span { color: #738173; font-size: 11px; }
 .challenge-picker p { margin: 8px 0; }

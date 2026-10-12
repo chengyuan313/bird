@@ -58,6 +58,7 @@ export function createGameFromLevel(level: LevelDefinition): GameState {
     levelId: level.id,
     ...(level.seed === undefined ? {} : { levelSeed: level.seed }),
     ...(level.puzzleId === undefined ? {} : { puzzleId: level.puzzleId }),
+    ...(level.experimentGroup === undefined ? {} : { experimentGroup: level.experimentGroup }),
     activeCatalog: level.catalog ?? LEGACY_GAMEPLAY_SPECIES_CATALOG,
     activeCompositions: GLOBAL_BIRD_COMPOSITIONS,
     boardTiles: level.tiles.map((tile) => ({ ...tile, blockedBy: [...tile.blockedBy], removed: false })),

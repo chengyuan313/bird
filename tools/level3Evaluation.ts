@@ -15,7 +15,8 @@ export type EvaluationStrategy =
   | 'highest-score'
   | 'clear-blockers'
   | 'capacity-aware'
-  | 'lookahead';
+  | 'lookahead'
+  | 'bounded-planner';
 
 export interface TrialResult {
   outcome: 'WIN' | 'LOSS' | 'UNKNOWN';
@@ -36,13 +37,21 @@ export const EVALUATION_STRATEGIES: readonly EvaluationStrategy[] = [
   'clear-blockers',
   'capacity-aware',
   'lookahead',
+  'bounded-planner',
 ];
+
+/** Two-ply counterfactual planning, all root actions scored, at most four expanded
+ * roots and 80 successor nodes per move. Trial action budget is supplied by caller;
+ * the offline report worker has a 90-second process timeout. */
+export const BOUNDED_PLANNER_DEPTH = 2;
+export const BOUNDED_PLANNER_ROOT_WIDTH = 4;
+export const BOUNDED_PLANNER_NODE_BUDGET = 80;
 
 function trayCount(state: GameState): number {
   return state.tray.filter(Boolean).length;
 }
 
-function legalActions(state: GameState): WinningAction[] {
+export function legalActions(state: GameState): WinningAction[] {
   return [
     ...findFormableBirds(state.tray, state.activeCompositions).map((bird): WinningAction => ({ type: 'compose', birdId: bird.id })),
     ...(trayCount(state) < 10
@@ -140,6 +149,23 @@ function selectAction(
       return replies.length > 0
         ? Math.max(...replies.map((reply) => heuristic(applyAction(next, reply))))
         : heuristic(next);
+    }, random);
+  }
+  if (strategy === 'bounded-planner') {
+    const roots = actions.map((action) => ({ action, next: applyAction(state, action) }))
+      .sort((a, b) => heuristic(b.next) - heuristic(a.next));
+    const selected = roots.slice(0, BOUNDED_PLANNER_ROOT_WIDTH);
+    let nodes = roots.length;
+    return pickBest(selected.map((item) => item.action), (action) => {
+      const next = selected.find((item) => item.action === action)!.next;
+      const replies = legalActions(next);
+      let best = heuristic(next);
+      for (const reply of replies) {
+        if (nodes >= BOUNDED_PLANNER_NODE_BUDGET) break;
+        nodes += 1;
+        best = Math.max(best, heuristic(applyAction(next, reply)));
+      }
+      return best;
     }, random);
   }
   if (take.length > 0) return choose(take, random);

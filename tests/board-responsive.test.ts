@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { JSDOM } from 'jsdom';
-import { createGame } from '../src/core/game';
+import { createGame, startExperiment } from '../src/core/game';
 import { getBoardBounds, renderGame } from '../src/ui/render';
 
 describe('responsive board geometry', () => {
@@ -29,8 +29,7 @@ describe('responsive board geometry', () => {
       configurable: true,
       get() { return this.classList.contains('tile-board') ? boardWidth : 0; },
     });
-    for (const levelId of ['level-1', 'level-2', 'level-3']) {
-      const state = createGame(levelId);
+    for (const state of [createGame('level-1'), createGame('level-2'), createGame('level-3'), startExperiment('A'), startExperiment('B'), startExperiment('C')]) {
       const bounds = getBoardBounds(state);
       renderGame(root, state, () => {});
       const canvas = root.querySelector<HTMLElement>('.board-canvas')!;

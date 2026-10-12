@@ -103,4 +103,36 @@ describe('game DOM interactions', () => {
     expect(root.querySelector('.game-shell')?.getAttribute('data-puzzle-id')).toBe(chosenId);
     expect(root.querySelectorAll('.tray-tile')).toHaveLength(0);
   });
+
+  it('selects experiments and keeps local statistics opt-in without changing normal challenges', async () => {
+    const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
+    vi.stubGlobal('window', dom.window);
+    vi.stubGlobal('document', dom.window.document);
+    vi.resetModules();
+    await import('../src/main');
+    const root = dom.window.document.querySelector('#app')!;
+    expect(root.querySelector('.experiment-picker')?.textContent).toContain('难度实验');
+    root.querySelector<HTMLButtonElement>('[data-experiment-group="A"]')!.click();
+    const firstId = root.querySelector('.game-shell')!.getAttribute('data-puzzle-id');
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('实验 A');
+    expect(root.querySelectorAll('.board-tile')).toHaveLength(90);
+    root.querySelector<HTMLInputElement>('[data-statistics-enabled]')!.click();
+    root.querySelector<HTMLButtonElement>('.board-tile.exposed')!.click();
+    expect(root.querySelectorAll('.tray-tile')).toHaveLength(1);
+    root.querySelector<HTMLButtonElement>('[data-action="restart"]')!.click();
+    expect(root.querySelector('.game-shell')!.getAttribute('data-puzzle-id')).toBe(firstId);
+    expect(root.querySelector('.statistics-panel')?.textContent).toContain('1 次');
+    root.querySelector<HTMLButtonElement>('[data-action="new-board"]')!.click();
+    expect(root.querySelector('.game-shell')!.getAttribute('data-puzzle-id')).not.toBe(firstId);
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('实验 A');
+    root.querySelector<HTMLButtonElement>('[data-experiment-group="B"]')!.click();
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('实验 B');
+    root.querySelector<HTMLButtonElement>('[data-action="normal-challenges"]')!.click();
+    expect(root.querySelector('.challenge-picker')).not.toBeNull();
+    expect(root.querySelector('.puzzle-identity')?.textContent).toContain('挑战 1');
+    root.querySelector<HTMLButtonElement>('[data-level-id="level-1"]')!.click();
+    expect(root.querySelectorAll('.board-tile')).toHaveLength(22);
+    root.querySelector<HTMLButtonElement>('[data-statistics-clear]')!.click();
+    expect(root.querySelector('.statistics-panel')?.textContent).toContain('暂无记录');
+  });
 });

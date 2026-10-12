@@ -9,6 +9,8 @@
     "generate:bank": "node tools/runPuzzleBankGenerator.mjs",
     "evaluate:difficulty": "node tools/runDifficultyEvaluation.mjs",
     "experiment:profiles": "node tools/runParameterizedExperiment.mjs",
+    "experiment:playtest:bank": "node tools/generatePlaytestBank.mjs",
+    "experiment:playtest:compare": "node tools/runPlaytestComparison.mjs",
     "analyze:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-analysis.experiment.ts --reporter=verbose",
     "experiment:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-sampling.experiment.ts --reporter=verbose",
     "evaluate:level3": "vitest run --config tools/vitest.experiment.config.ts --reporter=verbose",
