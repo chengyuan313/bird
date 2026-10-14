@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "generate:bank": "node tools/runPuzzleBankGenerator.mjs",
+    "generate:regional-v7": "node tools/runRegionalV7Bank.mjs",
     "evaluate:difficulty": "node tools/runDifficultyEvaluation.mjs",
     "experiment:profiles": "node tools/runParameterizedExperiment.mjs",
     "experiment:playtest:bank": "node tools/generatePlaytestBank.mjs",

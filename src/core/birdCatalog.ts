@@ -4,6 +4,8 @@ export const SCORE_BY_LENGTH: Readonly<Record<number, number>> = {
   2: 10,
   3: 30,
   4: 70,
+  5: 120,
+  6: 180,
 };
 
 export const IOC_15_2_SOURCE = 'IOC World Bird List v15.2 multilingual master list';

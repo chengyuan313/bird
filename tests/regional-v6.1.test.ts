@@ -154,9 +154,15 @@ describe('V6.1 regional UI', () => {
     const root = dom.window.document.querySelector('#app')!;
     for (const regionId of pilots) {
       root.querySelector<HTMLButtonElement>(`[data-region-id="${regionId}"]`)?.click();
-      expect(root.querySelector('.region-progress')?.textContent).toContain(`本游戏已收录鸟种 ${speciesForRegion(regionId).length}`);
-      expect(root.querySelector('[data-stage="1"]')).not.toBeNull();
-      expect(root.querySelector('[data-stage="2"]')).not.toBeNull();
+      if (regionId === 'CN-SC') {
+        expect(root.querySelector('.region-progress')?.textContent).toContain('0 / 100');
+        expect(root.querySelectorAll('[data-v7-tier]')).toHaveLength(25);
+        expect(root.querySelectorAll('[data-v6-stage]')).toHaveLength(2);
+      } else {
+        expect(root.querySelector('.region-progress')?.textContent).toContain(`本游戏已收录鸟种 ${speciesForRegion(regionId).length}`);
+        expect(root.querySelector('[data-stage="1"]')).not.toBeNull();
+        expect(root.querySelector('[data-stage="2"]')).not.toBeNull();
+      }
       root.querySelector<HTMLButtonElement>('[data-action="select"]')!.click();
     }
     root.querySelector<HTMLButtonElement>('[data-region-id="CN-GD"]')!.click();

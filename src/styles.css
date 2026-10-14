@@ -132,4 +132,17 @@ h2 { margin: 0; font-size: 13px; letter-spacing: .08em; }
 .region-result { display: flex; flex-wrap: wrap; gap: 8px; }
 .region-result h2, .region-result p { width: 100%; margin: 0; }
 .national-region-return { display: block; margin-bottom: 10px; }
+.v7-tier { margin-top: 14px; }
+.v7-tier h3 { margin: 0 0 7px; color: #315c46; font-size: 13px; }
+.v7-story { display: grid; gap: 5px; margin-top: 8px; padding: 10px; border-radius: 10px; background: #edf2e9; font-size: 12px; line-height: 1.5; }
+.v7-story a { color: #315c46; }
+#v7-species-search { width: 100%; min-height: 44px; margin: 6px 0 12px; padding: 8px 11px; border: 1px solid #a5b9a6; border-radius: 10px; background: white; font: inherit; }
+.v7-collection .bird-card[hidden] { display: none; }
+.v7-board .board-tile { width: 48px; height: 48px; border-radius: 8px; font-size: 19px; }
+.v7-word-reference { margin-bottom: 11px; padding: 8px; border-radius: 9px; background: #edf2e9; font-size: 12px; }
+.v7-word-reference summary { min-height: 28px; color: #315c46; font-weight: 800; cursor: pointer; }
+.v7-word-reference > div { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.v7-word-reference span { padding: 4px 6px; border-radius: 6px; background: white; white-space: normal; overflow-wrap: anywhere; }
+.v7-game .bird-option { max-width: 100%; overflow-wrap: anywhere; }
+.v7-game .bird-option strong { font-size: 15px; }
 @media (min-width: 560px) { .province-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

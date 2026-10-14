@@ -1,4 +1,4 @@
-import { LEGACY_GAMEPLAY_SPECIES_CATALOG } from './birdCatalog';
+import { LEGACY_GAMEPLAY_SPECIES_CATALOG, SCORE_BY_LENGTH } from './birdCatalog';
 import { GLOBAL_BIRD_COMPOSITIONS } from './recognitionRegistry';
 import type { BirdComposition, BoardTile, GameState, LevelDefinition, RackTile } from './types';
 
@@ -64,13 +64,21 @@ export function getExposedBoardTiles(state: GameState): BoardTile[] {
 }
 
 export function createGameFromLevel(level: LevelDefinition): GameState {
+  for (const bird of level.compositions ?? []) {
+    const characters = Array.from(bird.name);
+    if (characters.length < 2 || characters.length > 6 || !characters.every((character) => /^\p{Script=Han}$/u.test(character)) ||
+      bird.characters.length !== characters.length || bird.characters.some((character, index) => character !== characters[index]) ||
+      bird.score !== SCORE_BY_LENGTH[characters.length]) throw new Error(`Invalid playable composition: ${bird.id}`);
+  }
   const witnessWords = level.winningSolution.filter((action) => action.type === 'compose').map((action) => action.birdId);
   const occurrences = level.wordOccurrences ?? witnessWords;
   if (occurrences.length === 0 || (level.wordOccurrences && witnessWords.length > 0 && (occurrences.length !== witnessWords.length
     || occurrences.some((id, index) => id !== witnessWords[index])))) {
     throw new Error(`Invalid puzzle word occurrences: ${level.id}`);
   }
-  const registry = new Map(GLOBAL_BIRD_COMPOSITIONS.map((bird) => [bird.id, bird]));
+  // Historical puzzles still resolve against the frozen global registry. V7 regional
+  // puzzles supply their own reviewed, puzzle-scoped compositions instead.
+  const registry = new Map([...GLOBAL_BIRD_COMPOSITIONS, ...(level.compositions ?? [])].map((bird) => [bird.id, bird]));
   const quotas: Record<string, number> = {};
   for (const id of occurrences) {
     if (!registry.has(id)) throw new Error(`Unknown puzzle composition: ${id}`);

@@ -1,5 +1,7 @@
 import { GAMEPLAY_RULESET_VERSION } from './gameEngine';
-import { REGIONAL_CONTENT_VERSION } from './regionalData';
+import { REGIONAL_V7_CONTENT_VERSION } from './regionalV7Data';
+
+export const REGIONAL_PROGRESS_CONTENT_VERSION = REGIONAL_V7_CONTENT_VERSION;
 
 export const REGIONAL_STORAGE_KEY = 'bird.regions.v1';
 export interface RegionalProgress {
@@ -12,7 +14,7 @@ export interface RegionalProgress {
 }
 
 export function emptyRegionalProgress(): RegionalProgress {
-  return { schemaVersion: 1, rulesetVersion: GAMEPLAY_RULESET_VERSION, contentVersion: REGIONAL_CONTENT_VERSION,
+  return { schemaVersion: 1, rulesetVersion: GAMEPLAY_RULESET_VERSION, contentVersion: REGIONAL_PROGRESS_CONTENT_VERSION,
     lastRegionId: null, completedPuzzleIds: {}, discoveredSpeciesIds: {} };
 }
 
@@ -30,7 +32,7 @@ export function loadRegionalProgress(storage: Pick<Storage, 'getItem'> | null): 
         .map(([key, item]) => [key, [...new Set((item as unknown[]).filter((entry): entry is string => typeof entry === 'string'))]]));
     };
     return { schemaVersion: 1, rulesetVersion: typeof data.rulesetVersion === 'string' ? data.rulesetVersion : GAMEPLAY_RULESET_VERSION,
-      contentVersion: typeof data.contentVersion === 'string' ? data.contentVersion : REGIONAL_CONTENT_VERSION,
+      contentVersion: typeof data.contentVersion === 'string' ? data.contentVersion : REGIONAL_PROGRESS_CONTENT_VERSION,
       lastRegionId: typeof data.lastRegionId === 'string' ? data.lastRegionId : null,
       completedPuzzleIds: lists(data.completedPuzzleIds), discoveredSpeciesIds: lists(data.discoveredSpeciesIds) };
   } catch { return emptyRegionalProgress(); }
@@ -45,7 +47,7 @@ export function recordRegionalResult(progress: RegionalProgress, regionId: strin
   const discovered = new Set([...(progress.discoveredSpeciesIds[regionId] ?? []), ...discoveredSpeciesIds]);
   const finished = new Set(progress.completedPuzzleIds[regionId] ?? []);
   if (completed) finished.add(puzzleId);
-  return { ...progress, rulesetVersion: GAMEPLAY_RULESET_VERSION, contentVersion: REGIONAL_CONTENT_VERSION,
+  return { ...progress, rulesetVersion: GAMEPLAY_RULESET_VERSION, contentVersion: REGIONAL_PROGRESS_CONTENT_VERSION,
     discoveredSpeciesIds: { ...progress.discoveredSpeciesIds, [regionId]: [...discovered] },
     completedPuzzleIds: { ...progress.completedPuzzleIds, [regionId]: [...finished] } };
 }
