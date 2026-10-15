@@ -236,6 +236,16 @@ describe('native WeChat Canvas stage', () => {
     expect(stage.snapshot().remainingTiles).toBe(remaining);
   });
 
+  it('does not let a covered top-layer tile pass a tap through to a lower exposed hit', () => {
+    const { stage } = fixture();
+    const exposed = stage.snapshot().visibleTileHits[0];
+    const writable = stage as unknown as { stackHits: Array<{ box: HitBox; available: boolean }> };
+    writable.stackHits.push({ box: { ...exposed, id: 'covered:top' }, available: false });
+    const before = stage.snapshot().remainingTiles;
+    stage.tap(...center(exposed));
+    expect(stage.snapshot().remainingTiles).toBe(before);
+  });
+
   it('opens all 25 certified Sichuan puzzle identities from the fixed HUD home scene', () => {
     const { stage } = fixture();
     click(stage, 'home');

@@ -107,6 +107,7 @@ export class WechatBirdStage {
   private hits: HitBox[] = [];
   private tileHits: HitBox[] = [];
   private cutTileHits: HitBox[] = [];
+  private stackHits: Array<{ box: HitBox; available: boolean }> = [];
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly loadedImages = new Set<string>();
   private touchOrigin: { x: number; y: number; time: number; panX: number; panY: number; inBoard: boolean; moved: boolean } | null = null;
@@ -197,7 +198,7 @@ export class WechatBirdStage {
     const display = this.boardDisplay(layout.board);
     const { metrics } = display;
     this.clampPan(layout.board);
-    this.hits = []; this.tileHits = []; this.cutTileHits = [];
+    this.hits = []; this.tileHits = []; this.cutTileHits = []; this.stackHits = [];
     ctx.fillStyle = color.paper; ctx.fillRect(0, 0, this.viewport.width, this.viewport.height);
     drawBoardPage(ctx, layout.board.x, layout.board.y, layout.board.width, layout.board.height);
     ctx.save(); ctx.beginPath(); ctx.rect(layout.board.x, layout.board.y, layout.board.width, layout.board.height); ctx.clip();
@@ -218,8 +219,9 @@ export class WechatBirdStage {
         tileStyle, tile.id === this.pressedTileId);
       else if (available) drawCutTile(ctx, x, y, metrics.tileW, metrics.tileH, tile.character, tileStyle);
       else drawCoveredTile(ctx, x, y, metrics.tileW, metrics.tileH, tile.character, tileStyle, tile.layer);
+      const box = { id: tile.id, label: tile.character, x, y, width: metrics.tileW, height: metrics.tileH };
+      this.stackHits.push({ box, available });
       if (available) {
-        const box = { id: tile.id, label: tile.character, x, y, width: metrics.tileW, height: metrics.tileH };
         if (complete) this.tileHits.push(box);
         else this.cutTileHits.push(box);
       }
@@ -658,6 +660,8 @@ export class WechatBirdStage {
     if (this.overlay !== 'none' || this.state.phase !== 'playing') return;
     const board = this.layout().board;
     if (!inside(board, x, y)) return;
+    const topmost = [...this.stackHits].reverse().find((item) => inside(item.box, x, y));
+    if (topmost && !topmost.available) return;
     const matching = this.tileHits.filter((hit) => inside(hit, x, y));
     if (matching.length === 1) this.transition(selectBoardTile(this.state, matching[0].id));
     else if (matching.length > 1) {
