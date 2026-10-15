@@ -256,7 +256,7 @@ if (window.location.pathname.endsWith('/preview/wechat') || new URLSearchParams(
       <section class="board-panel"><div class="tile-board regional-tile-board v7-board" style="height:${geometry.height}px"><div class="board-canvas" style="width:${geometry.width}px;height:${geometry.height}px">
       ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => { const exposed = isBoardTileExposed(state, tile.id);
         return `<button class="board-tile ${exposed ? 'exposed' : 'blocked'}" data-board-tile-id="${tile.id}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" ${exposed && state.phase === 'playing' && state.tray.some((slot) => slot === null) ? '' : 'disabled'} aria-label="${tile.character}${exposed ? '，可取' : '，被遮挡'}">${tile.character}</button>`; }).join('')}
-      </div></div><p class="board-hint">亮起的字可以拿取；移开上层，露出下层。小屏幕可左右滑动棋盘。</p></section>
+      </div></div><p class="board-hint">亮起的字可以拿取；移开上层，露出下层。${v7Tier >= 3 ? '小屏幕可左右滑动棋盘。' : ''}</p></section>
       <section class="tray-panel"><div class="section-heading"><h2>底部字槽</h2><span>${state.tray.filter(Boolean).length} / 10</span></div><div class="tray">${state.tray.map((tile) => tile ? `<span class="tray-tile">${tile.character}</span>` : '<span class="tray-slot"></span>').join('')}</div></section>
       ${state.phase === 'playing' && state.tray.filter(Boolean).length >= 7 ? '<p class="v7-risk-note" role="status">字槽快满了。试着先拼成一个本关鸟名；若没有合适的字，可连续撤销。</p>' : ''}
       <div class="v7-assist-bar"><button class="plain-link" data-action="v7-undo" ${v7History.length && state.phase !== 'level_complete' ? '' : 'disabled'}>撤销上一步</button>${v7Assisted ? '<span>已使用撤销，可继续挑战</span>' : ''}</div>

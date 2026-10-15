@@ -1,5 +1,6 @@
 import { GAMEPLAY_RULESET_VERSION } from './gameEngine';
 import { REGIONAL_V7_CONTENT_VERSION } from './regionalV7Data';
+import { carryForwardRegionalV7Completions } from './regionalV7Puzzles';
 
 export const REGIONAL_PROGRESS_CONTENT_VERSION = REGIONAL_V7_CONTENT_VERSION;
 
@@ -34,7 +35,9 @@ export function loadRegionalProgress(storage: Pick<Storage, 'getItem'> | null): 
     return { schemaVersion: 1, rulesetVersion: typeof data.rulesetVersion === 'string' ? data.rulesetVersion : GAMEPLAY_RULESET_VERSION,
       contentVersion: typeof data.contentVersion === 'string' ? data.contentVersion : REGIONAL_PROGRESS_CONTENT_VERSION,
       lastRegionId: typeof data.lastRegionId === 'string' ? data.lastRegionId : null,
-      completedPuzzleIds: lists(data.completedPuzzleIds), discoveredSpeciesIds: lists(data.discoveredSpeciesIds) };
+      completedPuzzleIds: Object.fromEntries(Object.entries(lists(data.completedPuzzleIds)).map(([region, ids]) =>
+        [region, region === 'CN-SC' ? carryForwardRegionalV7Completions(ids) : ids])),
+      discoveredSpeciesIds: lists(data.discoveredSpeciesIds) };
   } catch { return emptyRegionalProgress(); }
 }
 

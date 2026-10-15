@@ -1,10 +1,10 @@
 import { composeBird, createGameFromLevel, findPlayableBirds, getExposedBoardTiles,
   selectBoardTile } from '../core/gameEngine';
-import { getRegionalV7Puzzle } from '../core/regionalV7Puzzles';
+import { carryForwardRegionalV7Completions, getRegionalV7Puzzle } from '../core/regionalV7Puzzles';
 import { geometryForTier } from '../core/regionalV7Geometry';
 import type { RegionalTier } from '../core/regionalV7Data';
 import type { GameState } from '../core/types';
-import { computeBoardMetrics, computeLayout } from './ui/ui-layout';
+import { computeBoardMetrics, computeDenseBoardPage, computeDenseTutorialMetrics, computeLayout } from './ui/ui-layout';
 import { color, font } from './ui/ui-tokens';
 import { drawBoardPage, drawCoveredTile, drawExposedTile, drawPrimaryButton,
   drawSlotCell, drawToolButton, drawTray, drawCountBadge, drawCutTile, roundRectPath } from './ui/ui-draw-recipes';
@@ -67,7 +67,8 @@ function loadProgress(store: WechatStore): SavedProgress {
   try {
     const value = store.get(WECHAT_STORAGE_KEY) as Partial<SavedProgress> | undefined;
     if (value?.version === 1 && Array.isArray(value.completedPuzzleIds) && Array.isArray(value.discoveredSpeciesIds)) {
-      return { version: 1, completedPuzzleIds: value.completedPuzzleIds.filter((id): id is string => typeof id === 'string'),
+      return { version: 1, completedPuzzleIds: carryForwardRegionalV7Completions(
+        value.completedPuzzleIds.filter((id): id is string => typeof id === 'string')),
         discoveredSpeciesIds: value.discoveredSpeciesIds.filter((id): id is string => typeof id === 'string') };
     }
   } catch { /* Unavailable storage must not prevent local play. */ }
@@ -90,7 +91,6 @@ export class WechatBirdStage {
   private progress: SavedProgress;
   private panX = 0;
   private panY = 0;
-  private hasPanned = false;
   private pressedTileId: string | null = null;
   private flight: { character: string; fromX: number; fromY: number; toX: number; toY: number; started: number } | null = null;
   private framePending = false;
@@ -110,7 +110,7 @@ export class WechatBirdStage {
   private stackHits: Array<{ box: HitBox; available: boolean }> = [];
   private readonly images = new Map<string, HTMLImageElement>();
   private readonly loadedImages = new Set<string>();
-  private touchOrigin: { x: number; y: number; time: number; panX: number; panY: number; inBoard: boolean; moved: boolean } | null = null;
+  private touchOrigin: { x: number; y: number; time: number; inBoard: boolean; moved: boolean } | null = null;
 
   constructor(private readonly context: CanvasRenderingContext2D,
     private viewport: WechatViewport, private readonly store: WechatStore,
@@ -159,21 +159,19 @@ export class WechatBirdStage {
     const maxY = Math.max(...tiles.map((tile) => tile.y));
     // The immutable level coordinates use a 44px full-grid pitch and 22px
     // half-grid offsets. This affine projection changes only presentation.
-    const metrics = computeBoardMetrics({ x: board.x, y: board.y, w: board.width, h: board.height },
-      (maxX - minX) / 44 + 1, (maxY - minY) / 44 + 1);
+    const bounds = { x: board.x, y: board.y, w: board.width, h: board.height };
+    const spanX = (maxX - minX) / 44 + 1, spanY = (maxY - minY) / 44 + 1;
+    const metrics = this.tier <= 2
+      ? computeDenseTutorialMetrics(bounds, spanX, spanY, this.tier === 1 ? 72 : 56)
+      : computeBoardMetrics(bounds, spanX, spanY);
     const scaleX = metrics.pitchX / 44;
     const scaleY = metrics.pitchY / 44;
-    const offsetX = metrics.panX ? 6 : (board.width - metrics.contentW) / 2;
-    const offsetY = metrics.panY ? 6 : (board.height - metrics.contentH) / 2;
+    const offsetX = (board.width - metrics.contentW) / 2;
+    const offsetY = (board.height - metrics.contentH) / 2;
     return { metrics, minX, minY, scaleX, scaleY, offsetX, offsetY };
   }
   private overlayPageSize(height: number): number {
     return Math.max(1, Math.min(6, Math.floor((height - 110) / 48)));
-  }
-  private clampPan(board: HitBox): void {
-    const { metrics, offsetX, offsetY } = this.boardDisplay(board);
-    this.panX = clamp(this.panX, Math.min(0, board.width - 6 - metrics.contentW - offsetX), 0);
-    this.panY = clamp(this.panY, Math.min(0, board.height - 6 - metrics.contentH - offsetY), 0);
   }
   private button(id: string, label: string, x: number, y: number, width: number, height: number,
     enabled = true): void {
@@ -197,10 +195,12 @@ export class WechatBirdStage {
     const layout = this.layout();
     const display = this.boardDisplay(layout.board);
     const { metrics } = display;
-    this.clampPan(layout.board);
     this.hits = []; this.tileHits = []; this.cutTileHits = []; this.stackHits = [];
     ctx.fillStyle = color.paper; ctx.fillRect(0, 0, this.viewport.width, this.viewport.height);
-    drawBoardPage(ctx, layout.board.x, layout.board.y, layout.board.width, layout.board.height);
+    const boardPage = this.tier <= 2
+      ? computeDenseBoardPage(layout.ui.board, metrics)
+      : layout.ui.board;
+    drawBoardPage(ctx, boardPage.x, boardPage.y, boardPage.w, boardPage.h);
     ctx.save(); ctx.beginPath(); ctx.rect(layout.board.x, layout.board.y, layout.board.width, layout.board.height); ctx.clip();
     const exposed = new Set(getExposedBoardTiles(this.state).map((tile) => tile.id));
     const tiles = this.state.boardTiles.filter((tile) => !tile.removed)
@@ -211,7 +211,8 @@ export class WechatBirdStage {
       if (x + metrics.tileW < layout.board.x || x > layout.board.x + layout.board.width ||
         y + metrics.tileH < layout.board.y || y > layout.board.y + layout.board.height) continue;
       const available = exposed.has(tile.id) && this.state.phase === 'playing';
-      const tileStyle = { serifFamily: font.serifFallback, fontSize: metrics.tileW === 44 ? font.tile320 : font.tile390 };
+      const tileStyle = { serifFamily: font.serifFallback,
+        fontSize: Math.round(metrics.tileW * (metrics.tileW === 44 ? 0.5 : 0.54)) };
       const complete = x >= layout.board.x && y >= layout.board.y &&
         x + metrics.tileW <= layout.board.x + layout.board.width &&
         y + metrics.tileH <= layout.board.y + layout.board.height;
@@ -225,26 +226,6 @@ export class WechatBirdStage {
         if (complete) this.tileHits.push(box);
         else this.cutTileHits.push(box);
       }
-    }
-    if (metrics.panX || metrics.panY) {
-      if (!this.hasPanned) {
-        roundRectPath(ctx, layout.board.x + 10, layout.board.y + layout.board.height - 34, 96, 24, 12);
-        ctx.fillStyle = color.ink; ctx.fill();
-        ctx.fillStyle = color.white; ctx.font = `11px ${font.sans}`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('↔  拖动平移', layout.board.x + 58, layout.board.y + layout.board.height - 22);
-        this.icon('pan', layout.board.x + 18, layout.board.y + layout.board.height - 28, 12);
-      }
-      const mapX = layout.board.x + layout.board.width - 48;
-      const mapY = layout.board.y + layout.board.height - 58;
-      roundRectPath(ctx, mapX, mapY, 40, 50, 5);
-      ctx.fillStyle = color.page; ctx.fill(); ctx.strokeStyle = color.woodDark; ctx.stroke();
-      const viewW = Math.max(8, 36 * layout.board.width / metrics.contentW);
-      const viewH = Math.max(8, 46 * layout.board.height / metrics.contentH);
-      const mapOffsetX = 2 + (36 - viewW) * (-this.panX / Math.max(1, metrics.contentW + 12 - layout.board.width));
-      const mapOffsetY = 2 + (46 - viewH) * (-this.panY / Math.max(1, metrics.contentH + 12 - layout.board.height));
-      ctx.strokeStyle = color.teal; ctx.lineWidth = 1.5;
-      ctx.strokeRect(mapX + mapOffsetX, mapY + mapOffsetY, Math.min(36, viewW), Math.min(46, viewH));
     }
     ctx.restore();
     const ui = layout.ui;
@@ -521,7 +502,7 @@ export class WechatBirdStage {
     this.tier = tier; this.stageIndex = stageIndex;
     this.state = createGameFromLevel(puzzle.level);
     this.history = []; this.undoRemaining = UNDO_PER_PUZZLE;
-    this.panX = 0; this.panY = 0; this.hasPanned = false;
+    this.panX = 0; this.panY = 0;
     this.pressedTileId = null; this.flight = null; this.overlay = 'none';
     this.wordPage = 0; this.composePage = 0; this.composeIndex = 0;
     this.notice = null; this.noticeSequence++;
@@ -579,7 +560,7 @@ export class WechatBirdStage {
 
   touchStart(x: number, y: number): void {
     const board = this.layout().board;
-    this.touchOrigin = { x, y, time: Date.now(), panX: this.panX, panY: this.panY,
+    this.touchOrigin = { x, y, time: Date.now(),
       inBoard: this.overlay === 'none' && inside(board, x, y), moved: false };
     this.pressedTileId = this.touchOrigin.inBoard
       ? this.tileHits.find((hit) => inside(hit, x, y))?.id ?? null : null;
@@ -588,12 +569,10 @@ export class WechatBirdStage {
   touchMove(x: number, y: number): void {
     if (!this.touchOrigin?.inBoard) return;
     const origin = this.touchOrigin;
-    if (Math.hypot(x - origin.x, y - origin.y) >= 8) origin.moved = true;
-    if (!origin.moved) return;
+    if (origin.moved || Math.hypot(x - origin.x, y - origin.y) < 8) return;
+    origin.moved = true;
+    if (!this.pressedTileId) return;
     this.pressedTileId = null;
-    this.hasPanned = true;
-    this.panX = origin.panX + x - origin.x;
-    this.panY = origin.panY + y - origin.y;
     this.render();
   }
   touchEnd(x: number, y: number): void {
@@ -668,15 +647,6 @@ export class WechatBirdStage {
       this.pickerIds = matching.map((item) => item.id);
       this.pickerPage = 0;
       this.overlay = 'tile-picker'; this.render();
-    } else {
-      const cut = this.cutTileHits.find((hit) => inside(hit, x, y));
-      if (cut) {
-        if (cut.x < board.x + 6) this.panX += board.x + 6 - cut.x;
-        if (cut.x + cut.width > board.x + board.width - 6) this.panX -= cut.x + cut.width - (board.x + board.width - 6);
-        if (cut.y < board.y + 6) this.panY += board.y + 6 - cut.y;
-        if (cut.y + cut.height > board.y + board.height - 6) this.panY -= cut.y + cut.height - (board.y + board.height - 6);
-        this.render();
-      }
     }
   }
   getState(): GameState { return this.state; }

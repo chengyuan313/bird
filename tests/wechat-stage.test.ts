@@ -33,22 +33,8 @@ function pan(stage: WechatBirdStage, dx: number, dy: number): void {
   stage.touchMove(x + dx, y + dy); stage.touchEnd(x + dx, y + dy);
 }
 function take(stage: WechatBirdStage, tileId: string): void {
-  const initial = stage.snapshot();
-  const minX = Math.min(0, initial.boardViewport.width - initial.boardWidth);
-  const minY = Math.min(0, initial.boardViewport.height - initial.boardHeight);
-  let hit = initial.visibleTileHits.find((item) => item.id === tileId);
-  // Search only presentation offsets; the certified take order still supplies
-  // the expected tile ID and every action goes through a visible Canvas hit.
-  for (const x of [0, minX / 2, minX]) {
-    if (hit) break;
-    for (const y of [0, minY / 2, minY]) {
-      const current = stage.snapshot();
-      pan(stage, x - current.panX, y - current.panY);
-      hit = stage.snapshot().visibleTileHits.find((item) => item.id === tileId);
-      if (hit) break;
-    }
-  }
-  expect(hit, `Tile ${tileId} should be reachable`).toBeDefined();
+  const hit = stage.snapshot().visibleTileHits.find((item) => item.id === tileId);
+  expect(hit, `Tile ${tileId} should be visible without dragging`).toBeDefined();
   const before = stage.snapshot().remainingTiles;
   stage.tap(...center(hit!));
   if (stage.snapshot().overlay === 'tile-picker') {
@@ -74,15 +60,17 @@ describe('native WeChat Canvas stage', () => {
     expect(() => fixture(320, 340, 30, 310)).toThrow(/safe area is too short/);
   });
 
-  it('pans to both D5 board extremes without taking a tile, and takes only an exposed full hit target', () => {
+  it('keeps the entire D5 board fixed during a drag, and takes only an exposed full hit target', () => {
     const { stage } = fixture();
     stage.openPuzzle(5, 1);
-    const initial = stage.snapshot();
     pan(stage, -1000, -1000);
     const far = stage.snapshot();
-    expect(far.panX).toBe(initial.boardViewport.width - initial.boardWidth);
-    expect(far.panY).toBe(initial.boardViewport.height - initial.boardHeight);
+    expect(far.panX).toBe(0);
+    expect(far.panY).toBe(0);
     expect(far.remainingTiles).toBe(90);
+    expect(far.cutTileHits).toHaveLength(0);
+    expect(far.boardViewport.width).toBeGreaterThanOrEqual(far.boardWidth - 6);
+    expect(far.boardViewport.height).toBeGreaterThanOrEqual(far.boardHeight - 6);
     assertWechatTouchTargets(stage);
     pan(stage, 1000, 1000);
     expect(stage.snapshot().panX).toBe(0);
@@ -206,20 +194,60 @@ describe('native WeChat Canvas stage', () => {
     expect(stage.snapshot().undoRemaining).toBe(3);
   });
 
-  it('brings an exposed clipped tile into view before allowing it to be taken', () => {
+  it('shows every exposed tutorial tile without clipping on the compact preview', () => {
     const { stage } = fixture(320, 568, 20, 568);
     const before = stage.snapshot();
-    const cut = before.cutTileHits.find((tile) => tile.x < before.boardViewport.x + before.boardViewport.width &&
-      tile.x + tile.width > before.boardViewport.x && tile.y < before.boardViewport.y + before.boardViewport.height &&
-      tile.y + tile.height > before.boardViewport.y);
-    expect(cut).toBeDefined();
-    const x = Math.max(before.boardViewport.x + 1, Math.min(before.boardViewport.x + before.boardViewport.width - 1,
-      cut!.x + cut!.width / 2));
-    const y = Math.max(before.boardViewport.y + 1, Math.min(before.boardViewport.y + before.boardViewport.height - 1,
-      cut!.y + cut!.height / 2));
-    stage.tap(x, y);
-    expect(stage.snapshot().remainingTiles).toBe(before.remainingTiles);
-    expect(stage.snapshot().visibleTileHits.some((tile) => tile.id === cut!.id)).toBe(true);
+    expect(before.cutTileHits).toHaveLength(0);
+    expect(before.visibleTileHits.map((tile) => tile.id).sort()).toEqual(
+      getExposedBoardTiles(stage.getState()).map((tile) => tile.id).sort());
+  });
+
+  it('keeps exposed tiles fully visible across all 25 certified puzzles on both devices', () => {
+    for (const viewport of [[320, 568, 20, 568], [390, 844, 47, 810]]) {
+      const { stage } = fixture(...viewport);
+      for (let tier = 1; tier <= 5; tier++) for (let index = 1; index <= 5; index++) {
+        stage.openPuzzle(tier as 1 | 2 | 3 | 4 | 5, index);
+        const view = stage.snapshot();
+        expect(view.cutTileHits, `D${tier}-${index} at ${viewport[0]}px`).toHaveLength(0);
+        expect(view.visibleTileHits.map((tile) => tile.id).sort()).toEqual(
+          getExposedBoardTiles(stage.getState()).map((tile) => tile.id).sort());
+        expect(view.panX).toBe(0);
+        expect(view.panY).toBe(0);
+      }
+    }
+  });
+
+  it('replays every redesigned D1/D2 certificate through visible taps on both devices', () => {
+    for (const viewport of [[320, 568, 20, 568], [390, 844, 47, 810]]) {
+      const { stage } = fixture(...viewport);
+      for (const tier of [1, 2] as const) for (let index = 1; index <= 5; index++) {
+        const puzzle = getRegionalV7Puzzle('CN-SC', tier, index)!;
+        stage.openPuzzle(tier, index);
+        for (const action of puzzle.level.winningSolution) {
+          if (action.type === 'take') take(stage, action.tileId);
+          else {
+            const id = `compose:${action.birdId}`;
+            if (!stage.snapshot().controls.some((item) => item.id === id)) {
+              click(stage, 'compose-all');
+              while (!stage.snapshot().controls.some((item) => item.id === id)) click(stage, 'compose-next');
+              click(stage, id);
+            }
+            click(stage, id);
+          }
+        }
+        expect(stage.snapshot().phase, `D${tier}-${index} at ${viewport[0]}px`).toBe('level_complete');
+        expect(stage.snapshot().remainingTiles).toBe(0);
+      }
+    }
+  });
+
+  it('retains old tutorial completion credit when native storage is loaded', () => {
+    const oldId = 'regional-v7:1e1d00a5d3ca2faa387c26fe6f58da55dbb62396d9dd6ad6c602e399cafe86d7';
+    const values = new Map<string, unknown>([[WECHAT_STORAGE_KEY,
+      { version: 1, completedPuzzleIds: [oldId], discoveredSpeciesIds: ['bird:shaoji'] }]]);
+    const stage = new WechatBirdStage(canvasContext(), { width: 320, height: 568, safeTop: 20, safeBottom: 568 },
+      { get: (key) => values.get(key), set: (key, value) => { values.set(key, value); } });
+    expect(stage.snapshot().completedPuzzleIds).toEqual([oldId, getRegionalV7Puzzle('CN-SC', 1, 1)!.record.puzzleId]);
   });
 
   it('never takes a tile after a drag, cancelled gesture, or long press', () => {
@@ -288,7 +316,7 @@ describe('native WeChat Canvas stage', () => {
     expect(stage.snapshot().phase).toBe('playing');
   });
 
-  it('reaches all 90 D5 tiles via local pan and replays the certified path on both viewports', () => {
+  it('replays the D5 certified path without dragging on both viewports', () => {
     const puzzle = getRegionalV7Puzzle('CN-SC', 5, 1)!;
     for (const viewport of [[320, 568, 44, 534], [390, 844, 47, 810]]) {
       const { stage } = fixture(...viewport);

@@ -1,7 +1,7 @@
 import { composeBird, createGameFromLevel, findPlayableBirds, getExposedBoardTiles, selectBoardTile } from './gameEngine';
 import { createSeededRandom, fisherYates } from './level3Generator';
 import { boardHash, sha256Hex } from './puzzleIdentity';
-import { geometryForTier, REGIONAL_V7_GEOMETRY_VERSION, topologicalTakeOrder, validateRegionalGeometry } from './regionalV7Geometry';
+import { geometryForTier, geometryVersionForTier, topologicalTakeOrder, validateRegionalGeometry } from './regionalV7Geometry';
 import { REGIONAL_V7_CONTENT_VERSION, REGIONAL_V7_TILE_COUNTS, V7_DIFFICULTY_POOLS, V7_PLAYABLE_NAMES,
   V7_PROVINCIAL_MEMBERSHIPS, V7_REGIONAL_COMPOSITIONS, type RegionalTier } from './regionalV7Data';
 import type { LevelDefinition, WinningAction } from './types';
@@ -174,10 +174,10 @@ export function generateRegionalV7Puzzle(regionId: string, tier: RegionalTier, s
   const tiles = geometry.tiles.map((tile) => ({ ...tile, character: characterById.get(tile.id)! }));
   const hash = boardHash(tiles);
   const puzzleId = `regional-v7:${sha256Hex(JSON.stringify([regionId, tier, stageIndex, seed,
-    REGIONAL_V7_GENERATOR_VERSION, REGIONAL_V7_CONTENT_VERSION, REGIONAL_V7_GEOMETRY_VERSION, geometry.id, hash, words]))}`;
+    REGIONAL_V7_GENERATOR_VERSION, REGIONAL_V7_CONTENT_VERSION, geometryVersionForTier(tier), geometry.id, hash, words]))}`;
   const provisional: RegionalV7PuzzleRecord = { puzzleId, regionId, tier, stageIndex, seed,
     generatorVersion: REGIONAL_V7_GENERATOR_VERSION, contentVersion: REGIONAL_V7_CONTENT_VERSION,
-    geometryVersion: REGIONAL_V7_GEOMETRY_VERSION, geometryId: geometry.id, boardHash: hash,
+    geometryVersion: geometryVersionForTier(tier), geometryId: geometry.id, boardHash: hash,
     characters: tiles.map((tile) => tile.character).join(''), wordOccurrences: words,
     takeOrder: takeIds.map((id) => geometry.tiles.findIndex((tile) => tile.id === id)),
     certificate: 'ENGINE_REPLAYED', independentSearchStatus: 'NOT_RUN',
@@ -198,7 +198,7 @@ export function generateRegionalV7Puzzle(regionId: string, tier: RegionalTier, s
 
 export function validateRegionalV7Record(record: RegionalV7PuzzleRecord): void {
   if (record.generatorVersion !== REGIONAL_V7_GENERATOR_VERSION || record.contentVersion !== REGIONAL_V7_CONTENT_VERSION ||
-    record.geometryVersion !== REGIONAL_V7_GEOMETRY_VERSION || record.certificate !== 'ENGINE_REPLAYED' ||
+    record.geometryVersion !== geometryVersionForTier(record.tier) || record.certificate !== 'ENGINE_REPLAYED' ||
     record.independentSearchStatus !== 'NOT_RUN' || record.seed !== 750000 + record.tier * 100 + record.stageIndex) throw new Error('V7 record version mismatch');
   const pool = V7_DIFFICULTY_POOLS.find((item) => item.regionId === record.regionId && item.tier === record.tier);
   if (!pool || record.wordOccurrences.some((id) => !pool.speciesIds.includes(id))) throw new Error('Unapproved V7 word');

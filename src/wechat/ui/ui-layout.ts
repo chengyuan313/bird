@@ -6,7 +6,7 @@
  *   const menu = wx.getMenuButtonBoundingClientRect(); // 右上角胶囊
  * 输出为逻辑像素矩形。参考值（设计稿）：
  *   390×844 → board {x:8,y:95,w:374,h:521}, tile 48×54, 不平移
- *   320×568 → board {x:6,y:66,w:308,h:~330}, tile 44×50, D5 需要棋盘内平移
+ *   320×568 → board {x:4,y:66,w:312,h:334}, tile 44×44, 棋盘完整显示
  */
 
 export interface Rect { x: number; y: number; w: number; h: number; }
@@ -21,7 +21,7 @@ export interface ScreenInput {
 export interface GameLayout {
   compact: boolean;           // 宽度 < 360 的小屏
   topBar: Rect;               // 返回 + 关卡信息 + 剩余字数（右侧已让出胶囊）
-  board: Rect;                // 棋盘视口（内容可能比它大 → 只在这里平移）
+  board: Rect;                // 固定棋盘；字牌投影必须完整落在这里
   slotHeader: Rect;           // “字槽” + n/10
   tray: Rect;                 // 活字盘底
   slotCells: Rect[];          // 10 个格子（仅展示，不可点）
@@ -74,21 +74,21 @@ export function computeLayout(input: ScreenInput): GameLayout {
   const headH = compact ? 16 : 18;
   const slotHeader: Rect = { x: cellX, y: tray.y - headH, w: cellsW, h: headH };
 
-  const bX = compact ? 6 : 8;
+  const bX = compact ? 4 : 8;
   const bY = topBar.y + topBar.h + (compact ? 2 : 4);
-  const bBottom = slotHeader.y - (compact ? 6 : 8);
+  const bBottom = slotHeader.y - (compact ? 2 : 8);
   const board: Rect = { x: bX, y: bY, w: W - 2 * bX, h: Math.max(0, bBottom - bY) };
 
   return { compact, topBar, board, slotHeader, tray, slotCells, compose, toolbar, toolbarButtons, homeInset };
 }
 
 /* ------------------------------------------------------------------ */
-/* 棋盘：字牌尺寸、内容尺寸、是否需要平移                                 */
+/* 棋盘：字牌尺寸与固定棋盘内的显示投影                                     */
 /* ------------------------------------------------------------------ */
 
 export interface BoardMetrics {
   tileW: number; tileH: number;
-  pitchX: number; pitchY: number;   // 相邻同层字牌的步距 = 尺寸 + 2
+  pitchX: number; pitchY: number;   // 小屏可压缩显示步距，不改变逻辑坐标
   contentW: number; contentH: number;
   inset: number;                    // 视口内留白，保证投影与“完整可见”判定
   panX: boolean; panY: boolean;     // 哪个方向需要平移
@@ -105,6 +105,18 @@ const SHADOW_ROOM = 8;
  * 关卡坐标约定：字牌位置 (gx, gy) 可为 0.5 的倍数；像素位置 = gx * pitchX, gy * pitchY
  */
 export function computeBoardMetrics(board: Rect, spanX: number, spanY: number): BoardMetrics {
+  if (board.w < 360) {
+    // Keep the 44px tap target, but compress display spacing independently on
+    // each axis. The certified tile coordinates and blocking graph stay intact.
+    const tileW = TILE_MIN_W, tileH = TILE_MIN_W;
+    const inset = 2;
+    const pitchX = Math.min(tileW + 2, (board.w - 2 * inset - tileW) / Math.max(1, spanX - 1));
+    const pitchY = Math.min(tileH + 2, (board.h - 2 * inset - SHADOW_ROOM - tileH) / Math.max(1, spanY - 1));
+    const contentW = (spanX - 1) * pitchX + tileW;
+    const contentH = (spanY - 1) * pitchY + tileH + SHADOW_ROOM;
+    return { tileW, tileH, pitchX, pitchY, contentW, contentH, inset,
+      panX: false, panY: false };
+  }
   const fitW = (board.w - 2 * BOARD_INSET - (spanX - 1) * 2) / spanX;
   const fitH = (board.h - 2 * BOARD_INSET - SHADOW_ROOM - (spanY - 1) * 2) / spanY - 6;
   let tileW = Math.floor(Math.min(fitW, fitH, TILE_MAX_W));
@@ -118,6 +130,34 @@ export function computeBoardMetrics(board: Rect, spanX: number, spanY: number): 
     panX: contentW > board.w - 2 * BOARD_INSET,
     panY: contentH > board.h - 2 * BOARD_INSET,
   };
+}
+
+/** Larger tutorial letters fill the fixed board while preserving the Piachan
+ * half-grid overlap test: adjacent full cells remain separate, half cells overlap. */
+export function computeDenseTutorialMetrics(board: Rect, spanX: number, spanY: number,
+  preferredTileW: number): BoardMetrics {
+  const inset = 2;
+  const heightExtra = board.w < 360 ? 0 : 6;
+  const widthFit = (board.w - 2 * inset - (spanX - 1) * 2) / spanX;
+  const heightFit = (board.h - 2 * inset - SHADOW_ROOM - (spanY - 1) * 2) / spanY - heightExtra;
+  const tileW = Math.max(TILE_MIN_W, Math.floor(Math.min(preferredTileW, widthFit, heightFit)));
+  const tileH = tileW + heightExtra;
+  const pitchX = Math.min(tileW + 2, (board.w - 2 * inset - tileW) / Math.max(1, spanX - 1));
+  const pitchY = Math.min(tileH + 2, (board.h - 2 * inset - SHADOW_ROOM - tileH) / Math.max(1, spanY - 1));
+  const contentW = (spanX - 1) * pitchX + tileW;
+  const contentH = (spanY - 1) * pitchY + tileH + SHADOW_ROOM;
+  return { tileW, tileH, pitchX, pitchY, contentW, contentH, inset, panX: false, panY: false };
+}
+
+/** A tight grid-backed page around the tutorial pile, with corners kept
+ * inside even the narrowest 320px board viewport. */
+export function computeDenseBoardPage(board: Rect, metrics: BoardMetrics): Rect {
+  const offsetX = (board.w - metrics.contentW) / 2;
+  const offsetY = (board.h - metrics.contentH) / 2;
+  const padX = Math.min(12, Math.max(0, offsetX));
+  const padY = Math.min(12, Math.max(0, offsetY));
+  return { x: board.x + offsetX - padX, y: board.y + offsetY - padY,
+    w: metrics.contentW + 2 * padX, h: metrics.contentH + 2 * padY };
 }
 
 /** 平移偏移（内容原点相对视口左上角）的合法区间；不需要平移的方向固定居中 */
