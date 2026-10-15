@@ -19,7 +19,9 @@ describe('browser shell for the native WeChat stage', () => {
     Object.defineProperty(globalThis, 'window', { configurable: true, value: dom.window });
     Object.defineProperty(globalThis, 'document', { configurable: true, value: dom.window.document });
     const context = { setTransform() {}, fillRect() {}, strokeRect() {}, save() {}, restore() {},
-      beginPath() {}, rect() {}, clip() {}, fillText() {} } as unknown as CanvasRenderingContext2D;
+      beginPath() {}, rect() {}, clip() {}, fillText() {}, moveTo() {}, lineTo() {}, arcTo() {}, arc() {},
+      closePath() {}, fill() {}, stroke() {}, setLineDash() {},
+      createLinearGradient: () => ({ addColorStop() {} }) } as unknown as CanvasRenderingContext2D;
     const originalGetContext = dom.window.HTMLCanvasElement.prototype.getContext;
     dom.window.HTMLCanvasElement.prototype.getContext = (() => context) as unknown as typeof originalGetContext;
     try {

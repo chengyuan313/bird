@@ -77,3 +77,6 @@ body.wechat-preview-page {
   touch-action: none;
   user-select: none;
 }
+
+.wechat-preview-capture .wechat-preview-toolbar { display: none; }
+.wechat-preview-capture .wechat-preview-frame { border: 0; border-radius: 0; box-shadow: none; }

@@ -5,7 +5,9 @@ const code = readFileSync(new URL('../dist-wechat/game.js', import.meta.url), 'u
 const callbacks = {};
 const storage = new Map();
 const canvasContext = Object.fromEntries(['scale', 'fillRect', 'strokeRect', 'fillText', 'save', 'restore',
-  'beginPath', 'rect', 'clip'].map((name) => [name, () => {}]));
+  'beginPath', 'rect', 'clip', 'moveTo', 'lineTo', 'arcTo', 'arc', 'closePath', 'fill', 'stroke',
+  'setLineDash'].map((name) => [name, () => {}]));
+canvasContext.createLinearGradient = () => ({ addColorStop() {} });
 const canvas = { width: 0, height: 0, getContext: (kind) => kind === '2d' ? canvasContext : null };
 const wx = {
   createCanvas: () => canvas,

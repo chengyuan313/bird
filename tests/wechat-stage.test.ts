@@ -5,7 +5,10 @@ import type { BirdComposition, GameState } from '../src/core/types';
 import { assertWechatTouchTargets, WechatBirdStage, WECHAT_STORAGE_KEY, type HitBox } from '../src/wechat/stage';
 
 function canvasContext(): CanvasRenderingContext2D {
+  const gradient = { addColorStop() {} };
   return { fillRect() {}, strokeRect() {}, save() {}, restore() {}, beginPath() {}, rect() {}, clip() {}, fillText() {},
+    moveTo() {}, lineTo() {}, arcTo() {}, arc() {}, closePath() {}, fill() {}, stroke() {}, setLineDash() {},
+    createLinearGradient: () => gradient,
     set fillStyle(_value: string) {}, set strokeStyle(_value: string) {}, set font(_value: string) {},
     set textAlign(_value: string) {}, set textBaseline(_value: string) {} } as unknown as CanvasRenderingContext2D;
 }
@@ -30,17 +33,23 @@ function pan(stage: WechatBirdStage, dx: number, dy: number): void {
   stage.touchMove(x + dx, y + dy); stage.touchEnd(x + dx, y + dy);
 }
 function take(stage: WechatBirdStage, tileId: string): void {
-  const tile = stage.getState().boardTiles.find((item) => item.id === tileId)!;
-  let snapshot = stage.snapshot();
-  const targetX = Math.max(snapshot.boardViewport.width - snapshot.boardWidth,
-    Math.min(0, snapshot.boardViewport.width - tile.x - 48));
-  const targetY = Math.max(snapshot.boardViewport.height - snapshot.boardHeight,
-    Math.min(0, snapshot.boardViewport.height - tile.y - 48));
-  pan(stage, targetX - snapshot.panX, targetY - snapshot.panY);
-  snapshot = stage.snapshot();
-  const hit = snapshot.visibleTileHits.find((item) => item.id === tileId);
+  const initial = stage.snapshot();
+  const minX = Math.min(0, initial.boardViewport.width - initial.boardWidth);
+  const minY = Math.min(0, initial.boardViewport.height - initial.boardHeight);
+  let hit = initial.visibleTileHits.find((item) => item.id === tileId);
+  // Search only presentation offsets; the certified take order still supplies
+  // the expected tile ID and every action goes through a visible Canvas hit.
+  for (const x of [0, minX / 2, minX]) {
+    if (hit) break;
+    for (const y of [0, minY / 2, minY]) {
+      const current = stage.snapshot();
+      pan(stage, x - current.panX, y - current.panY);
+      hit = stage.snapshot().visibleTileHits.find((item) => item.id === tileId);
+      if (hit) break;
+    }
+  }
   expect(hit, `Tile ${tileId} should be reachable`).toBeDefined();
-  const before = snapshot.remainingTiles;
+  const before = stage.snapshot().remainingTiles;
   stage.tap(...center(hit!));
   if (stage.snapshot().overlay === 'tile-picker') {
     expect((stage as unknown as { pickerIds: string[] }).pickerIds).toContain(tileId);
@@ -109,6 +118,8 @@ describe('native WeChat Canvas stage', () => {
       }
       if (desired >= 5) { click(stage, 'compose-prev'); click(stage, 'compose-next'); }
       click(stage, `compose:test:word:${desired}`);
+      expect(stage.snapshot().overlay).toBe('none');
+      click(stage, `compose:test:word:${desired}`);
       expect(stage.getState().remainingCompositionQuotas[`test:word:${desired}`]).toBe(0);
       expect(stage.snapshot().trayOccupancy).toBe(0);
     }
@@ -132,21 +143,14 @@ describe('native WeChat Canvas stage', () => {
     expect(stage.snapshot().remainingTiles).toBe(89);
   });
 
-  it('routes an actual overlapping exposed-tile tap through 44px picker choices', () => {
+  it('routes ambiguous exposed-tile hits through 44px picker choices', () => {
     const { stage } = fixture();
     stage.openPuzzle(5, 1);
     const hits = stage.snapshot().visibleTileHits;
-    const board = stage.snapshot().boardViewport;
-    let point: [number, number] | null = null;
-    for (let i = 0; i < hits.length && !point; i++) for (let j = i + 1; j < hits.length && !point; j++) {
-      const left = Math.max(hits[i].x, hits[j].x, board.x);
-      const right = Math.min(hits[i].x + hits[i].width, hits[j].x + hits[j].width, board.x + board.width);
-      const top = Math.max(hits[i].y, hits[j].y, board.y);
-      const bottom = Math.min(hits[i].y + hits[i].height, hits[j].y + hits[j].height, board.y + board.height);
-      if (right > left && bottom > top) point = [(left + right) / 2, (top + bottom) / 2];
-    }
-    expect(point).not.toBeNull();
-    stage.tap(...point!);
+    expect(hits.length).toBeGreaterThanOrEqual(2);
+    const writable = stage as unknown as { tileHits: HitBox[] };
+    writable.tileHits = [hits[0], { ...hits[1], x: hits[0].x, y: hits[0].y }];
+    stage.tap(...center(hits[0]));
     expect(stage.snapshot().overlay).toBe('tile-picker');
     const picks = stage.snapshot().controls.filter((item) => item.id.startsWith('pick:'));
     expect(picks.length).toBeGreaterThanOrEqual(2);
@@ -166,16 +170,70 @@ describe('native WeChat Canvas stage', () => {
     assertWechatTouchTargets(stage);
     click(stage, 'home');
     assertWechatTouchTargets(stage);
-    expect(stage.snapshot().controls.some((item) => item.id === 'open:1:5')).toBe(false);
+    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:4')).toBe(false);
     click(stage, 'home-next');
     assertWechatTouchTargets(stage);
-    expect(stage.snapshot().controls.some((item) => item.id === 'open:1:5')).toBe(true);
+    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:4')).toBe(true);
     click(stage, 'home-prev');
     click(stage, 'overlay-close');
     click(stage, 'undo');
     expect(stage.snapshot().phase).toBe('playing');
     click(stage, 'undo');
     expect(stage.snapshot().phase).toBe('playing');
+    expect(stage.snapshot().undoRemaining).toBe(1);
+  });
+
+  it('shows three undo credits per puzzle and never spends one without an action', () => {
+    const { stage } = fixture();
+    expect(stage.snapshot().undoRemaining).toBe(3);
+    stage.undo();
+    expect(stage.snapshot().undoRemaining).toBe(3);
+    for (let index = 0; index < 3; index++) {
+      const hit = stage.snapshot().visibleTileHits[0];
+      stage.tap(...center(hit));
+      expect(stage.snapshot().trayOccupancy).toBe(1);
+      click(stage, 'undo');
+      expect(stage.snapshot().trayOccupancy).toBe(0);
+      expect(stage.snapshot().undoRemaining).toBe(2 - index);
+    }
+    const hit = stage.snapshot().visibleTileHits[0];
+    stage.tap(...center(hit));
+    expect(stage.snapshot().controls.some((item) => item.id === 'undo')).toBe(false);
+    stage.undo();
+    expect(stage.snapshot().trayOccupancy).toBe(1);
+    expect(stage.snapshot().undoRemaining).toBe(0);
+    stage.retry();
+    expect(stage.snapshot().undoRemaining).toBe(3);
+  });
+
+  it('brings an exposed clipped tile into view before allowing it to be taken', () => {
+    const { stage } = fixture(320, 568, 20, 568);
+    const before = stage.snapshot();
+    const cut = before.cutTileHits.find((tile) => tile.x < before.boardViewport.x + before.boardViewport.width &&
+      tile.x + tile.width > before.boardViewport.x && tile.y < before.boardViewport.y + before.boardViewport.height &&
+      tile.y + tile.height > before.boardViewport.y);
+    expect(cut).toBeDefined();
+    const x = Math.max(before.boardViewport.x + 1, Math.min(before.boardViewport.x + before.boardViewport.width - 1,
+      cut!.x + cut!.width / 2));
+    const y = Math.max(before.boardViewport.y + 1, Math.min(before.boardViewport.y + before.boardViewport.height - 1,
+      cut!.y + cut!.height / 2));
+    stage.tap(x, y);
+    expect(stage.snapshot().remainingTiles).toBe(before.remainingTiles);
+    expect(stage.snapshot().visibleTileHits.some((tile) => tile.id === cut!.id)).toBe(true);
+  });
+
+  it('never takes a tile after a drag, cancelled gesture, or long press', () => {
+    const { stage } = fixture(320, 568, 20, 568);
+    const hit = stage.snapshot().visibleTileHits[0];
+    const [x, y] = center(hit);
+    const remaining = stage.snapshot().remainingTiles;
+    stage.touchStart(x, y); stage.touchMove(x + 12, y); stage.touchEnd(x + 12, y);
+    stage.touchStart(x, y); stage.touchCancel(); stage.touchEnd(x, y);
+    stage.touchStart(x, y);
+    const writable = stage as unknown as { touchOrigin: { time: number } };
+    writable.touchOrigin.time -= 601;
+    stage.touchEnd(x, y);
+    expect(stage.snapshot().remainingTiles).toBe(remaining);
   });
 
   it('opens all 25 certified Sichuan puzzle identities from the fixed HUD home scene', () => {
@@ -204,8 +262,10 @@ describe('native WeChat Canvas stage', () => {
         if (!control) {
           click(stage, 'compose-all');
           while (!(control = stage.snapshot().controls.find((item) => item.id === `compose:${action.birdId}`))) click(stage, 'compose-next');
+          stage.tap(...center(control));
+          control = stage.snapshot().controls.find((item) => item.id === `compose:${action.birdId}`);
         }
-        stage.tap(...center(control));
+        stage.tap(...center(control!));
       }
     }
     expect(stage.snapshot().phase).toBe('level_complete');
@@ -230,6 +290,7 @@ describe('native WeChat Canvas stage', () => {
           if (!stage.snapshot().controls.some((item) => item.id === id)) {
             click(stage, 'compose-all');
             while (!stage.snapshot().controls.some((item) => item.id === id)) click(stage, 'compose-next');
+            click(stage, id);
           }
           click(stage, id);
         }
