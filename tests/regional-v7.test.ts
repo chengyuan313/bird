@@ -11,6 +11,7 @@ import { generateRegionalV7Puzzle, validateRegionalV7Record } from '../src/core/
 import { getRegionalV7Puzzle, REGIONAL_V7_PUZZLES } from '../src/core/regionalV7Puzzles';
 import { REGIONAL_PUZZLES } from '../src/core/regionalPuzzles';
 import { speciesForRegion } from '../src/core/regionalData';
+import { PLAYTEST_STORAGE_KEY } from '../src/ui/playtestStatistics';
 import type { BirdComposition, LevelDefinition } from '../src/core/types';
 
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
@@ -143,7 +144,55 @@ describe('V7.5 certified regional puzzles', () => {
 });
 
 describe('V7.5 province-first UI', () => {
-  it.each([320, 390])('plays Sichuan D1 at %ipx with scaled, bounded geometry and persisted progress', async (screenWidth) => {
+  it('recovers a full-tray loss with consecutive undos without changing historical progress or opt-in statistics', async () => {
+    const puzzle = getRegionalV7Puzzle('CN-SC', 1, 1)!;
+    const oldPuzzleId = REGIONAL_PUZZLES.find((item) => item.regionId === 'CN-SC')!.level.puzzleId!;
+    const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
+    saveRegionalProgress(dom.window.localStorage, { ...emptyRegionalProgress(),
+      completedPuzzleIds: { 'CN-SC': [oldPuzzleId] }, discoveredSpeciesIds: { 'CN-SC': ['bird:bailu'] } });
+    const oldStatistics = JSON.stringify({ schemaVersion: 1, enabled: true, records: [], active: null, attemptCounts: {} });
+    dom.window.localStorage.setItem(PLAYTEST_STORAGE_KEY, oldStatistics);
+    vi.stubGlobal('window', dom.window); vi.stubGlobal('document', dom.window.document); vi.resetModules();
+    await import('../src/main');
+    const root = dom.window.document.querySelector('#app')!;
+    root.querySelector<HTMLButtonElement>('[data-region-id="CN-SC"]')!.click();
+    root.querySelector<HTMLButtonElement>('[data-v7-tier="1"][data-v7-stage="1"]')!.click();
+    let losingPath: string[] | null = null;
+    for (let trial = 0; trial < 300 && !losingPath; trial++) {
+      let simulated = createGameFromLevel(puzzle.level);
+      const ids: string[] = [];
+      for (let step = 0; step < 10 && simulated.phase === 'playing'; step++) {
+        const choices = getExposedBoardTiles(simulated);
+        if (!choices.length) break;
+        const tile = choices[(trial * 13 + step * 17 + Math.floor(trial / 7)) % choices.length];
+        ids.push(tile.id);
+        simulated = selectBoardTile(simulated, tile.id);
+      }
+      if (simulated.phase === 'game_over') losingPath = ids;
+    }
+    expect(losingPath).not.toBeNull();
+    for (const tileId of losingPath!) root.querySelector<HTMLButtonElement>(`[data-board-tile-id="${tileId}"]`)!.click();
+    expect(root.querySelector('.region-result')?.textContent).toContain('这次没能拼完');
+    expect(root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.disabled).toBe(false);
+    for (const _tileId of losingPath!) root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.click();
+    expect(root.querySelector('.regional-meta')?.textContent).toContain('剩余 22 / 22 字');
+    expect(root.querySelector('.tray-panel')?.textContent).toContain('0 / 10');
+    const afterUndo = loadRegionalProgress(dom.window.localStorage);
+    expect(afterUndo.completedPuzzleIds['CN-SC']).toEqual([oldPuzzleId]);
+    expect(afterUndo.discoveredSpeciesIds['CN-SC']).toEqual(['bird:bailu']);
+    expect(dom.window.localStorage.getItem(PLAYTEST_STORAGE_KEY)).toBe(oldStatistics);
+    for (const action of puzzle.level.winningSolution) {
+      const selector = action.type === 'take' ? `[data-board-tile-id="${action.tileId}"]` : `[data-bird-id="${action.birdId}"]`;
+      root.querySelector<HTMLButtonElement>(selector)!.click();
+    }
+    expect(root.querySelector('.region-result')?.textContent).toContain('完成四川谜题');
+    const afterWin = loadRegionalProgress(dom.window.localStorage);
+    expect(afterWin.completedPuzzleIds['CN-SC']).toEqual([oldPuzzleId, puzzle.record.puzzleId]);
+    expect(afterWin.discoveredSpeciesIds['CN-SC']).toContain('bird:bailu');
+    expect(dom.window.localStorage.getItem(PLAYTEST_STORAGE_KEY)).toBe(oldStatistics);
+  });
+
+  it.each([320, 390])('plays Sichuan D1 at %ipx with full-size scrollable tiles and persisted progress', async (screenWidth) => {
     const dom = new JSDOM('<main id="app"></main>', { url: 'https://example.test/bird/' });
     Object.defineProperty(dom.window.HTMLElement.prototype, 'clientWidth', { configurable: true,
       get() { return this.classList.contains('v7-board') ? screenWidth - 58 : 0; } });
@@ -162,16 +211,47 @@ describe('V7.5 province-first UI', () => {
     root.querySelector<HTMLButtonElement>('[data-v7-tier="1"][data-v7-stage="1"]')!.click();
     const puzzle = getRegionalV7Puzzle('CN-SC', 1, 1)!;
     const canvas = root.querySelector<HTMLElement>('.board-canvas')!;
-    const scale = (screenWidth - 58) / 350;
-    expect(canvas.style.transform).toBe(`scale(${scale})`);
-    expect(root.querySelector<HTMLElement>('.v7-board')!.style.height).toBe(`${258 * scale}px`);
+    expect(canvas.style.width).toBe('350px');
+    expect(canvas.style.transform).toBe('');
+    expect(root.querySelector<HTMLElement>('.v7-board')!.style.height).toBe('258px');
+    expect(root.querySelector('.v7-onboarding')).not.toBeNull();
+    expect(root.querySelector<HTMLDetailsElement>('.v7-word-reference')!.open).toBe(true);
+    const referenceBeforeTake = root.querySelector('.v7-word-reference')!.textContent;
+    expect(referenceBeforeTake).toContain('槽内缺');
+    expect(referenceBeforeTake).toContain('当前亮起');
+    expect(root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.disabled).toBe(true);
+    const firstAction = puzzle.level.winningSolution[0];
+    if (firstAction.type !== 'take') throw new Error('Expected first action to take a tile');
+    root.querySelector<HTMLElement>('.v7-board')!.scrollLeft = 47;
+    root.querySelector<HTMLButtonElement>(`[data-board-tile-id="${firstAction.tileId}"]`)!.click();
+    expect(root.querySelector('.tray-panel')?.textContent).toContain('1 / 10');
+    expect(root.querySelector('.v7-word-reference')!.textContent).not.toBe(referenceBeforeTake);
+    expect(root.querySelector<HTMLElement>('.v7-board')!.scrollLeft).toBe(47);
+    root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.click();
+    expect(root.querySelector('.tray-panel')?.textContent).toContain('0 / 10');
+    expect(root.querySelector('.v7-word-reference')!.textContent).toBe(referenceBeforeTake);
+    expect(root.querySelector<HTMLElement>('.v7-board')!.scrollLeft).toBe(47);
+    expect(root.querySelector<HTMLButtonElement>(`[data-board-tile-id="${firstAction.tileId}"]`)).not.toBeNull();
+    let compositionUndoChecked = false;
     for (const action of puzzle.level.winningSolution) {
       const selector = action.type === 'take' ? `[data-board-tile-id="${action.tileId}"]` : `[data-bird-id="${action.birdId}"]`;
       const button = root.querySelector<HTMLButtonElement>(selector);
       expect(button, selector).not.toBeNull();
+      const before = root.querySelector('.regional-meta')?.textContent;
+      const quotaBefore = root.querySelector('.v7-word-reference')?.textContent;
       button!.click();
+      if (action.type === 'compose' && !compositionUndoChecked) {
+        expect(root.querySelector('.regional-meta')?.textContent).not.toBe(before);
+        root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.click();
+        expect(root.querySelector('.regional-meta')?.textContent).toBe(before);
+        expect(root.querySelector('.v7-word-reference')?.textContent).toBe(quotaBefore);
+        root.querySelector<HTMLButtonElement>(selector)!.click();
+        compositionUndoChecked = true;
+      }
     }
+    expect(compositionUndoChecked).toBe(true);
     expect(root.querySelector('.region-result')?.textContent).toContain('完成四川谜题');
+    expect(root.querySelector<HTMLButtonElement>('[data-action="v7-undo"]')!.disabled).toBe(true);
     root.querySelector<HTMLButtonElement>('[data-action="home"]')!.click();
     expect(root.querySelector('.region-progress')?.textContent).toContain('1 / 25');
     expect(loadRegionalProgress(dom.window.localStorage).completedPuzzleIds['CN-SC']).toContain(puzzle.record.puzzleId);

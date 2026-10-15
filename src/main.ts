@@ -30,6 +30,11 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
   let stage = 1;
   let v7Tier: RegionalTier = 1;
   let v7Stage = 1;
+  let v7History: GameState[] = [];
+  let v7InitialProgress = progress;
+  let v7Assisted = false;
+  let v7WordReferenceOpen = true;
+  let v7BoardScrollLeft = 0;
   let regionalObserver: ResizeObserver | null = null;
   document.addEventListener('visibilitychange', () => statistics.setVisible(!document.hidden));
   window.addEventListener('pagehide', () => statistics.interrupt());
@@ -100,6 +105,17 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
     return REGIONAL_V7_PUZZLES.filter((item) => item.record.regionId === regionId && item.record.tier === tier - 1)
       .every((item) => completed.has(item.record.puzzleId));
   }
+  function startV7Puzzle(tier: RegionalTier, stageIndex: number): void {
+    statistics.interrupt();
+    v7Tier = tier; v7Stage = stageIndex;
+    state = createGameFromLevel(getRegionalV7Puzzle(regionId!, tier, stageIndex)!.level);
+    v7History = [];
+    v7InitialProgress = progress;
+    v7Assisted = false;
+    v7WordReferenceOpen = true;
+    v7BoardScrollLeft = 0;
+    mode = 'v7'; render();
+  }
   function renderV7Home(): void {
     const region = REGIONS.find((item) => item.id === regionId)!;
     const memberships = v7SpeciesForRegion(region.id);
@@ -112,23 +128,40 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
       <div class="region-progress"><strong>已发现 ${memberships.filter((item) => discovered.has(item.speciesId)).length} / 100 种</strong><span>已完成 ${REGIONAL_V7_PUZZLES.filter((item) => completed.has(item.record.puzzleId)).length} / 25 局 · 五级词库逐步开放</span></div>
       <section class="region-section"><h2>五级探索</h2><p>每级新增20种鸟；完成本级五局后开放下一级。同级每局使用本级已开放鸟种中的一部分。</p>
       ${REGIONAL_V7_TIERS.map((tier) => { const pool = V7_DIFFICULTY_POOLS.find((item) => item.regionId === region.id && item.tier === tier)!;
-        return `<div class="v7-tier"><h3>D${tier} · ${pool.speciesIds.length}种已解锁 · ${REGIONAL_V7_TILE_COUNTS[tier]}字</h3><div class="region-stage-list">
+        return `<div class="v7-tier"><h3>D${tier} · ${pool.speciesIds.length}种已解锁 · ${REGIONAL_V7_TILE_COUNTS[tier]}字</h3>${tier > 1 ? '<p class="v7-difficulty-note">高难挑战 · 真人难度仍待校准，可在局内连续撤销。</p>' : ''}<div class="region-stage-list">
         ${REGIONAL_V7_PUZZLES.filter((item) => item.record.tier === tier).map((item) => `<button data-v7-tier="${tier}" data-v7-stage="${item.record.stageIndex}" ${v7TierUnlocked(tier) ? '' : 'disabled'}><strong>第${item.record.stageIndex}局</strong><small>${completed.has(item.record.puzzleId) ? '已完成 · 可重玩' : v7TierUnlocked(tier) ? '开始拼字' : '完成上一级五局后开放'}</small></button>`).join('')}
         </div></div>`; }).join('')}</section>
       <section class="region-section"><h2>四川地方记录</h2><p>代表物种并非都只分布在四川；以下生境资料只描述有独立出处的具体地点。</p>
       ${habitatStories.map((item) => `<article class="v7-story"><strong>${names.get(item.speciesId)?.name}</strong><span>${item.locality}：${item.habitat}</span><a href="${item.habitatSourceUrl}" target="_blank" rel="noopener noreferrer">生境资料</a></article>`).join('')}</section>
       <section class="region-section"><h2>本游戏精选鸟种</h2><p>可搜索100个入选名称；问号表示尚未在游戏中发现，名称和来源可先浏览。</p>
       <label for="v7-species-search">搜索鸟名</label><input id="v7-species-search" type="search" placeholder="输入鸟名" autocomplete="off">
-      <div class="region-collection v7-collection">${memberships.map((item) => { const bird = names.get(item.speciesId)!; return `<article class="bird-card" data-v7-species="${bird.name}"><strong>${bird.name}${discovered.has(item.speciesId) ? ' · 已发现' : ' · ?'}</strong><small>D${V7_DIFFICULTY_POOLS.find((pool) => pool.newlyIntroducedSpeciesIds.includes(item.speciesId))?.tier} · ${discovered.has(item.speciesId) ? item.originalScientificName : '拼成后显示学名'}${item.regionalFeature ? ' · 四川清单重点' : ''}</small><a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer">2020四川名录第${item.sourceRow}条</a></article>`; }).join('')}</div></section>
+      <div class="v7-collection-filters"><label for="v7-species-tier-filter">开放级别<select id="v7-species-tier-filter"><option value="all">全部级别</option>${REGIONAL_V7_TIERS.map((tier) => `<option value="${tier}">D${tier}</option>`).join('')}</select></label>
+      <label for="v7-species-discovery-filter">发现状态<select id="v7-species-discovery-filter"><option value="all">全部状态</option><option value="discovered">已发现</option><option value="undiscovered">待发现</option></select></label>
+      <label for="v7-species-feature-filter">地方重点<select id="v7-species-feature-filter"><option value="all">全部鸟种</option><option value="featured">四川清单重点</option><option value="standard">其他入选鸟种</option></select></label></div>
+      <p id="v7-species-result-count" role="status" aria-live="polite">显示 100 / 100 种</p>
+      <div class="region-collection v7-collection">${memberships.map((item) => { const bird = names.get(item.speciesId)!; const tier = V7_DIFFICULTY_POOLS.find((pool) => pool.newlyIntroducedSpeciesIds.includes(item.speciesId))!.tier; return `<article class="bird-card" data-v7-species="${bird.name}" data-v7-collection-tier="${tier}" data-v7-discovered="${discovered.has(item.speciesId)}" data-v7-feature="${item.regionalFeature}"><strong>${bird.name}${discovered.has(item.speciesId) ? ' · 已发现' : ' · ?'}</strong><small>D${tier} · ${discovered.has(item.speciesId) ? item.originalScientificName : '拼成后显示学名'}${item.regionalFeature ? ' · 四川清单重点' : ''}</small><a href="${item.sourceUrl}" target="_blank" rel="noopener noreferrer">2020四川名录第${item.sourceRow}条</a></article>`; }).join('')}</div></section>
       <section class="region-section"><h2>历史预览</h2><p>保留旧版四川两关及原有完成记录，不计入V7的25局。</p><div class="region-stage-list">${[1, 2].map((number) => `<button data-v6-stage="${number}"><strong>旧版第${number}关</strong><small>历史谜题 · 可重玩</small></button>`).join('')}</div></section>
       <nav class="region-nav">${nav('select', 'select', '切换地区')}${nav('legacy', 'national', '全国教学与挑战')}</nav></main>`;
-    root!.querySelector<HTMLInputElement>('#v7-species-search')!.addEventListener('input', (event) => {
-      const query = (event.target as HTMLInputElement).value.trim();
-      root!.querySelectorAll<HTMLElement>('[data-v7-species]').forEach((card) => { card.hidden = !card.dataset.v7Species?.includes(query); });
-    });
+    const filterCollection = () => {
+      const query = root!.querySelector<HTMLInputElement>('#v7-species-search')!.value.trim();
+      const tier = root!.querySelector<HTMLSelectElement>('#v7-species-tier-filter')!.value;
+      const discovery = root!.querySelector<HTMLSelectElement>('#v7-species-discovery-filter')!.value;
+      const feature = root!.querySelector<HTMLSelectElement>('#v7-species-feature-filter')!.value;
+      let visible = 0;
+      root!.querySelectorAll<HTMLElement>('[data-v7-species]').forEach((card) => {
+        const show = (card.dataset.v7Species?.includes(query) ?? false) && (tier === 'all' || card.dataset.v7CollectionTier === tier) &&
+          (discovery === 'all' || card.dataset.v7Discovered === String(discovery === 'discovered')) &&
+          (feature === 'all' || card.dataset.v7Feature === String(feature === 'featured'));
+        card.hidden = !show;
+        if (show) visible++;
+      });
+      root!.querySelector<HTMLElement>('#v7-species-result-count')!.textContent = `显示 ${visible} / ${memberships.length} 种`;
+    };
+    root!.querySelector('#v7-species-search')!.addEventListener('input', filterCollection);
+    root!.querySelectorAll('#v7-species-tier-filter, #v7-species-discovery-filter, #v7-species-feature-filter')
+      .forEach((control) => control.addEventListener('change', filterCollection));
     root!.querySelectorAll<HTMLButtonElement>('[data-v7-tier]').forEach((button) => button.addEventListener('click', () => {
-      v7Tier = Number(button.dataset.v7Tier) as RegionalTier; v7Stage = Number(button.dataset.v7Stage);
-      state = createGameFromLevel(getRegionalV7Puzzle(region.id, v7Tier, v7Stage)!.level); mode = 'v7'; render();
+      startV7Puzzle(Number(button.dataset.v7Tier) as RegionalTier, Number(button.dataset.v7Stage));
     }));
     root!.querySelectorAll<HTMLButtonElement>('[data-v6-stage]').forEach((button) => button.addEventListener('click', () => {
       stage = Number(button.dataset.v6Stage); state = createGameFromLevel(getRegionalPuzzle(region.id, stage)!.level);
@@ -167,37 +200,85 @@ if (window.location.pathname.endsWith('/preview/piachan')) {
     saveRegionalProgress(storage, progress);
     render();
   }
+  function syncV7Progress(): void {
+    progress = recordRegionalResult(v7InitialProgress, regionId!, state.puzzleId!, state.discoveredBirdIds,
+      state.phase === 'level_complete');
+    saveRegionalProgress(storage, progress);
+  }
+  function updateV7(next: GameState): void {
+    if (next === state) return;
+    v7BoardScrollLeft = root!.querySelector<HTMLElement>('.v7-board')?.scrollLeft ?? 0;
+    v7History.push(state);
+    state = next;
+    syncV7Progress();
+    render();
+  }
+  function undoV7(): void {
+    if (state.phase === 'level_complete') return;
+    const previous = v7History.pop();
+    if (!previous) return;
+    v7BoardScrollLeft = root!.querySelector<HTMLElement>('.v7-board')?.scrollLeft ?? 0;
+    v7Assisted = true;
+    state = previous;
+    syncV7Progress();
+    render();
+  }
   function renderV7Board(): void {
     const puzzle = getRegionalV7Puzzle(regionId!, v7Tier, v7Stage)!;
     const geometry = geometryForTier(v7Tier);
     const remaining = state.boardTiles.filter((tile) => !tile.removed).length;
     const formable = findPlayableBirds(state);
     const names = [...state.activeCompositions].sort((a, b) => a.name.localeCompare(b.name));
+    const trayCharacters = state.tray.flatMap((tile) => tile ? [tile.character] : []);
+    const exposedCharacters = state.boardTiles.filter((tile) => !tile.removed && isBoardTileExposed(state, tile.id))
+      .map((tile) => tile.character);
+    const countMissing = (characters: readonly string[]) => {
+      const trayAvailable = [...trayCharacters];
+      const exposedAvailable = [...exposedCharacters];
+      let missing = 0;
+      let visible = 0;
+      for (const character of characters) {
+        const trayIndex = trayAvailable.indexOf(character);
+        if (trayIndex >= 0) { trayAvailable.splice(trayIndex, 1); continue; }
+        missing++;
+        const exposedIndex = exposedAvailable.indexOf(character);
+        if (exposedIndex >= 0) { exposedAvailable.splice(exposedIndex, 1); visible++; }
+      }
+      return { missing, visible };
+    };
     root!.innerHTML = `<main class="province-shell regional-game v7-game" data-puzzle-id="${puzzle.record.puzzleId}">
       <nav class="region-nav">${nav('home', 'home', '← 四川主页')}${nav('select', 'select', '切换地区')}${nav('legacy', 'national', '全国教学与挑战')}</nav>
       <p class="eyebrow">四川 · D${v7Tier} · 第${v7Stage}局 / 5</p><h1>${puzzle.level.label}</h1>
+      ${v7Tier === 1 && v7Stage === 1 && state.boardTiles.every((tile) => !tile.removed) ? '<p class="v7-onboarding">先点亮起的字，放进下方十格字槽；字凑齐后点鸟名拼成。遇到误操作，可撤销上一步。</p>' : ''}
       <p class="regional-meta">剩余 ${remaining} / ${state.boardTiles.length} 字 · 得分 ${state.score} · 已拼成 ${state.completedBirdCount} 只</p>
-      <section class="board-panel"><div class="tile-board regional-tile-board v7-board"><div class="board-canvas" style="width:${geometry.width}px;height:${geometry.height}px">
+      <section class="board-panel"><div class="tile-board regional-tile-board v7-board" style="height:${geometry.height}px"><div class="board-canvas" style="width:${geometry.width}px;height:${geometry.height}px">
       ${state.boardTiles.filter((tile) => !tile.removed).map((tile) => { const exposed = isBoardTileExposed(state, tile.id);
         return `<button class="board-tile ${exposed ? 'exposed' : 'blocked'}" data-board-tile-id="${tile.id}" style="left:${tile.x}px;top:${tile.y}px;z-index:${tile.layer}" ${exposed && state.phase === 'playing' && state.tray.some((slot) => slot === null) ? '' : 'disabled'} aria-label="${tile.character}${exposed ? '，可取' : '，被遮挡'}">${tile.character}</button>`; }).join('')}
-      </div></div><p class="board-hint">亮起的字可以拿取；移开上层，露出下层。</p></section>
+      </div></div><p class="board-hint">亮起的字可以拿取；移开上层，露出下层。小屏幕可左右滑动棋盘。</p></section>
       <section class="tray-panel"><div class="section-heading"><h2>底部字槽</h2><span>${state.tray.filter(Boolean).length} / 10</span></div><div class="tray">${state.tray.map((tile) => tile ? `<span class="tray-tile">${tile.character}</span>` : '<span class="tray-slot"></span>').join('')}</div></section>
-      <section class="compose-panel"><h2>可以拼成</h2><details class="v7-word-reference"><summary>本关可拼鸟名 · ${names.length}种</summary><div>${names.map((bird) => `<span>${bird.name} ×${state.remainingCompositionQuotas[bird.id] ?? 0}</span>`).join('')}</div></details>
+      ${state.phase === 'playing' && state.tray.filter(Boolean).length >= 7 ? '<p class="v7-risk-note" role="status">字槽快满了。试着先拼成一个本关鸟名；若没有合适的字，可连续撤销。</p>' : ''}
+      <div class="v7-assist-bar"><button class="plain-link" data-action="v7-undo" ${v7History.length && state.phase !== 'level_complete' ? '' : 'disabled'}>撤销上一步</button>${v7Assisted ? '<span>已使用撤销，可继续挑战</span>' : ''}</div>
+      <section class="compose-panel"><h2>可以拼成</h2><details class="v7-word-reference" ${v7WordReferenceOpen ? 'open' : ''}><summary>本关可拼鸟名及剩余次数 · ${names.length}种</summary><div>${names.map((bird) => {
+        const quota = state.remainingCompositionQuotas[bird.id] ?? 0;
+        const { missing, visible } = countMissing(bird.characters);
+        return `<span>${bird.name} ×${quota} · ${quota === 0 ? '本局已用完' : `槽内缺${missing}字${missing ? `，其中${visible}字当前亮起` : '，现在可拼'}`}</span>`;
+      }).join('')}</div></details>
       ${formable.length ? `<div class="bird-options">${formable.map((bird) => `<button class="bird-option" data-bird-id="${bird.id}"><strong>${bird.name}</strong><span>+${bird.score}</span></button>`).join('')}</div>` : '<p class="compose-empty">继续找字，拼出鸟名。</p>'}</section>
-      ${state.phase !== 'playing' ? `<section class="region-result" role="status"><h2>${state.phase === 'level_complete' ? '完成四川谜题！' : '这次没能拼完'}</h2><p>${state.phase === 'level_complete' ? `得分 ${state.score} · 新发现已收入四川收藏。` : '重试会还原同一认证谜题。'}</p><button data-action="v7-retry">重试本局</button>${nav('home', 'home', '返回四川主页')}${state.phase === 'level_complete' && (v7Stage < 5 || v7Tier < 5) ? '<button data-action="v7-next">下一局</button>' : ''}</section>` : '<button class="plain-link" data-action="v7-retry">重试本局</button>'}
+      ${state.phase !== 'playing' ? `<section class="region-result" role="status"><h2>${state.phase === 'level_complete' ? '完成四川谜题！' : '这次没能拼完'}</h2><p>${state.phase === 'level_complete' ? `得分 ${state.score} · 新发现已收入四川收藏；本局已结算，不能撤销。` : '可撤销最后一步，或重试同一认证谜题。'}</p><button data-action="v7-retry">重试本局</button>${nav('home', 'home', '返回四川主页')}${state.phase === 'level_complete' && (v7Stage < 5 || v7Tier < 5) ? '<button data-action="v7-next">下一局</button>' : ''}</section>` : '<button class="plain-link" data-action="v7-retry">重试本局</button>'}
       <p class="puzzle-identity">谜题 ${puzzle.record.puzzleId.slice(0, 22)}… · 来源 <a href="https://html.rhhz.net/scdwzz/html/61796.htm" target="_blank" rel="noopener noreferrer">2020四川省鸟类名录</a></p></main>`;
-    const viewport = root!.querySelector<HTMLElement>('.v7-board')!;
-    const canvas = viewport.querySelector<HTMLElement>('.board-canvas')!;
-    const fit = () => { const scale = Math.min(1, (viewport.clientWidth || geometry.width) / geometry.width);
-      canvas.style.transform = `scale(${scale})`; viewport.style.height = `${geometry.height * scale}px`; };
-    fit();
-    if (typeof ResizeObserver !== 'undefined') { regionalObserver = new ResizeObserver(fit); regionalObserver.observe(viewport); }
-    root!.querySelectorAll<HTMLButtonElement>('[data-board-tile-id]').forEach((button) => button.addEventListener('click', () => updateRegional(selectBoardTile(state, button.dataset.boardTileId!))));
-    root!.querySelectorAll<HTMLButtonElement>('[data-bird-id]').forEach((button) => button.addEventListener('click', () => updateRegional(composeBird(state, button.dataset.birdId!))));
-    root!.querySelectorAll('[data-action="v7-retry"]').forEach((button) => button.addEventListener('click', () => { state = createGameFromLevel(puzzle.level); render(); }));
+    root!.querySelector<HTMLElement>('.v7-board')!.scrollLeft = v7BoardScrollLeft;
+    root!.querySelector<HTMLDetailsElement>('.v7-word-reference')!.addEventListener('toggle', (event) => {
+      v7WordReferenceOpen = (event.currentTarget as HTMLDetailsElement).open;
+    });
+    root!.querySelectorAll<HTMLButtonElement>('[data-board-tile-id]').forEach((button) => button.addEventListener('click', () => updateV7(selectBoardTile(state, button.dataset.boardTileId!))));
+    root!.querySelectorAll<HTMLButtonElement>('[data-bird-id]').forEach((button) => button.addEventListener('click', () => updateV7(composeBird(state, button.dataset.birdId!))));
+    root!.querySelector('[data-action="v7-undo"]')!.addEventListener('click', undoV7);
+    root!.querySelectorAll('[data-action="v7-retry"]').forEach((button) => button.addEventListener('click', () => {
+      statistics.interrupt(); startV7Puzzle(v7Tier, v7Stage);
+    }));
     root!.querySelector('[data-action="v7-next"]')?.addEventListener('click', () => {
-      if (v7Stage < 5) v7Stage++; else { v7Tier = (v7Tier + 1) as RegionalTier; v7Stage = 1; }
-      state = createGameFromLevel(getRegionalV7Puzzle(regionId!, v7Tier, v7Stage)!.level); render();
+      if (v7Stage < 5) startV7Puzzle(v7Tier, v7Stage + 1);
+      else startV7Puzzle((v7Tier + 1) as RegionalTier, 1);
     });
     bindNav();
   }
