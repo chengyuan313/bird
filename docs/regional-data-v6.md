@@ -1,0 +1,25 @@
+# V6.0 regional evidence and import contract
+
+Regional content is an offline-reviewed subset, **not** a provincial checklist, abundance estimate, residency claim, or seasonal guide. The game never calls biodiversity APIs from a player's browser.
+
+## Sources and rights
+
+- Beijing pilot: [北京市园林绿化局, 北京陆生野生动物名录—鸟类 (2025-04-21)](https://yllhj.beijing.gov.cn/ztxx/ysdw/ml/202504/t20250422_4071634.shtml). The manifest stores ten factual name/taxon/region matches and source row numbers, not the list itself or any media. The page is cited in the game. Source-page copyright and non-factual material are not licensed for redistribution here.
+- [GBIF occurrence API](https://techdocs.gbif.org/en/openapi/v1/occurrence) was examined as a future candidate source. Its provincial text is not a verified geocode, individual records require coordinate/taxon/issue checks, and the underlying dataset license must be checked. [GBIF explains CC0, CC BY, and CC BY-NC licenses](https://www.gbif.org/publishing-data/summary). The API was inaccessible from this development sandbox; **zero** regional entries were approved from GBIF observations.
+- [eBird data-use guidance](https://support.ebird.org/en/support/solutions/articles/48001078113) requires product-specific terms and restricts reuse/redistribution and commercial use. No eBird records are bundled.
+- [China Bird Report terms](https://www.birdreport.cn/home/terms/page.html) do not grant permission to scrape and republish its complete database. No Bird Report records are bundled.
+
+The other four pilot research leads are [Liaoning provincial protected-species notice](https://www.ln.gov.cn/web/zwgkx/zfwj/szfwj/zfwj2010/BF4D19B9104442B783BED7FC11A838D8/index.shtml), [Guangdong provincial protected-species list](https://www.gd.gov.cn/attachment/0/435/435303/3368465.pdf), [Yunnan forestry bird list](https://lcj.yn.gov.cn/html/2025/zdlyxxgkqt_0922/75325.html), and a [Sichuan forestry reserve survey](https://lcj.sc.gov.cn/scslyt/c1055/2024/5/20/bd4c4810f1c8465fbc3e3b43bd245e80/files/%E8%AF%BA%E6%B0%B4%E6%B2%B3%E4%BF%9D%E6%8A%A4%E5%8C%BA%E5%8A%9F%E8%83%BD%E5%8C%BA%E8%B0%83%E6%95%B4%E8%AE%BA%E8%AF%81%E6%8A%A5%E5%91%8A%E6%8A%A5%E6%89%B9%E7%A8%BF.pdf). These vary in age, completeness and spatial scope; the Sichuan document concerns one reserve, not the entire province. They are discovery leads, not imported lists. Individual matching, source-rights review and complete puzzle certification remain open, so the four regions stay pending.
+
+## Deterministic import / refresh
+
+1. Obtain a source with a permissible use case. Record its URL, publication/data version, attribution and rights. Do not bypass access controls or bulk-copy a checklist.
+2. Verify the administrative unit separately. `src/core/regionalData.ts` uses ISO 3166-2-like stable IDs and an explicit *source-specific* `gbifStateProvince` text crosswalk for the five pilots. `gadmGid` stays `null` until a real identifier is verified. Never infer a region from a stateProvince spelling alone.
+3. For each candidate, check geographic scope and source evidence. GBIF candidates additionally need taxon acceptance, coordinates inside the intended region, geospatial-issue filtering, dataset license, date, and duplicate/observer review. An observation is only a candidate, not automatically playable.
+4. Compare both Chinese accepted name and scientific name to the existing canonical `BIRD_CATALOG`. Record ambiguous names or synonym conflicts in `editorialQueue` in `data/regional-review.json`; do not activate them. New Chinese spellings need a separate registry review.
+5. Add only human-approved, exact matches to `accepted` in `data/regional-review.json`, with source row and stable ID. Increment the manifest schema/content version for any change that alters playable content. The sorted input and fixed puzzle word sequences produce deterministic board hashes and puzzle IDs.
+6. Run `pnpm audit:regions`, `pnpm test`, `pnpm run typecheck`, and `pnpm run build`. The regional audit validates all 34 records, IDs, source metadata, exact taxonomy, approved puzzle vocabulary, board hash, quotas, and full engine-replayed certificates. Review the diff before publishing.
+
+This is an editorial import pipeline, not an automatic API-to-game promotion. Runtime reads the committed manifest only. Beijing has ten approved species and 22/33-tile stages. Liaoning, Guangdong, Yunnan, and Sichuan are researched as target pilots but pending reliable reviewed subsets and rights clearance; the other 29 regions also remain pending. The Beijing source calls 喜鹊 *Pica pica* while the registry uses *Pica serica*; it is queued as a taxon conflict. The source calls *Passer montanus* 麻雀 while the canonical registry spelling is 树麻雀; it is queued for name review. Neither is silently activated.
+
+Regional puzzle certificates prove one legal engine path with maximum tray occupancy of 2 or 3; they do **not** establish independently searched solvability for every path or calibrated human difficulty. V6.1 should add reviewed pilot datasets and real playtest measurements before difficulty claims.

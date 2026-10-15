@@ -6,11 +6,28 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:wechat": "node tools/buildWechat.mjs",
+    "generate:bank": "node tools/runPuzzleBankGenerator.mjs",
+    "generate:regional-v7": "node tools/runRegionalV7Bank.mjs",
+    "evaluate:regional-v7": "node tools/runRegionalV7Difficulty.mjs",
+    "experiment:regional-v7-rescue": "node tools/runRegionalV7Rescue.mjs",
+    "experiment:regional-v7-generator": "node tools/runRegionalV7GeneratorUpgrade.mjs",
+    "experiment:regional-v7-content": "node tools/runRegionalV7ContentUpgrade.mjs",
+    "evaluate:difficulty": "node tools/runDifficultyEvaluation.mjs",
+    "experiment:profiles": "node tools/runParameterizedExperiment.mjs",
+    "experiment:playtest:bank": "node tools/generatePlaytestBank.mjs",
+    "experiment:playtest:compare": "node tools/runPlaytestComparison.mjs",
+    "analyze:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-analysis.experiment.ts --reporter=verbose",
+    "experiment:catalog": "vitest run --config tools/vitest.catalog.config.ts tools/catalog-sampling.experiment.ts --reporter=verbose",
+    "evaluate:level3": "vitest run --config tools/vitest.experiment.config.ts --reporter=verbose",
     "test": "vitest run",
+    "audit:regions": "vitest run --configLoader runner tests/regional-v6.test.ts",
     "typecheck": "tsc -b"
   },
   "devDependencies": {
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^24.10.0",
+    "jsdom": "^30.1.2",
     "typescript": "^5.9.3",
     "vite": "^7.1.9",
     "vitest": "^3.2.4"

@@ -1,0 +1,941 @@
+{
+  "schemaVersion": "regional-v7.5.0",
+  "reviewedAt": "2026-10-15",
+  "regionId": "CN-SC",
+  "source": {
+    "id": "sc-checklist-2020",
+    "publisher": "四川动物",
+    "title": "四川省鸟类名录的修订与更新",
+    "url": "https://html.rhhz.net/scdwzz/html/61796.htm",
+    "version": "2020-03",
+    "scope": "四川省野生鸟类名录（附表757种）；2020年分类处理",
+    "rightsNote": "Individual factual name and occurrence citations only; no table, media, or full checklist redistributed"
+  },
+  "entryFormat": [
+    "speciesId",
+    "originalChineseName",
+    "originalScientificName",
+    "sourceRow",
+    "introducedTier",
+    "regionalFeature",
+    "nameReview"
+  ],
+  "entries": [
+    [
+      "bird:anchun",
+      "鹌鹑",
+      "Coturnix japonica",
+      11,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:shaoji",
+      "勺鸡",
+      "Pucrasia macrolopha",
+      16,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:baixian",
+      "白鹇",
+      "Lophura nycthemera",
+      18,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:xiaotiane",
+      "小天鹅",
+      "Cygnus columbianus",
+      34,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:datiane",
+      "大天鹅",
+      "Cygnus cygnus",
+      35,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:chimaya",
+      "赤麻鸭",
+      "Tadorna ferruginea",
+      37,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:yuanyang",
+      "鸳鸯",
+      "Aix galericulata",
+      38,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:lutouya",
+      "绿头鸭",
+      "Anas platyrhynchos",
+      43,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:banzuiya",
+      "斑嘴鸭",
+      "Anas zonorhyncha",
+      44,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:shanbanjiu",
+      "山斑鸠",
+      "Streptopelia orientalis",
+      74,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:baiyaoyuyan",
+      "白腰雨燕",
+      "Apus pacificus",
+      90,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:zaojuan",
+      "噪鹃",
+      "Eudynamys scolopaceus",
+      95,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:huihe",
+      "灰鹤",
+      "Grus grus",
+      124,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:grus-nigricollis",
+      "黑颈鹤",
+      "Grus nigricollis",
+      125,
+      1,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "bird:canglu",
+      "苍鹭",
+      "Ardea cinerea",
+      222,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:bailu",
+      "白鹭",
+      "Egretta garzetta",
+      226,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:daisheng",
+      "戴胜",
+      "Upupa epops",
+      284,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:huixique",
+      "灰喜鹊",
+      "Cyanopica cyanus",
+      351,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:jiayan",
+      "家燕",
+      "Hirundo rustica",
+      411,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "bird:wudong",
+      "乌鸫",
+      "Turdus mandarinus",
+      576,
+      1,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:arborophila-rufipectus",
+      "四川山鹧鸪",
+      "Arborophila rufipectus",
+      2,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tetrastes-sewerzowi",
+      "斑尾榛鸡",
+      "Tetrastes sewerzowi",
+      3,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:lerwa-lerwa",
+      "雪鹑",
+      "Lerwa lerwa",
+      4,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tetraophasis-obscurus",
+      "红喉雉鹑",
+      "Tetraophasis obscurus",
+      5,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tetraophasis-szechenyii",
+      "黄喉雉鹑",
+      "Tetraophasis szechenyii",
+      6,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tetraogallus-tibetanus",
+      "藏雪鸡",
+      "Tetraogallus tibetanus",
+      7,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:perdix-hodgsoniae",
+      "高原山鹑",
+      "Perdix hodgsoniae",
+      10,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:bambusicola-fytchii",
+      "棕胸竹鸡",
+      "Bambusicola fytchii",
+      12,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:bambusicola-thoracicus",
+      "灰胸竹鸡",
+      "Bambusicola thoracicus",
+      13,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:ithaginis-cruentus",
+      "血雉",
+      "Ithaginis cruentus",
+      14,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tragopan-temminckii",
+      "红腹角雉",
+      "Tragopan temminckii",
+      15,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:lophophorus-lhuysii",
+      "绿尾虹雉",
+      "Lophophorus lhuysii",
+      17,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:crossoptilon-crossoptilon",
+      "白马鸡",
+      "Crossoptilon crossoptilon",
+      19,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:crossoptilon-auritum",
+      "蓝马鸡",
+      "Crossoptilon auritum",
+      20,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:strix-davidi",
+      "四川林鸮",
+      "Strix davidi",
+      273,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:poecile-weigoldicus",
+      "四川褐头山雀",
+      "Poecile weigoldicus",
+      377,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:phylloscopus-forresti",
+      "四川柳莺",
+      "Phylloscopus forresti",
+      435,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:moupinia-poecilotis",
+      "宝兴鹛雀",
+      "Moupinia poecilotis",
+      478,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:certhia-tianquanensis",
+      "四川旋木雀",
+      "Certhia tianquanensis",
+      543,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:zoothera-griseiceps",
+      "四川淡背地鸫",
+      "Zoothera griseiceps",
+      567,
+      2,
+      true,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:anser-indicus",
+      "斑头雁",
+      "Anser indicus",
+      31,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:cygnus-olor",
+      "疣鼻天鹅",
+      "Cygnus olor",
+      33,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:tadorna-tadorna",
+      "翘鼻麻鸭",
+      "Tadorna tadorna",
+      36,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:nettapus-coromandelianus",
+      "棉凫",
+      "Nettapus coromandelianus",
+      39,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:mareca-strepera",
+      "赤膀鸭",
+      "Mareca strepera",
+      40,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:mareca-falcata",
+      "罗纹鸭",
+      "Mareca falcata",
+      41,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:mareca-penelope",
+      "赤颈鸭",
+      "Mareca penelope",
+      42,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:anas-acuta",
+      "针尾鸭",
+      "Anas acuta",
+      45,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:anas-crecca",
+      "绿翅鸭",
+      "Anas crecca",
+      46,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:spatula-clypeata",
+      "琵嘴鸭",
+      "Spatula clypeata",
+      47,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:spatula-querquedula",
+      "白眉鸭",
+      "Spatula querquedula",
+      48,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:sibirionetta-formosa",
+      "花脸鸭",
+      "Sibirionetta formosa",
+      49,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:netta-rufina",
+      "赤嘴潜鸭",
+      "Netta rufina",
+      50,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:aythya-ferina",
+      "红头潜鸭",
+      "Aythya ferina",
+      51,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:aythya-baeri",
+      "青头潜鸭",
+      "Aythya baeri",
+      52,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:aythya-nyroca",
+      "白眼潜鸭",
+      "Aythya nyroca",
+      53,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "bird:fengtouqianya",
+      "凤头潜鸭",
+      "Aythya fuligula",
+      54,
+      3,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:phoenicopterus-roseus",
+      "大红鹳",
+      "Phoenicopterus roseus",
+      70,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:ibidorhyncha-struthersii",
+      "鹮嘴鹬",
+      "Ibidorhyncha struthersii",
+      126,
+      3,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "bird:fanzuiyu",
+      "反嘴鹬",
+      "Recurvirostra avosetta",
+      128,
+      3,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:columba-rupestris",
+      "岩鸽",
+      "Columba rupestris",
+      71,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:columba-leuconota",
+      "雪鸽",
+      "Columba leuconota",
+      72,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:columba-hodgsonii",
+      "斑林鸽",
+      "Columba hodgsonii",
+      73,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:streptopelia-decaocto",
+      "灰斑鸠",
+      "Streptopelia decaocto",
+      75,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:streptopelia-tranquebarica",
+      "火斑鸠",
+      "Streptopelia tranquebarica",
+      76,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:macropygia-unchall",
+      "斑尾鹃鸠",
+      "Macropygia unchall",
+      78,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:chalcophaps-indica",
+      "绿翅金鸠",
+      "Chalcophaps indica",
+      79,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:treron-apicauda",
+      "针尾绿鸠",
+      "Treron apicauda",
+      80,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:treron-sphenurus",
+      "楔尾绿鸠",
+      "Treron sphenurus",
+      81,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:treron-sieboldii",
+      "红翅绿鸠",
+      "Treron sieboldii",
+      82,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:centropus-sinensis",
+      "褐翅鸦鹃",
+      "Centropus sinensis",
+      92,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:centropus-bengalensis",
+      "小鸦鹃",
+      "Centropus bengalensis",
+      93,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:clamator-coromandus",
+      "红翅凤头鹃",
+      "Clamator coromandus",
+      94,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:chrysococcyx-maculatus",
+      "翠金鹃",
+      "Chrysococcyx maculatus",
+      96,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:cacomantis-sonneratii",
+      "栗斑杜鹃",
+      "Cacomantis sonneratii",
+      97,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:cacomantis-merulinus",
+      "八声杜鹃",
+      "Cacomantis merulinus",
+      98,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:surniculus-lugubris",
+      "乌鹃",
+      "Surniculus lugubris",
+      99,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:hierococcyx-sparverioides",
+      "大鹰鹃",
+      "Hierococcyx sparverioides",
+      100,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:hierococcyx-hyperythrus",
+      "北棕腹鹰鹃",
+      "Hierococcyx hyperythrus",
+      101,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:hierococcyx-nisicolor",
+      "棕腹鹰鹃",
+      "Hierococcyx nisicolor",
+      102,
+      4,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:himantopus-himantopus",
+      "黑翅长脚鹬",
+      "Himantopus himantopus",
+      127,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "bird:fengtoumaiji",
+      "凤头麦鸡",
+      "Vanellus vanellus",
+      129,
+      5,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:charadrius-placidus",
+      "长嘴剑鸻",
+      "Charadrius placidus",
+      135,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:limnodromus-scolopaceus",
+      "长嘴半蹼鹬",
+      "Limnodromus scolopaceus",
+      149,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:phalaropus-lobatus",
+      "红颈瓣蹼鹬",
+      "Phalaropus lobatus",
+      176,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:larus-fuscus",
+      "小黑背银鸥",
+      "Larus fuscus",
+      189,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:larus-smithsonianus",
+      "西伯利亚银鸥",
+      "Larus smithsonianus",
+      190,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:hydroprogne-caspia",
+      "红嘴巨燕鸥",
+      "Hydroprogne caspia",
+      192,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "bird:dongfangbaiguan",
+      "东方白鹳",
+      "Ciconia boyciana",
+      205,
+      5,
+      false,
+      "LEGACY_EXACT_MATCH"
+    ],
+    [
+      "species:gypaetus-barbatus",
+      "胡兀鹫",
+      "Gypaetus barbatus",
+      229,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:aquila-nipalensis",
+      "草原雕",
+      "Aquila nipalensis",
+      241,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:haliaeetus-leucoryphus",
+      "玉带海雕",
+      "Haliaeetus leucoryphus",
+      257,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:ketupa-flavipes",
+      "黄腿渔鸮",
+      "Ketupa flavipes",
+      270,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:athene-noctua",
+      "纵纹腹小鸮",
+      "Athene noctua",
+      276,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:psilopogon-virens",
+      "大拟啄木鸟",
+      "Psilopogon virens",
+      293,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:dryocopus-javensis",
+      "白腹黑啄木鸟",
+      "Dryocopus javensis",
+      304,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:psittacula-derbiana",
+      "大紫胸鹦鹉",
+      "Psittacula derbiana",
+      318,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:pitta-nympha",
+      "仙八色鸫",
+      "Pitta nympha",
+      320,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:calliope-tschebaiewi",
+      "白须黑胸歌鸲",
+      "Calliope tschebaiewi",
+      593,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ],
+    [
+      "species:prunella-koslowi",
+      "贺兰山岩鹨",
+      "Prunella koslowi",
+      677,
+      5,
+      false,
+      "PROVISIONAL_SOURCE_NAME"
+    ]
+  ],
+  "habitatEvidence": [
+    {
+      "speciesId": "species:arborophila-rufipectus",
+      "locality": "四川马鞍山自然保护区",
+      "habitat": "繁殖生境调查",
+      "sourceUrl": "https://cjournal.hep.com.cn/1001-8395/CN/10.3969/j.issn.1001-8395.2026.04.009",
+      "sourceVersion": "2026"
+    },
+    {
+      "speciesId": "species:grus-nigricollis",
+      "locality": "四川若尔盖国际重要湿地",
+      "habitat": "高寒泥炭沼泽湿地；黑颈鹤为主要保护对象之一",
+      "sourceUrl": "https://www.forestry.gov.cn/c/www/sdfc/98735.jhtml",
+      "sourceVersion": "2022-09-23"
+    }
+  ]
+}

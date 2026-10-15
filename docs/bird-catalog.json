@@ -1,0 +1,1603 @@
+[
+  {
+    "id": "bird:xique",
+    "assetKey": "xique",
+    "name": "喜鹊",
+    "characters": [
+      "喜",
+      "鹊"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Pica serica",
+    "family": "Corvidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huixique",
+    "assetKey": "huixique",
+    "name": "灰喜鹊",
+    "characters": [
+      "灰",
+      "喜",
+      "鹊"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Cyanopica cyanus",
+    "family": "Corvidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:bailu",
+    "assetKey": "bailu",
+    "name": "白鹭",
+    "characters": [
+      "白",
+      "鹭"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Egretta garzetta",
+    "family": "Ardeidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": [
+      "小白鹭"
+    ]
+  },
+  {
+    "id": "bird:dabailu",
+    "assetKey": "dabailu",
+    "name": "大白鹭",
+    "characters": [
+      "大",
+      "白",
+      "鹭"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Ardea alba",
+    "family": "Ardeidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:canglu",
+    "assetKey": "canglu",
+    "name": "苍鹭",
+    "characters": [
+      "苍",
+      "鹭"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Ardea cinerea",
+    "family": "Ardeidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yelu",
+    "assetKey": "yelu",
+    "name": "夜鹭",
+    "characters": [
+      "夜",
+      "鹭"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Nycticorax nycticorax",
+    "family": "Ardeidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:chilu",
+    "assetKey": "chilu",
+    "name": "池鹭",
+    "characters": [
+      "池",
+      "鹭"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Ardeola bacchus",
+    "family": "Ardeidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongsun",
+    "assetKey": "hongsun",
+    "name": "红隼",
+    "characters": [
+      "红",
+      "隼"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Falco tinnunculus",
+    "family": "Falconidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baitoubei",
+    "assetKey": "baitoubei",
+    "name": "白头鹎",
+    "characters": [
+      "白",
+      "头",
+      "鹎"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Pycnonotus sinensis",
+    "family": "Pycnonotidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:heishuiji",
+    "assetKey": "heishuiji",
+    "name": "黑水鸡",
+    "characters": [
+      "黑",
+      "水",
+      "鸡"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Gallinula chloropus",
+    "family": "Rallidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zhujingbanjiu",
+    "assetKey": "zhujingbanjiu",
+    "name": "珠颈斑鸠",
+    "characters": [
+      "珠",
+      "颈",
+      "斑",
+      "鸠"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Spilopelia chinensis",
+    "family": "Columbidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shanbanjiu",
+    "assetKey": "shanbanjiu",
+    "name": "山斑鸠",
+    "characters": [
+      "山",
+      "斑",
+      "鸠"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Streptopelia orientalis",
+    "family": "Columbidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongfujinji",
+    "assetKey": "hongfujinji",
+    "name": "红腹锦鸡",
+    "characters": [
+      "红",
+      "腹",
+      "锦",
+      "鸡"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Chrysolophus pictus",
+    "family": "Phasianidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:daisheng",
+    "assetKey": "daisheng",
+    "name": "戴胜",
+    "characters": [
+      "戴",
+      "胜"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Upupa epops",
+    "family": "Upupidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shumaque",
+    "assetKey": "shumaque",
+    "name": "树麻雀",
+    "characters": [
+      "树",
+      "麻",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Passer montanus",
+    "family": "Passeridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": [
+      "麻雀"
+    ]
+  },
+  {
+    "id": "bird:jiayan",
+    "assetKey": "jiayan",
+    "name": "家燕",
+    "characters": [
+      "家",
+      "燕"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Hirundo rustica",
+    "family": "Hirundinidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:jinyaoyan",
+    "assetKey": "jinyaoyan",
+    "name": "金腰燕",
+    "characters": [
+      "金",
+      "腰",
+      "燕"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Cecropis daurica",
+    "family": "Hirundinidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baiyaoyuyan",
+    "assetKey": "baiyaoyuyan",
+    "name": "白腰雨燕",
+    "characters": [
+      "白",
+      "腰",
+      "雨",
+      "燕"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Apus pacificus",
+    "family": "Apodidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baijiling",
+    "assetKey": "baijiling",
+    "name": "白鹡鸰",
+    "characters": [
+      "白",
+      "鹡",
+      "鸰"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Motacilla alba",
+    "family": "Motacillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huangjiling",
+    "assetKey": "huangjiling",
+    "name": "黄鹡鸰",
+    "characters": [
+      "黄",
+      "鹡",
+      "鸰"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Motacilla tschutschensis",
+    "family": "Motacillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huijiling",
+    "assetKey": "huijiling",
+    "name": "灰鹡鸰",
+    "characters": [
+      "灰",
+      "鹡",
+      "鸰"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Motacilla cinerea",
+    "family": "Motacillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shuliu",
+    "assetKey": "shuliu",
+    "name": "树鹨",
+    "characters": [
+      "树",
+      "鹨"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Anthus hodgsoni",
+    "family": "Motacillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shuiliu",
+    "assetKey": "shuiliu",
+    "name": "水鹨",
+    "characters": [
+      "水",
+      "鹨"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Anthus spinoletta",
+    "family": "Motacillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yunque",
+    "assetKey": "yunque",
+    "name": "云雀",
+    "characters": [
+      "云",
+      "雀"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Alauda arvensis",
+    "family": "Alaudidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:xiaoyunque",
+    "assetKey": "xiaoyunque",
+    "name": "小云雀",
+    "characters": [
+      "小",
+      "云",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Alauda gulgula",
+    "family": "Alaudidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:wudong",
+    "assetKey": "wudong",
+    "name": "乌鸫",
+    "characters": [
+      "乌",
+      "鸫"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Turdus mandarinus",
+    "family": "Turdidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huiliangniao",
+    "assetKey": "huiliangniao",
+    "name": "灰椋鸟",
+    "characters": [
+      "灰",
+      "椋",
+      "鸟"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Spodiopsar cineraceus",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:bage",
+    "assetKey": "bage",
+    "name": "八哥",
+    "characters": [
+      "八",
+      "哥"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Acridotheres cristatellus",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:liaoge",
+    "assetKey": "liaoge",
+    "name": "鹩哥",
+    "characters": [
+      "鹩",
+      "哥"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Gracula religiosa",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:siguangliangniao",
+    "assetKey": "siguangliangniao",
+    "name": "丝光椋鸟",
+    "characters": [
+      "丝",
+      "光",
+      "椋",
+      "鸟"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Spodiopsar sericeus",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:beiliangniao",
+    "assetKey": "beiliangniao",
+    "name": "北椋鸟",
+    "characters": [
+      "北",
+      "椋",
+      "鸟"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Agropsar sturninus",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zichiliangniao",
+    "assetKey": "zichiliangniao",
+    "name": "紫翅椋鸟",
+    "characters": [
+      "紫",
+      "翅",
+      "椋",
+      "鸟"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Sturnus vulgaris",
+    "family": "Sturnidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:dashanque",
+    "assetKey": "dashanque",
+    "name": "大山雀",
+    "characters": [
+      "大",
+      "山",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Parus cinereus",
+    "family": "Paridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huangfushanque",
+    "assetKey": "huangfushanque",
+    "name": "黄腹山雀",
+    "characters": [
+      "黄",
+      "腹",
+      "山",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Periparus venustulus",
+    "family": "Paridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zhaozeshanque",
+    "assetKey": "zhaozeshanque",
+    "name": "沼泽山雀",
+    "characters": [
+      "沼",
+      "泽",
+      "山",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Poecile palustris",
+    "family": "Paridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hetoushanque",
+    "assetKey": "hetoushanque",
+    "name": "褐头山雀",
+    "characters": [
+      "褐",
+      "头",
+      "山",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Poecile montanus",
+    "family": "Paridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shanmaque",
+    "assetKey": "shanmaque",
+    "name": "山麻雀",
+    "characters": [
+      "山",
+      "麻",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Passer cinnamomeus",
+    "family": "Passeridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:heidingmaque",
+    "assetKey": "heidingmaque",
+    "name": "黑顶麻雀",
+    "characters": [
+      "黑",
+      "顶",
+      "麻",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Passer ammodendri",
+    "family": "Passeridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yanque",
+    "assetKey": "yanque",
+    "name": "燕雀",
+    "characters": [
+      "燕",
+      "雀"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Fringilla montifringilla",
+    "family": "Fringillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huangque",
+    "assetKey": "huangque",
+    "name": "黄雀",
+    "characters": [
+      "黄",
+      "雀"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Spinus spinus",
+    "family": "Fringillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:jinchique",
+    "assetKey": "jinchique",
+    "name": "金翅雀",
+    "characters": [
+      "金",
+      "翅",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Chloris sinica",
+    "family": "Fringillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongjiaozuique",
+    "assetKey": "hongjiaozuique",
+    "name": "红交嘴雀",
+    "characters": [
+      "红",
+      "交",
+      "嘴",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Loxia curvirostra",
+    "family": "Fringillidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yansun",
+    "assetKey": "yansun",
+    "name": "燕隼",
+    "characters": [
+      "燕",
+      "隼"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Falco subbuteo",
+    "family": "Falconidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yousun",
+    "assetKey": "yousun",
+    "name": "游隼",
+    "characters": [
+      "游",
+      "隼"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Falco peregrinus",
+    "family": "Falconidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:liesun",
+    "assetKey": "liesun",
+    "name": "猎隼",
+    "characters": [
+      "猎",
+      "隼"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Falco cherrug",
+    "family": "Falconidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:putongcuiniao",
+    "assetKey": "putongcuiniao",
+    "name": "普通翠鸟",
+    "characters": [
+      "普",
+      "通",
+      "翠",
+      "鸟"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Alcedo atthis",
+    "family": "Alcedinidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baixiongfeicui",
+    "assetKey": "baixiongfeicui",
+    "name": "白胸翡翠",
+    "characters": [
+      "白",
+      "胸",
+      "翡",
+      "翠"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Halcyon smyrnensis",
+    "family": "Alcedinidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:lanfeicui",
+    "assetKey": "lanfeicui",
+    "name": "蓝翡翠",
+    "characters": [
+      "蓝",
+      "翡",
+      "翠"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Halcyon pileata",
+    "family": "Alcedinidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:sanbaoniao",
+    "assetKey": "sanbaoniao",
+    "name": "三宝鸟",
+    "characters": [
+      "三",
+      "宝",
+      "鸟"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Eurystomus orientalis",
+    "family": "Coraciidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:putongyeying",
+    "assetKey": "putongyeying",
+    "name": "普通夜鹰",
+    "characters": [
+      "普",
+      "通",
+      "夜",
+      "鹰"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Caprimulgus jotaka",
+    "family": "Caprimulgidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baixian",
+    "assetKey": "baixian",
+    "name": "白鹇",
+    "characters": [
+      "白",
+      "鹇"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Lophura nycthemera",
+    "family": "Phasianidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:shaoji",
+    "assetKey": "shaoji",
+    "name": "勺鸡",
+    "characters": [
+      "勺",
+      "鸡"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Pucrasia macrolopha",
+    "family": "Phasianidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:anchun",
+    "assetKey": "anchun",
+    "name": "鹌鹑",
+    "characters": [
+      "鹌",
+      "鹑"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Coturnix japonica",
+    "family": "Phasianidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:lutouya",
+    "assetKey": "lutouya",
+    "name": "绿头鸭",
+    "characters": [
+      "绿",
+      "头",
+      "鸭"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Anas platyrhynchos",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:banzuiya",
+    "assetKey": "banzuiya",
+    "name": "斑嘴鸭",
+    "characters": [
+      "斑",
+      "嘴",
+      "鸭"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Anas zonorhyncha",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:chimaya",
+    "assetKey": "chimaya",
+    "name": "赤麻鸭",
+    "characters": [
+      "赤",
+      "麻",
+      "鸭"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Tadorna ferruginea",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:yuanyang",
+    "assetKey": "yuanyang",
+    "name": "鸳鸯",
+    "characters": [
+      "鸳",
+      "鸯"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Aix galericulata",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:fengtouqianya",
+    "assetKey": "fengtouqianya",
+    "name": "凤头潜鸭",
+    "characters": [
+      "凤",
+      "头",
+      "潜",
+      "鸭"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Aythya fuligula",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:datiane",
+    "assetKey": "datiane",
+    "name": "大天鹅",
+    "characters": [
+      "大",
+      "天",
+      "鹅"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Cygnus cygnus",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:xiaotiane",
+    "assetKey": "xiaotiane",
+    "name": "小天鹅",
+    "characters": [
+      "小",
+      "天",
+      "鹅"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Cygnus columbianus",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongyan",
+    "assetKey": "hongyan",
+    "name": "鸿雁",
+    "characters": [
+      "鸿",
+      "雁"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Anser cygnoides",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:douyan",
+    "assetKey": "douyan",
+    "name": "豆雁",
+    "characters": [
+      "豆",
+      "雁"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Anser fabalis",
+    "family": "Anatidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:dandinghe",
+    "assetKey": "dandinghe",
+    "name": "丹顶鹤",
+    "characters": [
+      "丹",
+      "顶",
+      "鹤"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Grus japonensis",
+    "family": "Gruidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baizhenhe",
+    "assetKey": "baizhenhe",
+    "name": "白枕鹤",
+    "characters": [
+      "白",
+      "枕",
+      "鹤"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Antigone vipio",
+    "family": "Gruidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huihe",
+    "assetKey": "huihe",
+    "name": "灰鹤",
+    "characters": [
+      "灰",
+      "鹤"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Grus grus",
+    "family": "Gruidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:baihe",
+    "assetKey": "baihe",
+    "name": "白鹤",
+    "characters": [
+      "白",
+      "鹤"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Leucogeranus leucogeranus",
+    "family": "Gruidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:suoyuhe",
+    "assetKey": "suoyuhe",
+    "name": "蓑羽鹤",
+    "characters": [
+      "蓑",
+      "羽",
+      "鹤"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Grus virgo",
+    "family": "Gruidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:dongfangbaiguan",
+    "assetKey": "dongfangbaiguan",
+    "name": "东方白鹳",
+    "characters": [
+      "东",
+      "方",
+      "白",
+      "鹳"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Ciconia boyciana",
+    "family": "Ciconiidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:heiguan",
+    "assetKey": "heiguan",
+    "name": "黑鹳",
+    "characters": [
+      "黑",
+      "鹳"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Ciconia nigra",
+    "family": "Ciconiidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:fengtoumaiji",
+    "assetKey": "fengtoumaiji",
+    "name": "凤头麦鸡",
+    "characters": [
+      "凤",
+      "头",
+      "麦",
+      "鸡"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Vanellus vanellus",
+    "family": "Charadriidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:jinkuangheng",
+    "assetKey": "jinkuangheng",
+    "name": "金眶鸻",
+    "characters": [
+      "金",
+      "眶",
+      "鸻"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Thinornis dubius",
+    "family": "Charadriidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huanjingheng",
+    "assetKey": "huanjingheng",
+    "name": "环颈鸻",
+    "characters": [
+      "环",
+      "颈",
+      "鸻"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Anarhynchus alexandrinus",
+    "family": "Charadriidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:heiweichengyu",
+    "assetKey": "heiweichengyu",
+    "name": "黑尾塍鹬",
+    "characters": [
+      "黑",
+      "尾",
+      "塍",
+      "鹬"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Limosa limosa",
+    "family": "Scolopacidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:fanzuiyu",
+    "assetKey": "fanzuiyu",
+    "name": "反嘴鹬",
+    "characters": [
+      "反",
+      "嘴",
+      "鹬"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Recurvirostra avosetta",
+    "family": "Recurvirostridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongzuiou",
+    "assetKey": "hongzuiou",
+    "name": "红嘴鸥",
+    "characters": [
+      "红",
+      "嘴",
+      "鸥"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Chroicocephalus ridibundus",
+    "family": "Laridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:heiweiou",
+    "assetKey": "heiweiou",
+    "name": "黑尾鸥",
+    "characters": [
+      "黑",
+      "尾",
+      "鸥"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Larus crassirostris",
+    "family": "Laridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:putongyanou",
+    "assetKey": "putongyanou",
+    "name": "普通燕鸥",
+    "characters": [
+      "普",
+      "通",
+      "燕",
+      "鸥"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Sterna hirundo",
+    "family": "Laridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:putongluci",
+    "assetKey": "putongluci",
+    "name": "普通鸬鹚",
+    "characters": [
+      "普",
+      "通",
+      "鸬",
+      "鹚"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Phalacrocorax carbo",
+    "family": "Phalacrocoracidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:juanyutihu",
+    "assetKey": "juanyutihu",
+    "name": "卷羽鹈鹕",
+    "characters": [
+      "卷",
+      "羽",
+      "鹈",
+      "鹕"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Pelecanus crispus",
+    "family": "Pelecanidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:bantouxiuliu",
+    "assetKey": "bantouxiuliu",
+    "name": "斑头鸺鹠",
+    "characters": [
+      "斑",
+      "头",
+      "鸺",
+      "鹠"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Glaucidium cuculoides",
+    "family": "Strigidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongjiaoxiao",
+    "assetKey": "hongjiaoxiao",
+    "name": "红角鸮",
+    "characters": [
+      "红",
+      "角",
+      "鸮"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Otus sunia",
+    "family": "Strigidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:changerxiao",
+    "assetKey": "changerxiao",
+    "name": "长耳鸮",
+    "characters": [
+      "长",
+      "耳",
+      "鸮"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Asio otus",
+    "family": "Strigidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:duanerxiao",
+    "assetKey": "duanerxiao",
+    "name": "短耳鸮",
+    "characters": [
+      "短",
+      "耳",
+      "鸮"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Asio flammeus",
+    "family": "Strigidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:dadujuan",
+    "assetKey": "dadujuan",
+    "name": "大杜鹃",
+    "characters": [
+      "大",
+      "杜",
+      "鹃"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Cuculus canorus",
+    "family": "Cuculidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:sishengdujuan",
+    "assetKey": "sishengdujuan",
+    "name": "四声杜鹃",
+    "characters": [
+      "四",
+      "声",
+      "杜",
+      "鹃"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Cuculus micropterus",
+    "family": "Cuculidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zaojuan",
+    "assetKey": "zaojuan",
+    "name": "噪鹃",
+    "characters": [
+      "噪",
+      "鹃"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Eudynamys scolopaceus",
+    "family": "Cuculidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:putongyangji",
+    "assetKey": "putongyangji",
+    "name": "普通秧鸡",
+    "characters": [
+      "普",
+      "通",
+      "秧",
+      "鸡"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Rallus indicus",
+    "family": "Rallidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zongbeibolao",
+    "assetKey": "zongbeibolao",
+    "name": "棕背伯劳",
+    "characters": [
+      "棕",
+      "背",
+      "伯",
+      "劳"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Lanius schach",
+    "family": "Laniidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:hongweibolao",
+    "assetKey": "hongweibolao",
+    "name": "红尾伯劳",
+    "characters": [
+      "红",
+      "尾",
+      "伯",
+      "劳"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Lanius cristatus",
+    "family": "Laniidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:beihongweiqu",
+    "assetKey": "beihongweiqu",
+    "name": "北红尾鸲",
+    "characters": [
+      "北",
+      "红",
+      "尾",
+      "鸲"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Phoenicurus auroreus",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:quequ",
+    "assetKey": "quequ",
+    "name": "鹊鸲",
+    "characters": [
+      "鹊",
+      "鸲"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Copsychus saularis",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:ouyaqu",
+    "assetKey": "ouyaqu",
+    "name": "欧亚鸲",
+    "characters": [
+      "欧",
+      "亚",
+      "鸲"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Erithacus rubecula",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:honghougequ",
+    "assetKey": "honghougequ",
+    "name": "红喉歌鸲",
+    "characters": [
+      "红",
+      "喉",
+      "歌",
+      "鸲"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Calliope calliope",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huamei",
+    "assetKey": "huamei",
+    "name": "画眉",
+    "characters": [
+      "画",
+      "眉"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Garrulax canorus",
+    "family": "Leiothrichidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:wenxuque",
+    "assetKey": "wenxuque",
+    "name": "文须雀",
+    "characters": [
+      "文",
+      "须",
+      "雀"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Panurus biarmicus",
+    "family": "Panuridae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zhendanyanque",
+    "assetKey": "zhendanyanque",
+    "name": "震旦鸦雀",
+    "characters": [
+      "震",
+      "旦",
+      "鸦",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Paradoxornis heudei",
+    "family": "Paradoxornithidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:zongtouyanque",
+    "assetKey": "zongtouyanque",
+    "name": "棕头鸦雀",
+    "characters": [
+      "棕",
+      "头",
+      "鸦",
+      "雀"
+    ],
+    "characterCount": 4,
+    "score": 70,
+    "scientificName": "Suthora webbiana",
+    "family": "Paradoxornithidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:huiwenweng",
+    "assetKey": "huiwenweng",
+    "name": "灰纹鹟",
+    "characters": [
+      "灰",
+      "纹",
+      "鹟"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Muscicapa griseisticta",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:wuweng",
+    "assetKey": "wuweng",
+    "name": "乌鹟",
+    "characters": [
+      "乌",
+      "鹟"
+    ],
+    "characterCount": 2,
+    "score": 10,
+    "scientificName": "Muscicapa sibirica",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  },
+  {
+    "id": "bird:langequ",
+    "assetKey": "langequ",
+    "name": "蓝歌鸲",
+    "characters": [
+      "蓝",
+      "歌",
+      "鸲"
+    ],
+    "characterCount": 3,
+    "score": 30,
+    "scientificName": "Larvivora cyane",
+    "family": "Muscicapidae",
+    "source": "IOC World Bird List v15.2 multilingual master list",
+    "aliases": []
+  }
+]

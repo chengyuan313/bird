@@ -1,0 +1,990 @@
+{
+  "version": "playtest-comparison-v1",
+  "bankVersion": "playtest-bank-v1",
+  "fixedInputs": {
+    "profileId": "standard",
+    "spatialOrder": "seeded-random",
+    "tileCount": 90,
+    "geometryId": "piachan-90-v1",
+    "recognitionCompositions": 103,
+    "seeds": [
+      31,
+      37,
+      43,
+      47,
+      53
+    ],
+    "actionBudget": 140
+  },
+  "strategies": [
+    "always-compose",
+    "random-legal",
+    "capacity-aware",
+    "lookahead",
+    "bounded-planner"
+  ],
+  "groups": [
+    {
+      "group": "A",
+      "attempted": 5,
+      "accepted": 5,
+      "rejected": 0,
+      "uniqueBoardHashes": 5,
+      "replayCertified": 5,
+      "generationMs": 62.020499999999174,
+      "certificationMs": 43.5099999999959
+    },
+    {
+      "group": "B",
+      "attempted": 5,
+      "accepted": 5,
+      "rejected": 0,
+      "uniqueBoardHashes": 5,
+      "replayCertified": 5,
+      "generationMs": 51.843499999998585,
+      "certificationMs": 41.03339999999753
+    },
+    {
+      "group": "C",
+      "attempted": 5,
+      "accepted": 5,
+      "rejected": 0,
+      "uniqueBoardHashes": 5,
+      "replayCertified": 5,
+      "generationMs": 42.09650000000329,
+      "certificationMs": 42.86920000000191
+    }
+  ],
+  "rows": [
+    {
+      "group": "A",
+      "seed": 31,
+      "id": "experiment:experimental-difficulty-v1:standard:consecutive:seeded-random:31:283385d73be8e57dc93e16b57f99f08967851d561b5f3ee8fe9bf121c6ff5dd2",
+      "boardHash": "283385d73be8e57dc93e16b57f99f08967851d561b5f3ee8fe9bf121c6ff5dd2",
+      "contentAttempts": 1,
+      "generationMs": 30.299199999999928,
+      "certificationMs": 15.14059999999995,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 67,
+        "witnessMaxTray": 4,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          17
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 16,
+          "remainingTiles": 76,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 16,
+          "remainingTiles": 76,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 60,
+          "remainingTiles": 45,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 17,
+          "remainingTiles": 75,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 124,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 44
+        }
+      }
+    },
+    {
+      "group": "B",
+      "seed": 31,
+      "id": "experiment:experimental-difficulty-v1:standard:paired:seeded-random:31:e11c19a39d7da01fd153d738708dbbc49274337127aa5e66015f7496e0320685",
+      "boardHash": "e11c19a39d7da01fd153d738708dbbc49274337127aa5e66015f7496e0320685",
+      "contentAttempts": 1,
+      "generationMs": 14.400699999999688,
+      "certificationMs": 10.017100000000028,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 67,
+        "witnessMaxTray": 7,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          16
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 35,
+          "remainingTiles": 63,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 8
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 23,
+          "remainingTiles": 71,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 15
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 88,
+          "remainingTiles": 25,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 22
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 124,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 39
+        }
+      }
+    },
+    {
+      "group": "C",
+      "seed": 31,
+      "id": "experiment:experimental-difficulty-v1:standard:multi-name:seeded-random:31:ab793bbc66461c9f12d5a7d7e960db71dadf230e1fe2791b5352a1c95ed034bb",
+      "boardHash": "ab793bbc66461c9f12d5a7d7e960db71dadf230e1fe2791b5352a1c95ed034bb",
+      "contentAttempts": 1,
+      "generationMs": 14.673500000000786,
+      "certificationMs": 5.609799999999268,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 67,
+        "witnessMaxTray": 10,
+        "witnessHighPressureActions": 11,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          17
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 16,
+          "remainingTiles": 76,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 44,
+          "remainingTiles": 56,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 22,
+          "remainingTiles": 72,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 120,
+          "remainingTiles": 1,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 41
+        }
+      }
+    },
+    {
+      "group": "A",
+      "seed": 37,
+      "id": "experiment:experimental-difficulty-v1:standard:consecutive:seeded-random:37:73e2556e3ea399afcdee2ea36409d080cc932d9d77b09f0abb6077852b9adfd7",
+      "boardHash": "73e2556e3ea399afcdee2ea36409d080cc932d9d77b09f0abb6077852b9adfd7",
+      "contentAttempts": 1,
+      "generationMs": 7.457000000000335,
+      "certificationMs": 6.059799999999086,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 38,
+        "witnessMaxTray": 4,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          14
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 13,
+          "remainingTiles": 78,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 11
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 40,
+          "remainingTiles": 59,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 24,
+          "remainingTiles": 70,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 121,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 59
+        }
+      }
+    },
+    {
+      "group": "B",
+      "seed": 37,
+      "id": "experiment:experimental-difficulty-v1:standard:paired:seeded-random:37:b090dd72841b9373981f8256e0e63d45270b98f985d7e2e224b935235236006b",
+      "boardHash": "b090dd72841b9373981f8256e0e63d45270b98f985d7e2e224b935235236006b",
+      "contentAttempts": 1,
+      "generationMs": 15.379699999999502,
+      "certificationMs": 10.736399999999776,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 38,
+        "witnessMaxTray": 8,
+        "witnessHighPressureActions": 1,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          14
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 16,
+          "remainingTiles": 76,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 11
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 96,
+          "remainingTiles": 18,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 28
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 24,
+          "remainingTiles": 70,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 13
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 52,
+          "remainingTiles": 50,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 17
+        }
+      }
+    },
+    {
+      "group": "C",
+      "seed": 37,
+      "id": "experiment:experimental-difficulty-v1:standard:multi-name:seeded-random:37:9e9abba6e7332a3005a5aa8bea3ddd3a18de3c022dcf365bfee389977f65209b",
+      "boardHash": "9e9abba6e7332a3005a5aa8bea3ddd3a18de3c022dcf365bfee389977f65209b",
+      "contentAttempts": 1,
+      "generationMs": 7.14770000000135,
+      "certificationMs": 11.476399999999558,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 38,
+        "witnessMaxTray": 9,
+        "witnessHighPressureActions": 10,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          14
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 28,
+          "remainingTiles": 68,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 11
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 116,
+          "remainingTiles": 3,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 22
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 26,
+          "remainingTiles": 69,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 121,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 41
+        }
+      }
+    },
+    {
+      "group": "A",
+      "seed": 43,
+      "id": "experiment:experimental-difficulty-v1:standard:consecutive:seeded-random:43:a7cdadf8ffadae055cfe2253b6c3537d47053ea8ccaa521ff9b3b7d3ba169942",
+      "boardHash": "a7cdadf8ffadae055cfe2253b6c3537d47053ea8ccaa521ff9b3b7d3ba169942",
+      "contentAttempts": 1,
+      "generationMs": 9.074399999997695,
+      "certificationMs": 11.45890000000145,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 30,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 50,
+        "witnessMaxTray": 4,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          16,
+          17
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 37,
+          "remainingTiles": 61,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 29,
+          "remainingTiles": 67,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 20
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 108,
+          "remainingTiles": 10,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 37,
+          "remainingTiles": 61,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 7
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 122,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 60
+        }
+      }
+    },
+    {
+      "group": "B",
+      "seed": 43,
+      "id": "experiment:experimental-difficulty-v1:standard:paired:seeded-random:43:f60c0dba9819d1b85476fd6345cc56bd821d184a12bddc24406b5ff606034938",
+      "boardHash": "f60c0dba9819d1b85476fd6345cc56bd821d184a12bddc24406b5ff606034938",
+      "contentAttempts": 1,
+      "generationMs": 7.467799999998533,
+      "certificationMs": 7.113600000000588,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 30,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 50,
+        "witnessMaxTray": 8,
+        "witnessHighPressureActions": 1,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          17
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 28,
+          "remainingTiles": 67,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 5
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 17,
+          "remainingTiles": 75,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 122,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 36
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 23,
+          "remainingTiles": 71,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 8
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 82,
+          "remainingTiles": 30,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 52
+        }
+      }
+    },
+    {
+      "group": "C",
+      "seed": 43,
+      "id": "experiment:experimental-difficulty-v1:standard:multi-name:seeded-random:43:2734460f5beb985ef8e8b5fe237946e8ea2e87622d963d89fcc832c407dda588",
+      "boardHash": "2734460f5beb985ef8e8b5fe237946e8ea2e87622d963d89fcc832c407dda588",
+      "contentAttempts": 1,
+      "generationMs": 7.215400000000955,
+      "certificationMs": 8.091800000001967,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 30,
+        "ambiguousCharacters": 20,
+        "competingCompositionPairs": 50,
+        "witnessMaxTray": 10,
+        "witnessHighPressureActions": 15,
+        "checkpointLegalChoices": [
+          19,
+          17,
+          16
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 27,
+          "remainingTiles": 68,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 17
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 62,
+          "remainingTiles": 43,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 21
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 30,
+          "remainingTiles": 66,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 69,
+          "remainingTiles": 38,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 49
+        }
+      }
+    },
+    {
+      "group": "A",
+      "seed": 47,
+      "id": "experiment:experimental-difficulty-v1:standard:consecutive:seeded-random:47:ecb4fbb4767157e00b803ecce5f4eb326d41b1398cfbfbfafeb60b0922f03738",
+      "boardHash": "ecb4fbb4767157e00b803ecce5f4eb326d41b1398cfbfbfafeb60b0922f03738",
+      "contentAttempts": 1,
+      "generationMs": 8.876299999999901,
+      "certificationMs": 5.653499999996711,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 13,
+        "competingCompositionPairs": 56,
+        "witnessMaxTray": 4,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          13
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 13,
+          "remainingTiles": 78,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 4
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 48,
+          "remainingTiles": 53,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 17,
+          "remainingTiles": 75,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 61,
+          "remainingTiles": 44,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 17
+        }
+      }
+    },
+    {
+      "group": "B",
+      "seed": 47,
+      "id": "experiment:experimental-difficulty-v1:standard:paired:seeded-random:47:334fd586e2611e180f1cb01df05747597e9c912830d452f58a19f7c905205d86",
+      "boardHash": "334fd586e2611e180f1cb01df05747597e9c912830d452f58a19f7c905205d86",
+      "contentAttempts": 1,
+      "generationMs": 6.791199999999662,
+      "certificationMs": 7.807600000000093,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 13,
+        "competingCompositionPairs": 56,
+        "witnessMaxTray": 6,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          16,
+          13
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 13,
+          "remainingTiles": 78,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 10
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 40,
+          "remainingTiles": 59,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 7
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 68,
+          "remainingTiles": 38,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 30
+        }
+      }
+    },
+    {
+      "group": "C",
+      "seed": 47,
+      "id": "experiment:experimental-difficulty-v1:standard:multi-name:seeded-random:47:106b7f2571d76558653b364faff9b6192753420cc747f4303342bd5d2fe7abfc",
+      "boardHash": "106b7f2571d76558653b364faff9b6192753420cc747f4303342bd5d2fe7abfc",
+      "contentAttempts": 1,
+      "generationMs": 6.535700000000361,
+      "certificationMs": 9.930199999998877,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 31,
+        "ambiguousCharacters": 13,
+        "competingCompositionPairs": 56,
+        "witnessMaxTray": 9,
+        "witnessHighPressureActions": 10,
+        "checkpointLegalChoices": [
+          19,
+          16,
+          15
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 29,
+          "remainingTiles": 67,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 28,
+          "remainingTiles": 68,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 16
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 75,
+          "remainingTiles": 34,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 11
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 8
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 55,
+          "remainingTiles": 48,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 20
+        }
+      }
+    },
+    {
+      "group": "A",
+      "seed": 53,
+      "id": "experiment:experimental-difficulty-v1:standard:consecutive:seeded-random:53:dd7e35675d30b23408b73b54b04e870d90bb22eee1a7b665feb219b28f0fe152",
+      "boardHash": "dd7e35675d30b23408b73b54b04e870d90bb22eee1a7b665feb219b28f0fe152",
+      "contentAttempts": 1,
+      "generationMs": 6.3136000000013155,
+      "certificationMs": 5.197199999998702,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 17,
+        "competingCompositionPairs": 48,
+        "witnessMaxTray": 4,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          14,
+          12
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 12
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 60,
+          "remainingTiles": 44,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 13
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 23,
+          "remainingTiles": 71,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 122,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 20
+        }
+      }
+    },
+    {
+      "group": "B",
+      "seed": 53,
+      "id": "experiment:experimental-difficulty-v1:standard:paired:seeded-random:53:96b4ca893606bbcfc1be690d1324a1a7748f1e42dbd4f5e89ae2165cf5205fad",
+      "boardHash": "96b4ca893606bbcfc1be690d1324a1a7748f1e42dbd4f5e89ae2165cf5205fad",
+      "contentAttempts": 1,
+      "generationMs": 7.804100000001199,
+      "certificationMs": 5.358699999997043,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 17,
+        "competingCompositionPairs": 48,
+        "witnessMaxTray": 7,
+        "witnessHighPressureActions": 0,
+        "checkpointLegalChoices": [
+          19,
+          15,
+          12
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 19,
+          "remainingTiles": 74,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 16,
+          "remainingTiles": 76,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "capacity-aware": {
+          "status": "LOST",
+          "actions": 97,
+          "remainingTiles": 18,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 32
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 5
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 122,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 24
+        }
+      }
+    },
+    {
+      "group": "C",
+      "seed": 53,
+      "id": "experiment:experimental-difficulty-v1:standard:multi-name:seeded-random:53:7aa916e7966d537a23804249cd66d57175365079270eda787c5f44fd3bcdf923",
+      "boardHash": "7aa916e7966d537a23804249cd66d57175365079270eda787c5f44fd3bcdf923",
+      "contentAttempts": 1,
+      "generationMs": 6.524199999999837,
+      "certificationMs": 7.761000000002241,
+      "replayCertified": true,
+      "features": {
+        "tileCount": 90,
+        "layerCount": 4,
+        "initialExposed": 19,
+        "feasibleCompositions": 29,
+        "ambiguousCharacters": 17,
+        "competingCompositionPairs": 48,
+        "witnessMaxTray": 10,
+        "witnessHighPressureActions": 14,
+        "checkpointLegalChoices": [
+          19,
+          16,
+          12
+        ]
+      },
+      "strategies": {
+        "always-compose": {
+          "status": "LOST",
+          "actions": 14,
+          "remainingTiles": 77,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 3
+        },
+        "random-legal": {
+          "status": "LOST",
+          "actions": 14,
+          "remainingTiles": 77,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 6
+        },
+        "capacity-aware": {
+          "status": "WON",
+          "actions": 123,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 9
+        },
+        "lookahead": {
+          "status": "LOST",
+          "actions": 20,
+          "remainingTiles": 73,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 10
+        },
+        "bounded-planner": {
+          "status": "LOST",
+          "actions": 122,
+          "remainingTiles": 0,
+          "maxTrayOccupancy": 10,
+          "highPressureActions": 15
+        }
+      }
+    }
+  ]
+}

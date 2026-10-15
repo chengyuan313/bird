@@ -1,15 +1,68 @@
-export type GamePhase = 'playing' | 'game_over';
+export type GamePhase = 'playing' | 'game_over' | 'level_complete';
 
 export interface BirdDefinition {
   id: string;
   name: string;
   characters: readonly string[];
+  characterCount: number;
   score: number;
   assetKey: string;
+  scientificName: string;
+  family: string;
+  source: string;
+  aliases?: readonly string[];
+  legacyOnly?: boolean;
+  canonicalBirdId?: string;
+}
+
+/** A playable spelling; multiple spellings may identify the same species. */
+export interface BirdComposition {
+  id: string;
+  classification: 'canonical' | 'alias' | 'group';
+  speciesId: string | null;
+  name: string;
+  characters: readonly string[];
+  score: number;
+  assetKey: string;
+  provenance: string;
 }
 export interface RackTile {
   id: string;
   character: string;
+}
+
+export type TileRegion = 'main' | 'auxiliary' | 'blind';
+
+export interface BoardTileDefinition {
+  id: string;
+  character: string;
+  layer: number;
+  x: number;
+  y: number;
+  blockedBy: readonly string[];
+  region?: TileRegion;
+}
+
+export interface BoardTile extends BoardTileDefinition {
+  removed: boolean;
+}
+
+export type WinningAction =
+  | { type: 'take'; tileId: string }
+  | { type: 'compose'; birdId: string };
+
+export interface LevelDefinition {
+  id: string;
+  label: string;
+  seed?: number;
+  puzzleId?: string;
+  experimentGroup?: 'A' | 'B' | 'C';
+  catalog?: readonly BirdDefinition[];
+  compositions?: readonly BirdComposition[];
+  /** Authoritative playable spelling occurrences, including repeats. */
+  wordOccurrences?: readonly string[];
+  tiles: readonly BoardTileDefinition[];
+  winningSolution: readonly WinningAction[];
 }
 
 export interface CompletedBird {
@@ -19,14 +72,22 @@ export interface CompletedBird {
 }
 
 export interface GameState {
-  seed: number;
-  rngState: number;
-  rack: Array<RackTile | null>;
-  currentOffer: string[];
-  selectedRackTileIds: string[];
+  levelId: string;
+  levelSeed?: number;
+  puzzleId?: string;
+  experimentGroup?: 'A' | 'B' | 'C';
+  activeCatalog: readonly BirdDefinition[];
+  activeCompositions: readonly BirdComposition[];
+  gameplayRulesetVersion: string;
+  /** Immutable starting quotas for this puzzle. */
+  compositionQuotas: Readonly<Record<string, number>>;
+  remainingCompositionQuotas: Readonly<Record<string, number>>;
+  boardTiles: BoardTile[];
+  tray: Array<RackTile | null>;
   score: number;
+  completedBirdCount: number;
+  /** Biological species IDs, not playable-spelling IDs. */
   discoveredBirdIds: string[];
   lastCompletedBird: CompletedBird | null;
   phase: GamePhase;
-  nextTileId: number;
 }
