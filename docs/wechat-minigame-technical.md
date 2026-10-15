@@ -4,6 +4,8 @@
 
 ## 构建与导入
 
+无需 AppID 的浏览器界面预览：启动 Vite 后打开 `/bird/?preview=wechat`（本机默认 `http://localhost:5173/bird/?preview=wechat`）。这个入口直接挂载同一个 `WechatBirdStage` Canvas 舞台，可切换 320×568 / 390×844，模拟安全区、鼠标与触屏操作；它不使用网页版的长页面对局 UI。浏览器预览仅用于快速评审布局和操作，不能替代微信运行时或真机验收。
+
 在仓库根目录使用现有依赖运行 `node tools/buildWechat.mjs`（或 `pnpm run build:wechat`）。产物是忽略版本控制的 `dist-wechat/game.js` 与 `dist-wechat/game.json`；没有 WXML、DOM、AppID、远程资源、源凭据。构建走 Vite 的内联 `configFile: false`，避免 Windows sandbox 的 Vite 配置打包权限问题；没有新增全局包。将 `dist-wechat` 作为“小程序/小游戏”项目目录导入微信开发者工具，并由仓库所有者在开发者工具中提供自己的小游戏 AppID。**不能以网页 URL 或本地 VM 烟测代替微信开发者工具/真机验收。**
 
 入口 `src/wechat/game.ts` 只依赖 `wx.createCanvas`、触摸事件、安全区窗口信息与 `wx` 本地存储。舞台 `src/wechat/stage.ts` 接收 Canvas2D、视口、安全区与存储接口，因此可在浏览器 Canvas 测试壳中复用。存储键 `bird.wechat.v1` 独立于网页存档，记录完成 puzzle ID 与发现物种；胜利结算一次，胜利后不能撤销，失败后可连续撤销。若本地存储不可用，本局仍能游玩，但跨启动进度无法保证。

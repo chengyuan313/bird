@@ -16,7 +16,9 @@ import { PlaytestStatistics } from './ui/playtestStatistics';
 const root = document.querySelector<HTMLElement>('#app');
 if (!root) throw new Error('Missing #app root element.');
 
-if (window.location.pathname.endsWith('/preview/piachan')) {
+if (window.location.pathname.endsWith('/preview/wechat') || new URLSearchParams(window.location.search).get('preview') === 'wechat') {
+  void import('./preview/wechatPreview').then(({ mountWechatPreview }) => mountWechatPreview(root));
+} else if (window.location.pathname.endsWith('/preview/piachan')) {
   void import('./preview/piachanPreview').then(({ mountPiachanPreview }) => mountPiachanPreview(root));
 } else {
   let storage: Storage | null = null;
