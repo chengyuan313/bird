@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "regional-review-v6.0.0",
+  "source": "https://yllhj.beijing.gov.cn/ztxx/ysdw/ml/202504/t20250422_4071634.shtml",
+  "sourceName": "北京市园林绿化局：北京陆生野生动物名录—鸟类",
+  "sourceVersion": "2025-04-21",
+  "reviewedAt": "2026-10-12",
+  "rightsNote": "Factual regional occurrence and taxon-name references only; no source list, media, or record database redistributed",
+  "accepted": [
+    { "regionId": "CN-BJ", "speciesId": "bird:bailu", "acceptedName": "白鹭", "scientificName": "Egretta garzetta", "sourceRow": 203 },
+    { "regionId": "CN-BJ", "speciesId": "bird:yelu", "acceptedName": "夜鹭", "scientificName": "Nycticorax nycticorax", "sourceRow": 195 },
+    { "regionId": "CN-BJ", "speciesId": "bird:chilu", "acceptedName": "池鹭", "scientificName": "Ardeola bacchus", "sourceRow": 197 },
+    { "regionId": "CN-BJ", "speciesId": "bird:canglu", "acceptedName": "苍鹭", "scientificName": "Ardea cinerea", "sourceRow": 199 },
+    { "regionId": "CN-BJ", "speciesId": "bird:daisheng", "acceptedName": "戴胜", "scientificName": "Upupa epops", "sourceRow": 251 },
+    { "regionId": "CN-BJ", "speciesId": "bird:hongsun", "acceptedName": "红隼", "scientificName": "Falco tinnunculus", "sourceRow": 268 },
+    { "regionId": "CN-BJ", "speciesId": "bird:wudong", "acceptedName": "乌鸫", "scientificName": "Turdus mandarinus", "sourceRow": 398 },
+    { "regionId": "CN-BJ", "speciesId": "bird:huixique", "acceptedName": "灰喜鹊", "scientificName": "Cyanopica cyanus", "sourceRow": 292 },
+    { "regionId": "CN-BJ", "speciesId": "bird:dabailu", "acceptedName": "大白鹭", "scientificName": "Ardea alba", "sourceRow": 201 },
+    { "regionId": "CN-BJ", "speciesId": "bird:dashanque", "acceptedName": "大山雀", "scientificName": "Parus cinereus", "sourceRow": 308 }
+  ],
+  "editorialQueue": [
+    { "regionId": "CN-BJ", "name": "喜鹊", "sourceScientificName": "Pica pica", "registryScientificName": "Pica serica", "status": "TAXON_CONFLICT" },
+    { "regionId": "CN-BJ", "name": "麻雀", "sourceScientificName": "Passer montanus", "registryScientificName": "Passer montanus (树麻雀)", "status": "NAME_REVIEW" },
+    { "regionId": "CN-LN", "name": "", "sourceScientificName": "", "registryScientificName": "", "status": "SOURCE_REVIEW_PENDING" },
+    { "regionId": "CN-GD", "name": "", "sourceScientificName": "", "registryScientificName": "", "status": "SOURCE_REVIEW_PENDING" },
+    { "regionId": "CN-YN", "name": "", "sourceScientificName": "", "registryScientificName": "", "status": "SOURCE_REVIEW_PENDING" },
+    { "regionId": "CN-SC", "name": "", "sourceScientificName": "", "registryScientificName": "", "status": "SOURCE_REVIEW_PENDING" }
+  ]
+}
