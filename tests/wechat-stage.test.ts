@@ -15,7 +15,9 @@ function canvasContext(): CanvasRenderingContext2D {
 function fixture(width = 320, height = 568, safeTop = 44, safeBottom = 534) {
   const values = new Map<string, unknown>();
   const stage = new WechatBirdStage(canvasContext(), { width, height, safeTop, safeBottom },
-    { get: (key) => values.get(key), set: (key, value) => { values.set(key, value); } });
+    { get: (key) => values.get(key), set: (key, value) => { values.set(key, value); } },
+    undefined, undefined, { startAtHome: false });
+  stage.openPuzzle(1, 1);
   return { stage, values };
 }
 function center(box: HitBox): [number, number] { return [box.x + box.width / 2, box.y + box.height / 2]; }
@@ -157,13 +159,16 @@ describe('native WeChat Canvas stage', () => {
     stage.render();
     assertWechatTouchTargets(stage);
     click(stage, 'home');
+    click(stage, 'levels');
     assertWechatTouchTargets(stage);
-    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:4')).toBe(false);
-    click(stage, 'home-next');
+    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:3')).toBe(false);
+    click(stage, 'page-next');
     assertWechatTouchTargets(stage);
-    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:4')).toBe(true);
-    click(stage, 'home-prev');
-    click(stage, 'overlay-close');
+    expect(stage.snapshot().controls.some((item) => item.id === 'open:2:3')).toBe(true);
+    click(stage, 'page-prev');
+    click(stage, 'scene-back');
+    click(stage, 'continue-game');
+    click(stage, 'tutorial-close');
     click(stage, 'undo');
     expect(stage.snapshot().phase).toBe('playing');
     click(stage, 'undo');
@@ -277,16 +282,17 @@ describe('native WeChat Canvas stage', () => {
   it('opens all 25 certified Sichuan puzzle identities from the fixed HUD home scene', () => {
     const { stage } = fixture();
     click(stage, 'home');
+    click(stage, 'levels');
     const found = new Set<string>();
     for (let page = 0; page < 25; page++) {
       assertWechatTouchTargets(stage);
       for (const control of stage.snapshot().controls) if (control.id.startsWith('open:')) found.add(control.id);
-      if (!stage.snapshot().controls.some((item) => item.id === 'home-next')) break;
-      click(stage, 'home-next');
+      if (!stage.snapshot().controls.some((item) => item.id === 'page-next')) break;
+      click(stage, 'page-next');
     }
     expect(found.size).toBe(25);
-    click(stage, 'open:5:1');
-    expect(stage.snapshot().puzzleId).toBe(getRegionalV7Puzzle('CN-SC', 5, 1)!.record.puzzleId);
+    click(stage, 'open:5:5');
+    expect(stage.snapshot().puzzleId).toBe(getRegionalV7Puzzle('CN-SC', 5, 5)!.record.puzzleId);
     expect(stage.snapshot().remainingTiles).toBe(90);
   });
 

@@ -66,7 +66,10 @@ export function mountWechatPreview(root: HTMLElement): void {
   const stage = new WechatBirdStage(context, viewport(), storage,
     { createImage: () => new window.Image(),
       pathFor: (key) => iconPaths[`../wechat/assets/png/ic_${key}@2x.png`] },
-    { vibrate: () => {}, requestFrame: (callback) => { window.requestAnimationFrame(callback); } });
+    { vibrate: () => {}, requestFrame: (callback) => { window.requestAnimationFrame(callback); },
+      copyText: async (text) => {
+        try { await window.navigator.clipboard.writeText(text); return true; } catch { return false; }
+      } });
   const previewTier = Number(params.get('tier'));
   const previewStage = Number(params.get('stage'));
   if (Number.isInteger(previewTier) && previewTier >= 1 && previewTier <= 5 &&
@@ -109,7 +112,11 @@ export function mountWechatPreview(root: HTMLElement): void {
     activePointers.delete(event.pointerId); stage.touchCancel();
   });
   window.addEventListener('resize', fit);
-  // The fixed scene itself has no page scrolling; only the board viewport pans.
+  window.addEventListener('pagehide', () => stage.suspend());
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stage.suspend(); else stage.resume();
+  });
+  // All scenes use a fixed viewport and paginated content.
   shell.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
   fit();
 }

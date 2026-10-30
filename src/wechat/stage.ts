@@ -1,9 +1,12 @@
-import { composeBird, createGameFromLevel, findPlayableBirds, getExposedBoardTiles,
+import { composeBird, createGameFromLevel, findPlayableBirds, GAMEPLAY_RULESET_VERSION, getExposedBoardTiles,
   selectBoardTile } from '../core/gameEngine';
-import { carryForwardRegionalV7Completions, getRegionalV7Puzzle } from '../core/regionalV7Puzzles';
+import { carryForwardRegionalV7Completions, getRegionalV7Puzzle, REGIONAL_V7_PUZZLES } from '../core/regionalV7Puzzles';
 import { geometryForTier } from '../core/regionalV7Geometry';
-import type { RegionalTier } from '../core/regionalV7Data';
-import type { GameState } from '../core/types';
+import { REGIONAL_V7_CONTENT_VERSION, REGIONAL_V7_SOURCES, V7_SPECIES_MASTER, type RegionalTier } from '../core/regionalV7Data';
+import type { GameState, WinningAction } from '../core/types';
+import { DEFAULT_PREFERENCES, readPreferences, restoreWechatSession, WECHAT_PREFERENCES_KEY, WECHAT_SESSION_KEY,
+  type WechatPreferences, type WechatSession } from './session';
+import { collectionSpecies, drawExplorationPage, explorationPageSize, type ExplorationScene } from './exploration';
 import { computeBoardMetrics, computeDenseBoardPage, computeDenseTutorialMetrics, computeLayout } from './ui/ui-layout';
 import { color, font } from './ui/ui-tokens';
 import { drawBoardPage, drawCoveredTile, drawExposedTile, drawPrimaryButton,
@@ -31,6 +34,7 @@ export interface WechatStageAssets {
 export interface WechatStageEffects {
   vibrate(type: 'light' | 'medium' | 'heavy'): void;
   requestFrame?(callback: () => void): void;
+  copyText?(text: string): Promise<boolean>;
 }
 export interface HitBox {
   id: string;
@@ -55,7 +59,12 @@ export interface WechatStageSnapshot {
   boardHeight: number;
   safeTop: number;
   safeBottom: number;
-  overlay: 'none' | 'words' | 'compose-list' | 'tile-picker' | 'result' | 'home';
+  overlay: 'none' | 'words' | 'compose-list' | 'tile-picker' | 'result' | 'tutorial' | 'switch-confirm';
+  scene: ExplorationScene;
+  hasSession: boolean;
+  preferences: Readonly<WechatPreferences>;
+  discoveredSpeciesIds: readonly string[];
+  status: string;
   controls: readonly HitBox[];
   visibleTileHits: readonly HitBox[];
   cutTileHits: readonly HitBox[];
@@ -89,6 +98,20 @@ export class WechatBirdStage {
   private history: GameState[] = [];
   private undoRemaining = UNDO_PER_PUZZLE;
   private progress: SavedProgress;
+  private preferences: WechatPreferences = { ...DEFAULT_PREFERENCES };
+  private scene: ExplorationScene = 'landing';
+  private actions: WinningAction[] = [];
+  private hasSession = false;
+  private page = 0;
+  private collectionPage = 0;
+  private tierFilter = 0;
+  private discoveredOnly = false;
+  private speciesId: string | null = null;
+  private storageWarning = '';
+  private pageStatus = '';
+  private tutorialStep = 0;
+  private tutorialReturn: ExplorationScene = 'game';
+  private pendingPuzzle: { tier: RegionalTier; stageIndex: number } | null = null;
   private panX = 0;
   private panY = 0;
   private pressedTileId: string | null = null;
@@ -100,7 +123,6 @@ export class WechatBirdStage {
   private composePage = 0;
   private composeIndex = 0;
   private pickerPage = 0;
-  private homePage = 0;
   private notice: { name: string; isNew: boolean; speciesCount: number } | null = null;
   private noticeSequence = 0;
   private initialDiscoveredIds = new Set<string>();
@@ -114,10 +136,25 @@ export class WechatBirdStage {
 
   constructor(private readonly context: CanvasRenderingContext2D,
     private viewport: WechatViewport, private readonly store: WechatStore,
-    assets?: WechatStageAssets, private readonly effects?: WechatStageEffects) {
+    assets?: WechatStageAssets, private readonly effects?: WechatStageEffects,
+    options: { startAtHome?: boolean } = {}) {
     this.progress = loadProgress(store);
     this.initialDiscoveredIds = new Set(this.progress.discoveredSpeciesIds);
     this.state = createGameFromLevel(getRegionalV7Puzzle('CN-SC', 1, 1)!.level);
+    try {
+      this.preferences = readPreferences(store.get(WECHAT_PREFERENCES_KEY));
+      const saved = store.get(WECHAT_SESSION_KEY);
+      const restored = restoreWechatSession(saved);
+      if (restored) {
+        this.tier = restored.session.tier; this.stageIndex = restored.session.stageIndex;
+        this.state = restored.state; this.history = restored.history;
+        this.actions = restored.session.actions; this.undoRemaining = restored.session.undoRemaining;
+        this.hasSession = true;
+      } else if (saved != null) {
+        this.storageWarning = '旧对局无法恢复，通关与观察记录仍保留。';
+      }
+    } catch { this.storageWarning = '本机存档暂不可用，退出可能丢失进度。'; }
+    if (options.startAtHome === false) this.scene = 'game';
     if (assets) for (const key of ['back', 'pin', 'pan', 'undo', 'wordbook', 'retry']) {
       const image = assets.createImage();
       image.onload = () => { this.loadedImages.add(key); this.render(); };
@@ -197,6 +234,19 @@ export class WechatBirdStage {
     const { metrics } = display;
     this.hits = []; this.tileHits = []; this.cutTileHits = []; this.stackHits = [];
     ctx.fillStyle = color.paper; ctx.fillRect(0, 0, this.viewport.width, this.viewport.height);
+    if (this.scene !== 'game') {
+      drawExplorationPage(ctx, { scene: this.scene, width: this.viewport.width, top: layout.ui.topBar.y,
+        bottom: layout.safeBottom, completed: this.progress.completedPuzzleIds,
+        discovered: this.knownSpecies(), page: this.page, tierFilter: this.tierFilter,
+        discoveredOnly: this.discoveredOnly, speciesId: this.speciesId,
+        resumeLabel: this.hasSession ? `D${this.tier} · 第 ${this.stageIndex} 局` : null,
+        vibration: this.preferences.vibration, motion: this.preferences.motion,
+        status: this.pageStatus || this.storageWarning }, {
+        button: (...args) => this.button(...args), text: (...args) => this.label(...args),
+      });
+      if (this.overlay === 'tutorial') this.drawTutorial(layout);
+      return;
+    }
     const boardPage = this.tier <= 2
       ? computeDenseBoardPage(layout.ui.board, metrics)
       : layout.ui.board;
@@ -340,7 +390,7 @@ export class WechatBirdStage {
       ctx.fillStyle = color.ink; ctx.font = `900 25px ${font.serifFallback}`;
       ctx.textAlign = 'left'; ctx.fillText(notice.name, x + 102, y + 54,
         this.viewport.width - x - 136);
-      this.label(`已记入观察手册 · 第 ${notice.speciesCount} 种`, x + 102, y + 80, 11, color.muted);
+      this.label(this.state.phase === 'level_complete' ? `已记入观察手册 · 第 ${notice.speciesCount} 种` : '通关后记入观察手册', x + 102, y + 80, 11, color.muted);
       ctx.fillStyle = color.seal; ctx.font = `700 18px ${font.serifFallback}`;
       ctx.textAlign = 'right'; ctx.fillText('新', this.viewport.width - 30, y + 24);
     } else {
@@ -349,8 +399,22 @@ export class WechatBirdStage {
   }
 
   private drawOverlay(layout: ReturnType<WechatBirdStage['layout']>): void {
+    if (this.overlay === 'tutorial') { this.drawTutorial(layout); return; }
+    if (this.overlay === 'switch-confirm') {
+      const { safeTop, safeBottom } = layout;
+      const y = safeTop + (safeBottom - safeTop - 230) / 2;
+      this.context.fillStyle = color.scrimPause;
+      this.context.fillRect(0, 0, this.viewport.width, this.viewport.height);
+      drawBoardPage(this.context, 12, y, this.viewport.width - 24, 230);
+      this.hits = [];
+      this.label('要开始另一局吗？', 28, y + 34, 21, color.ink);
+      this.label('当前对局会被替换，已通关记录保留。', 28, y + 72, 13, color.muted);
+      this.button('switch-confirm', '开始所选关卡', 28, y + 104, this.viewport.width - 56, 44);
+      this.button('switch-cancel', '保留当前对局', 28, y + 160, this.viewport.width - 56, 44);
+      return;
+    }
     const ctx = this.context;
-    const fullScreen = this.overlay === 'words' || this.overlay === 'home' ||
+    const fullScreen = this.overlay === 'words' ||
       (this.overlay === 'result' && layout.board.height < 300);
     const x = fullScreen ? 12 : this.overlay === 'compose-list' ? 12 : 24;
     const resultHeight = Math.min(300, layout.board.height - 40);
@@ -367,25 +431,7 @@ export class WechatBirdStage {
     ctx.fillStyle = fullScreen ? color.page : color.card; ctx.fill();
     ctx.strokeStyle = color.line; ctx.stroke();
     this.hits = [];
-    if (this.overlay === 'home') {
-      const pageSize = Math.max(2, Math.floor((height - 110) / 52) * 2);
-      const pages = Math.ceil(25 / pageSize);
-      this.homePage = clamp(this.homePage, 0, pages - 1);
-      this.label(`四川 · 选择关卡 ${this.homePage + 1}/${pages}`, x + 12, y + 25, 17);
-      for (let index = this.homePage * pageSize + 1; index <= Math.min(25, (this.homePage + 1) * pageSize); index++) {
-        const column = (index - this.homePage * pageSize - 1) % 2;
-        const row = Math.floor((index - this.homePage * pageSize - 1) / 2);
-        const tier = Math.floor((index - 1) / 5) + 1;
-        const stageIndex = ((index - 1) % 5) + 1;
-        this.button(`open:${tier}:${stageIndex}`, `D${tier} · 第${stageIndex}局`, x + 12 + column * ((width - 30) / 2 + 6),
-          y + 56 + row * 52, (width - 42) / 2, 46);
-      }
-      if (pages > 1) {
-        this.button('home-prev', '上一页', x + 12, y + height - 52, 78, 44, this.homePage > 0);
-        this.button('home-next', '下一页', x + 96, y + height - 52, 78, 44, this.homePage + 1 < pages);
-      }
-      this.button('overlay-close', '返回', x + width - 90, y + height - 52, 78, 44);
-    } else if (this.overlay === 'words') {
+    if (this.overlay === 'words') {
       this.label('本关词表', x + 16, y + 27, 22, color.ink);
       this.label(`四川 · D${this.tier}  可用 ${this.state.activeCompositions.length} 个鸟名 · 已拼出 ${this.state.completedBirdCount} 次`,
         x + 16, y + 59, 11, color.muted);
@@ -495,35 +541,94 @@ export class WechatBirdStage {
     }
   }
 
+  private knownSpecies(): string[] {
+    return V7_SPECIES_MASTER.filter((bird) => this.progress.discoveredSpeciesIds.includes(bird.id)).map((bird) => bird.id);
+  }
+  private writeStorage(key: string, value: unknown): void {
+    try { this.store.set(key, value); }
+    catch { this.storageWarning = '本机存档暂不可用，退出可能丢失进度。'; }
+  }
+  private savePreferences(): void { this.writeStorage(WECHAT_PREFERENCES_KEY, this.preferences); }
+  saveSession(): void {
+    if (!this.hasSession || this.state.phase === 'level_complete') return;
+    const puzzle = getRegionalV7Puzzle('CN-SC', this.tier, this.stageIndex)!;
+    const session: WechatSession = { version: 1, rulesetVersion: GAMEPLAY_RULESET_VERSION,
+      contentVersion: REGIONAL_V7_CONTENT_VERSION, puzzleId: puzzle.record.puzzleId,
+      boardHash: puzzle.record.boardHash, tier: this.tier, stageIndex: this.stageIndex,
+      actions: this.actions.map((action) => ({ ...action })), undoRemaining: this.undoRemaining };
+    this.writeStorage(WECHAT_SESSION_KEY, session);
+  }
+  suspend(): void {
+    this.touchCancel(); this.flight = null; this.notice = null; this.noticeSequence++;
+    this.saveSession();
+  }
+  resume(): void { this.framePending = false; this.touchCancel(); this.render(); }
+  private showScene(scene: ExplorationScene): void {
+    this.scene = scene; this.overlay = 'none'; this.page = 0; this.pageStatus = '';
+    this.notice = null; this.noticeSequence++; this.flight = null; this.touchOrigin = null;
+    this.pressedTileId = null; this.render();
+  }
+  private beginPuzzle(tier: RegionalTier, stageIndex: number): void {
+    this.openPuzzle(tier, stageIndex);
+    if (!this.preferences.tutorialSeen) {
+      this.tutorialStep = 0; this.tutorialReturn = 'game'; this.overlay = 'tutorial'; this.render();
+    }
+  }
+  private requestPuzzle(tier: RegionalTier, stageIndex: number): void {
+    if (this.hasSession && this.actions.length && this.state.phase !== 'level_complete') {
+      this.pendingPuzzle = { tier, stageIndex }; this.scene = 'game';
+      this.overlay = 'switch-confirm'; this.render();
+    } else this.beginPuzzle(tier, stageIndex);
+  }
+  private drawTutorial(layout: ReturnType<WechatBirdStage['layout']>): void {
+    const y = layout.safeTop + (layout.safeBottom - layout.safeTop - 240) / 2;
+    const steps = [
+      ['点亮起的字', '亮起的木牌可以拿取，被压住的字要先揭开。', '点一下，字就进入下方字槽。'],
+      ['凑齐鸟名再组词', '字的先后顺序不限，凑齐后点「组词」。', '本关词表可查看全部鸟名与剩余次数。'],
+      ['留意十格字槽', '字槽满且不能组词时，这局就失败了。', '每局可撤销 3 次；也可以重试同一道题。'],
+    ];
+    this.context.fillStyle = color.scrimPause;
+    this.context.fillRect(0, 0, this.viewport.width, this.viewport.height);
+    drawBoardPage(this.context, 12, y, this.viewport.width - 24, 240);
+    this.hits = [];
+    this.label(`玩法 ${this.tutorialStep + 1}/3`, 28, y + 28, 13, color.teal);
+    this.label(steps[this.tutorialStep][0], 28, y + 66, 24, color.ink);
+    this.label(steps[this.tutorialStep][1], 28, y + 103, 13, color.muted);
+    this.label(steps[this.tutorialStep][2], 28, y + 130, 13, color.muted);
+    this.button('tutorial-next', this.tutorialStep < 2 ? '下一步' : '知道了', 28, y + 161, this.viewport.width - 56, 44);
+    this.button('tutorial-close', '跳过说明', this.viewport.width - 106, y + 12, 78, 44);
+  }
   resize(viewport: WechatViewport): void { this.viewport = viewport; this.render(); }
   openPuzzle(tier: RegionalTier, stageIndex: number): void {
     const puzzle = getRegionalV7Puzzle('CN-SC', tier, stageIndex);
     if (!puzzle) throw new Error(`Unknown Sichuan puzzle D${tier}-${stageIndex}`);
     this.tier = tier; this.stageIndex = stageIndex;
     this.state = createGameFromLevel(puzzle.level);
+    this.scene = 'game'; this.hasSession = true; this.actions = [];
     this.history = []; this.undoRemaining = UNDO_PER_PUZZLE;
     this.panX = 0; this.panY = 0;
     this.pressedTileId = null; this.flight = null; this.overlay = 'none';
     this.wordPage = 0; this.composePage = 0; this.composeIndex = 0;
     this.notice = null; this.noticeSequence++;
     this.initialDiscoveredIds = new Set(this.progress.discoveredSpeciesIds);
-    this.pickerPage = 0; this.homePage = 0; this.render();
+    this.pickerPage = 0; this.saveSession(); this.render();
   }
-  private transition(next: GameState): void {
+  private transition(next: GameState, action: WinningAction): void {
     if (next === this.state) return;
     const newlyTaken = next.boardTiles.find((tile) => tile.removed &&
       !this.state.boardTiles.find((previous) => previous.id === tile.id)?.removed);
-    if (newlyTaken && this.effects?.requestFrame) {
+    if (newlyTaken && this.preferences.motion && this.effects?.requestFrame) {
       const from = this.tileHits.find((hit) => hit.id === newlyTaken.id);
       const slot = this.layout().ui.slotCells[this.state.tray.findIndex((tile) => tile === null)];
       if (from && slot) this.flight = { character: newlyTaken.character,
         fromX: from.x + from.width / 2 - 17, fromY: from.y + from.height / 2 - 20,
         toX: slot.x + slot.w / 2 - 14, toY: slot.y + slot.h / 2 - 18, started: Date.now() };
     }
-    if (next.phase === 'game_over' && this.state.phase !== 'game_over') this.effects?.vibrate('heavy');
-    else if (next.completedBirdCount > this.state.completedBirdCount) this.effects?.vibrate('medium');
-    else if (next.boardTiles.filter((tile) => tile.removed).length > this.state.boardTiles.filter((tile) => tile.removed).length)
-      this.effects?.vibrate('light');
+    if (this.preferences.vibration) {
+      if (next.phase === 'game_over' && this.state.phase !== 'game_over') this.effects?.vibrate('heavy');
+      else if (next.completedBirdCount > this.state.completedBirdCount) this.effects?.vibrate('medium');
+      else if (newlyTaken) this.effects?.vibrate('light');
+    }
     if (next.completedBirdCount > this.state.completedBirdCount && next.lastCompletedBird) {
       const bird = next.activeCompositions.find((item) => item.id === next.lastCompletedBird!.birdId);
       if (bird) {
@@ -539,14 +644,22 @@ export class WechatBirdStage {
       }
     }
     this.history.push(this.state);
+    this.actions.push(action); this.hasSession = true;
     this.state = next;
     this.composeIndex = 0;
     if (next.phase === 'level_complete') {
       this.progress = { version: 1,
         completedPuzzleIds: [...new Set([...this.progress.completedPuzzleIds, next.puzzleId!])],
         discoveredSpeciesIds: [...new Set([...this.progress.discoveredSpeciesIds, ...next.discoveredBirdIds])] };
-      try { this.store.set(WECHAT_STORAGE_KEY, this.progress); } catch { /* Keep current win when storage is unavailable. */ }
-    }
+      this.writeStorage(WECHAT_STORAGE_KEY, this.progress);
+      // Only clear the old session after the completion was saved. If progress
+      // storage fails, retain the pre-win session so the final action can retry.
+      try {
+        const saved = this.store.get(WECHAT_STORAGE_KEY) as SavedProgress | undefined;
+        if (saved?.completedPuzzleIds.includes(next.puzzleId!)) this.writeStorage(WECHAT_SESSION_KEY, null);
+      } catch { /* The last pre-win checkpoint remains recoverable. */ }
+      this.hasSession = false;
+    } else this.saveSession();
     this.render();
   }
   undo(): void {
@@ -554,7 +667,8 @@ export class WechatBirdStage {
     const previous = this.history.pop();
     if (!previous) return;
     this.undoRemaining--;
-    this.state = previous; this.overlay = 'none'; this.render();
+    this.actions.pop();
+    this.state = previous; this.overlay = 'none'; this.saveSession(); this.render();
   }
   retry(): void { this.openPuzzle(this.tier, this.stageIndex); }
 
@@ -595,19 +709,73 @@ export class WechatBirdStage {
   tap(x: number, y: number): void {
     const control = this.hits.find((hit) => inside(hit, x, y));
     if (control) {
-      if (control.id === 'undo') this.undo();
+      if (control.id === 'scene-back') {
+        const parent = this.scene === 'species' ? 'collection' : this.scene === 'sources' ? 'settings' : 'landing';
+        this.showScene(parent);
+        if (parent === 'collection') { this.page = this.collectionPage; this.render(); }
+      }
+      else if (control.id === 'continue-game') {
+        this.showScene('game');
+        if (!this.preferences.tutorialSeen) {
+          this.tutorialStep = 0; this.tutorialReturn = 'game'; this.overlay = 'tutorial'; this.render();
+        }
+      }
+      else if (control.id === 'start-game') {
+        const next = REGIONAL_V7_PUZZLES.find((item) => !this.progress.completedPuzzleIds.includes(item.record.puzzleId)) ?? REGIONAL_V7_PUZZLES[0];
+        this.beginPuzzle(next.record.tier, next.record.stageIndex);
+      }
+      else if (['levels', 'collection', 'settings', 'sources'].includes(control.id)) this.showScene(control.id as ExplorationScene);
+      else if (control.id === 'page-prev' || control.id === 'page-next') {
+        const size = explorationPageSize(this.layout().ui.topBar.y, this.layout().safeBottom, this.scene === 'collection');
+        const total = this.scene === 'collection' ? collectionSpecies({ tierFilter: this.tierFilter,
+          discoveredOnly: this.discoveredOnly, discovered: this.knownSpecies() }).length : 25;
+        this.page = clamp(this.page + (control.id === 'page-prev' ? -1 : 1), 0, Math.max(0, Math.ceil(total / size) - 1));
+        this.render();
+      }
+      else if (control.id === 'filter-tier') { this.tierFilter = (this.tierFilter + 1) % 6; this.page = 0; this.render(); }
+      else if (control.id === 'filter-discovered') { this.discoveredOnly = !this.discoveredOnly; this.page = 0; this.render(); }
+      else if (control.id.startsWith('species:')) {
+        this.collectionPage = this.page; this.speciesId = control.id.slice(8); this.showScene('species');
+      }
+      else if (control.id === 'toggle-vibration' || control.id === 'toggle-motion') {
+        if (control.id === 'toggle-vibration') this.preferences.vibration = !this.preferences.vibration;
+        else { this.preferences.motion = !this.preferences.motion; this.flight = null; }
+        this.savePreferences(); this.render();
+      }
+      else if (control.id === 'help') {
+        this.tutorialReturn = this.scene; this.tutorialStep = 0; this.overlay = 'tutorial'; this.render();
+      }
+      else if (control.id === 'tutorial-next' || control.id === 'tutorial-close') {
+        if (control.id === 'tutorial-next' && this.tutorialStep < 2) this.tutorialStep++;
+        else {
+          this.preferences.tutorialSeen = true; this.savePreferences();
+          this.overlay = 'none'; this.scene = this.tutorialReturn;
+        }
+        this.render();
+      }
+      else if (control.id === 'copy-source') {
+        this.pageStatus = '正在复制…'; this.render();
+        const sourceScene = this.scene;
+        Promise.resolve().then(() => this.effects?.copyText?.(REGIONAL_V7_SOURCES[0].url) ?? false)
+          .then((ok) => { if (this.scene === sourceScene) { this.pageStatus = ok ? '已复制来源链接' : '复制失败，请在支持的环境重试'; this.render(); } })
+          .catch(() => { if (this.scene === sourceScene) { this.pageStatus = '复制失败，请在支持的环境重试'; this.render(); } });
+      }
+      else if (control.id === 'switch-confirm' && this.pendingPuzzle) {
+        const target = this.pendingPuzzle; this.pendingPuzzle = null;
+        this.beginPuzzle(target.tier, target.stageIndex);
+      }
+      else if (control.id === 'switch-cancel') { this.pendingPuzzle = null; this.showScene('levels'); }
+      else if (control.id === 'undo') this.undo();
       else if (control.id === 'retry') this.retry();
       else if (control.id === 'next-puzzle') {
         if (this.stageIndex < 5) this.openPuzzle(this.tier, this.stageIndex + 1);
         else if (this.tier < 5) this.openPuzzle((this.tier + 1) as RegionalTier, 1);
-        else { this.overlay = 'home'; this.render(); }
+        else this.showScene('landing');
       }
-      else if (control.id === 'home') { this.overlay = 'home'; this.render(); }
-      else if (control.id === 'home-prev') { this.homePage--; this.render(); }
-      else if (control.id === 'home-next') { this.homePage++; this.render(); }
+      else if (control.id === 'home') { this.saveSession(); this.showScene('landing'); }
       else if (control.id.startsWith('open:')) {
         const [, tier, index] = control.id.split(':');
-        this.openPuzzle(Number(tier) as RegionalTier, Number(index));
+        this.requestPuzzle(Number(tier) as RegionalTier, Number(index));
       }
       else if (control.id === 'words') { this.overlay = 'words'; this.render(); }
       else if (control.id === 'words-prev') { this.wordPage--; this.render(); }
@@ -628,21 +796,21 @@ export class WechatBirdStage {
           this.composeIndex = findPlayableBirds(this.state).findIndex((bird) => bird.id === control.id.slice(8));
           this.overlay = 'none'; this.render();
         } else {
-          this.overlay = 'none'; this.transition(composeBird(this.state, control.id.slice(8)));
+          this.overlay = 'none'; this.transition(composeBird(this.state, control.id.slice(8)), { type: 'compose', birdId: control.id.slice(8) });
         }
       }
       else if (control.id.startsWith('pick:')) {
-        this.overlay = 'none'; this.transition(selectBoardTile(this.state, control.id.slice(5)));
+        this.overlay = 'none'; this.transition(selectBoardTile(this.state, control.id.slice(5)), { type: 'take', tileId: control.id.slice(5) });
       }
       return;
     }
-    if (this.overlay !== 'none' || this.state.phase !== 'playing') return;
+    if (this.scene !== 'game' || this.overlay !== 'none' || this.state.phase !== 'playing') return;
     const board = this.layout().board;
     if (!inside(board, x, y)) return;
     const topmost = [...this.stackHits].reverse().find((item) => inside(item.box, x, y));
     if (topmost && !topmost.available) return;
     const matching = this.tileHits.filter((hit) => inside(hit, x, y));
-    if (matching.length === 1) this.transition(selectBoardTile(this.state, matching[0].id));
+    if (matching.length === 1) this.transition(selectBoardTile(this.state, matching[0].id), { type: 'take', tileId: matching[0].id });
     else if (matching.length > 1) {
       this.pickerIds = matching.map((item) => item.id);
       this.pickerPage = 0;
@@ -662,6 +830,8 @@ export class WechatBirdStage {
       boardHeight: display.metrics.contentH + display.offsetY + 6,
       safeTop: this.layout().safeTop, safeBottom: this.layout().safeBottom,
       overlay: this.overlay, controls: [...this.hits], visibleTileHits: [...this.tileHits],
+      scene: this.scene, hasSession: this.hasSession, preferences: { ...this.preferences },
+      discoveredSpeciesIds: this.knownSpecies(), status: this.pageStatus || this.storageWarning,
       cutTileHits: [...this.cutTileHits],
       completedPuzzleIds: [...this.progress.completedPuzzleIds] };
   }

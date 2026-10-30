@@ -26,6 +26,9 @@ interface WxGameApi {
   onTouchEnd(callback: (event: WxTouchEvent) => void): void;
   onTouchCancel?(callback: (event: WxTouchEvent) => void): void;
   onWindowResize?(callback: () => void): void;
+  onHide?(callback: () => void): void;
+  onShow?(callback: () => void): void;
+  setClipboardData?(options: { data: string; success(): void; fail(): void }): void;
   getStorageSync(key: string): unknown;
   setStorageSync(key: string, value: unknown): void;
 }
@@ -59,6 +62,10 @@ const store: WechatStore = { get: (key) => wx.getStorageSync(key), set: (key, va
 const stage = new WechatBirdStage(context, logicalViewport(info), store,
   wx.createImage ? { createImage: () => wx.createImage!(), pathFor: (key) => `assets/png/ic_${key}@2x.png` } : undefined,
   { vibrate: (type) => wx.vibrateShort?.({ type }),
+    copyText: (text) => new Promise((resolve) => {
+      if (!wx.setClipboardData) { resolve(false); return; }
+      wx.setClipboardData({ data: text, success: () => resolve(true), fail: () => resolve(false) });
+    }),
     requestFrame: (callback) => {
       if (canvas.requestAnimationFrame) canvas.requestAnimationFrame(callback);
       else setTimeout(callback, 16);
@@ -74,6 +81,8 @@ wx.onTouchMove((event) => {
 });
 wx.onTouchEnd((event) => { const touch = firstTouch(event); if (touch) stage.touchEnd(touch.clientX, touch.clientY); });
 wx.onTouchCancel?.(() => stage.touchCancel());
+wx.onHide?.(() => stage.suspend());
+wx.onShow?.(() => stage.resume());
 wx.onWindowResize?.(() => {
   const next = windowInfo();
   const ratio = Math.max(1, next.pixelRatio ?? 1);
